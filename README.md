@@ -50,14 +50,25 @@ chmod +x scripts/train.sh
 # Submit the job to Slurm
 scripts/train.sh
 ```
-## train.py
-This script performs adversarial training for a GAN. Before running it, ensure the `DATA` variable in `scripts/train.sh` points to your dataset directory. If left unchanged, the script will create a default `data` folder in the repository root. If you use Juliet, no changes are required—the default path is already configured. You can adjust the learning rate, number of epochs, and batch size directly in `scripts/train.sh`.
+## Workflow du groupe
+
+Choix et justifications détaillés : [architecture-choix.md](architecture-choix.md).
+
+| Étape | Commande |
+|---|---|
+| Entraîner | `python train.py --config configs/baseline.yaml` (sorties dans `runs/<name>/`, `--resume` pour reprendre) |
+| Suivre | `tensorboard --logdir runs` |
+| Évaluer | `python evaluate.py --checkpoint runs/<name>/G.pth` ou `--samples samples` (FID, precision, recall → `results.csv`) |
+| Tuner | `python tune.py --config configs/baseline.yaml --n-trials 20 --epochs 20` (Optuna, `runs/optuna.db`) |
+| Rendre | `cp runs/<name>/G.pth checkpoints/G.pth` puis `python generate.py` |
+
+Sur Juliet : `scripts/train.sh [config]`, `scripts/tune.sh [config] [n_trials]`, `scripts/generate.sh` (`DATA` y est déjà configuré). Hors Juliet, MNIST est téléchargé dans `data/`. Les hyperparamètres se règlent dans le YAML (`configs/`), pas dans les scripts.
 
 ## generate.py
-Use the file *generate.py* to generate 10000 samples of MNIST in the folder samples. You can launch this script on juliet with `scripts/generate.sh`
+Use the file *generate.py* to generate 10000 samples of MNIST in the folder samples, from `checkpoints/G.pth` (or `--checkpoint <path>`). Outputs are rescaled to [0, 1]. You can launch this script on juliet with `scripts/generate.sh`
 
 Example:
-  > python3 generate.py --bacth_size 64
+  > python3 generate.py --batch_size 64
 
 or 
 
