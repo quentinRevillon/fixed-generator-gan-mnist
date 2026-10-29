@@ -59,8 +59,8 @@ def D_train(x, G, D, D_optimizer, criterion, device):
     D_loss = D_real_loss + D_fake_loss
     D_loss.backward()
     D_optimizer.step()
-        
-    return  D_loss.data.item()
+
+    return D_loss.data.item(), D_real_score.mean().item(), D_fake_score.mean().item()
 
 
 def G_train(x, G, D, G_optimizer, criterion, device):

@@ -1,11 +1,13 @@
 #!/bin/bash
-name="test_train_datalab"
+# Usage : scripts/train.sh [configs/xxx.yaml]
+config=${1:-configs/baseline.yaml}
 outdir="outputs"
 n_gpu=1
 export DATA="/projects/m25146/data/"
+mkdir -p ${outdir}
 
-    echo "Launching test for $name"
-    
+    echo "Launching training with ${config}"
+
     sbatch <<EOT
 #!/bin/bash
 #SBATCH -p mesonet 
@@ -19,7 +21,6 @@ export DATA="/projects/m25146/data/"
 #SBATCH --output=${outdir}/%x_%j.out  # Standard output and error log
 #SBATCH --error=${outdir}/%x_%j.err  # Error log
 source venv/bin/activate
-# Run your training script
-python train.py --epochs 10 --lr 0.0002 --batch_size 64 --gpus ${n_gpu} 
+# Ajouter --resume pour reprendre un run coupé par la limite de temps
+python train.py --config ${config}
 EOT
-
