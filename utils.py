@@ -107,7 +107,8 @@ def load_ckpt(path, G, D, G_opt, D_opt, device):
 
 
 def load_model(G, folder, device):
-    ckpt_path = os.path.join(folder,'G.pth')
+    # folder peut aussi être directement un fichier .pth
+    ckpt_path = folder if folder.endswith('.pth') else os.path.join(folder,'G.pth')
     ckpt = torch.load(ckpt_path, map_location=device)
     G.load_state_dict({k.replace('module.', ''): v for k, v in ckpt.items()})
     return G
