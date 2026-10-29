@@ -10,6 +10,7 @@ import yaml
 from torch.utils.tensorboard import SummaryWriter
 from torchvision import datasets, transforms
 
+from evaluate import evaluate, generate, report
 from model import Generator, Discriminator
 from utils import (D_train, G_train, load_config, set_seed, git_commit, get_device,
                    save_ckpt, load_ckpt, unwrap)
@@ -65,6 +66,7 @@ def train(cfg, resume=False, trial=None):
     writer = SummaryWriter(run_dir)
     fixed_z = torch.randn(64, Z_DIM, generator=torch.Generator().manual_seed(0)).to(device)
     n_epochs, save_every = cfg['train']['epochs'], cfg['output']['save_every']
+    ev = cfg['eval']
     print(f'Run {run_dir} | device {device.type} | {len(dataset)} images | époques {start}->{n_epochs}')
 
     t0, metrics = time.time(), {}
@@ -85,6 +87,23 @@ def train(cfg, resume=False, trial=None):
             grid = (G(fixed_z).view(-1, 1, 28, 28) + 1) / 2
         writer.add_image('samples', torchvision.utils.make_grid(grid, nrow=8), epoch)
 
+        # Évaluation FID / precision / recall tous les eval.every (et à la dernière époque)
+        evaluated = ev['every'] and (epoch % ev['every'] == 0 or epoch == n_epochs)
+        if evaluated:
+            images = generate(unwrap(G), ev['n_samples'], device)
+            m = evaluate(images, device, ev['k'])
+            for key in ('fid', 'precision', 'recall'):
+                writer.add_scalar(f'eval/{key}', m[key], epoch)
+            writer.add_histogram('eval/classes', torch.arange(10).repeat_interleave(torch.tensor(m['classes'])), epoch,
+                                 bins=np.arange(11) - 0.5)
+            metrics.update(m)
+            if trial is not None:  # Optuna : rapport intermédiaire + abandon des essais peu prometteurs
+                import optuna
+                trial.report(m['fid'], epoch)
+                if trial.should_prune():
+                    writer.close()
+                    raise optuna.TrialPruned()
+
         # Checkpoints : last.pth + G.pth à chaque époque, epoch_XXX.pth tous les save_every
         save_ckpt(last_path, G, D, G_opt, D_opt, epoch, cfg['seed'])
         torch.save(unwrap(G).state_dict(), os.path.join(run_dir, 'G.pth'))
@@ -94,11 +113,14 @@ def train(cfg, resume=False, trial=None):
         # Progression
         elapsed = time.time() - t0
         per_epoch = elapsed / (epoch - start + 1)
+        scores = f" | FID={m['fid']:.2f} P={m['precision']:.3f} R={m['recall']:.3f}" if evaluated else ''
         print(f'[{epoch:03d}/{n_epochs}] D={stats[0]:.3f} G={stats[1]:.3f} '
-              f'D(x)={stats[2]:.2f} D(G(z))={stats[3]:.2f} | {time.time() - t_ep:.1f}s/ep | '
+              f'D(x)={stats[2]:.2f} D(G(z))={stats[3]:.2f}{scores} | {time.time() - t_ep:.1f}s/ep | '
               f'écoulé {fmt(elapsed)} | restant ~{fmt(per_epoch * (n_epochs - epoch))}', flush=True)
 
     writer.close()
+    if 'fid' in metrics:  # grille 10x10 + ligne dans results.csv
+        report(cfg['name'], metrics, images, os.path.join(run_dir, 'grid.png'))
     print(f'Entraînement terminé en {fmt(time.time() - t0)}. Générateur : {run_dir}/G.pth')
     return metrics
 
