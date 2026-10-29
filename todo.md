@@ -1,0 +1,3 @@
+- [] créer branche baseline / réentrainer le modèle dessus avec splits et hyperparamètres figés 
+- [] créer une branche eval
+- [] créer chacun u
