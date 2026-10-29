@@ -104,9 +104,10 @@ def train(cfg, resume=False, trial=None):
                     writer.close()
                     raise optuna.TrialPruned()
 
-        # Checkpoints : last.pth + G.pth à chaque époque, epoch_XXX.pth tous les save_every
+        # Checkpoints : last.pth + G.pth / D.pth à chaque époque, epoch_XXX.pth tous les save_every
         save_ckpt(last_path, G, D, G_opt, D_opt, epoch, cfg['seed'])
         torch.save(unwrap(G).state_dict(), os.path.join(run_dir, 'G.pth'))
+        torch.save(unwrap(D).state_dict(), os.path.join(run_dir, 'D.pth'))
         if epoch % save_every == 0 or epoch == n_epochs:
             save_ckpt(os.path.join(run_dir, 'ckpt', f'epoch_{epoch:03d}.pth'), G, D, G_opt, D_opt, epoch, cfg['seed'])
 

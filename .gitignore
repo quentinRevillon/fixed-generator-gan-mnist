@@ -17,6 +17,12 @@ outputs/
 # macOS
 .DS_Store
 
-# Runs (checkpoints, TensorBoard, Optuna)
-runs/
+# Grilles produites par evaluate.py hors des runs
 grid*.png
+
+# Runs : tout est ignoré sauf G.pth et grid.png (légers) ; essais Optuna entièrement ignorés
+runs/**
+!runs/**/
+!runs/**/G.pth
+!runs/**/grid.png
+runs/**/trial_*/**

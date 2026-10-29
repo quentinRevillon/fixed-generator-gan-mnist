@@ -15,7 +15,7 @@ generate.py                10 000 images dans samples/ (interface imposée)
 scripts/{train,tune,generate}.sh   lancement Slurm sur Juliet
 checkpoints/G.pth          modèle rendu (lu par generate.py)
 checkpoints/mnist_classifier.pth   extracteur de features partagé pour l'évaluation
-runs/<name>/               sorties d'un run (ignoré par git)
+runs/<name>/               sorties d'un run (seuls G.pth et grid.png sont versionnés)
 results.csv                une ligne par évaluation (versionné)
 ```
 
@@ -50,13 +50,14 @@ Tout le monde compare ses méthodes **à cette baseline**, en ne changeant qu'un
 Un run écrit dans `runs/<name>/` (`name` et `output.dir` sont dans le YAML) :
 - `config.yaml` : la config exacte + `git_commit` ;
 - `events.out.tfevents.*` : les logs TensorBoard ;
-- `G.pth` : le générateur seul, au même format que `checkpoints/G.pth` ;
+- `G.pth` et `D.pth` : le générateur et le discriminateur seuls, au même format que `checkpoints/` ;
 - `ckpt/last.pth` à chaque époque, et `ckpt/epoch_XXX.pth` tous les `save_every`. Ils contiennent G, D, les deux optimiseurs et l'époque ;
 - `grid.png` : 100 images générées en fin de run.
 
 **Pourquoi :**
 - **Rien n'est jamais écrasé :** relancer un run qui existe déjà s'arrête avec un message.
 - **Reprise possible :** `--resume` repart de `last.pth`, utile quand Slurm coupe un job à sa limite de temps.
+- **Ce qui est versionné :** seulement `G.pth` (environ 6 Mo) et `grid.png`, pour comparer les modèles et alimenter le rapport. Les `ckpt/` (34 Mo chacun), `D.pth`, les logs TensorBoard et les essais Optuna restent locaux.
 - **Promotion explicite :** le modèle rendu reste `checkpoints/G.pth`. On le remplace volontairement par le meilleur run avec `cp runs/<name>/G.pth checkpoints/G.pth`.
 
 ## 6. TensorBoard plutôt que Weights & Biases
