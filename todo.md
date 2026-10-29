@@ -1,3 +1,6 @@
+- [] tous se créer un compte sur mesonet
+- [] configure W&B
+- [] Utiliser Optuna
 - [] créer branche baseline / réentrainer le modèle dessus avec splits et hyperparamètres figés 
 - [] créer une branche eval
-- [] créer chacun u
+- [] créer les branches nico/preprocessing noe/training quentin/inference
