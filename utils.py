@@ -1,5 +1,35 @@
 import torch
 import os
+import random
+import subprocess
+import numpy as np
+import yaml
+
+
+def load_config(path):
+    with open(path) as f:
+        return yaml.safe_load(f)
+
+
+def git_commit():
+    try:
+        return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'], text=True).strip()
+    except Exception:
+        return 'unknown'
+
+
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+
+
+def get_device():
+    if torch.cuda.is_available():
+        return torch.device('cuda')
+    if torch.backends.mps.is_available():
+        return torch.device('mps')
+    return torch.device('cpu')
 
 
 
@@ -55,6 +85,25 @@ def G_train(x, G, D, G_optimizer, criterion, device):
 def save_models(G, D, folder):
     torch.save(G.state_dict(), os.path.join(folder,'G.pth'))
     torch.save(D.state_dict(), os.path.join(folder,'D.pth'))
+
+
+def unwrap(model):
+    return model.module if isinstance(model, torch.nn.DataParallel) else model
+
+
+def save_ckpt(path, G, D, G_opt, D_opt, epoch, seed):
+    torch.save({'G': unwrap(G).state_dict(), 'D': unwrap(D).state_dict(),
+                'G_opt': G_opt.state_dict(), 'D_opt': D_opt.state_dict(),
+                'epoch': epoch, 'seed': seed}, path)
+
+
+def load_ckpt(path, G, D, G_opt, D_opt, device):
+    ckpt = torch.load(path, map_location=device)
+    unwrap(G).load_state_dict(ckpt['G'])
+    unwrap(D).load_state_dict(ckpt['D'])
+    G_opt.load_state_dict(ckpt['G_opt'])
+    D_opt.load_state_dict(ckpt['D_opt'])
+    return ckpt['epoch']
 
 
 def load_model(G, folder, device):

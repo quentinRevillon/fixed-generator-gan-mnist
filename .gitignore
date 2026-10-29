@@ -16,3 +16,6 @@ outputs/
 
 # macOS
 .DS_Store
+
+# Runs (checkpoints, TensorBoard, Optuna)
+runs/

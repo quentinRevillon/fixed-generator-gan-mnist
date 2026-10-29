@@ -5,3 +5,6 @@ tqdm
 torch
 torchvision
 pillow
+pyyaml
+tensorboard
+optuna
