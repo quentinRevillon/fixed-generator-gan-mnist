@@ -53,6 +53,7 @@ scripts/train.sh
 ## Workflow du groupe
 
 Choix et justifications détaillés : [architecture-choix.md](architecture-choix.md).
+Volet Entraînement (perte R3GAN, résultats et exemples) : [training-r3gan.md](training-r3gan.md).
 
 | Étape | Commande |
 |---|---|
