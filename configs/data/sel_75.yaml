@@ -1,0 +1,35 @@
+# Volet Données : budget commun de 120 000 mises à jour. Voir rapport-donnée.md.
+name: sel_75            # dossier de sortie : <output.dir>/<name>/
+seed: 0
+
+data:
+  path: data              # remplacé par $DATA si défini (Juliet) ; pas de validation croisée
+  selection:              # Instance Selection : garder les images les plus denses
+    enabled: true
+    keep: 0.75             # fraction gardée
+    per_class: true       # true : dans chaque classe ; false : sur tout le dataset
+    space: classifier     # classifier (features) ou pixels (ACP à 50 dim)
+  instance_noise:         # bruit gaussien sur les entrées de D, réelles et générées
+    enabled: false
+    sigma: 0.1            # écart-type initial, images dans [-1, 1]
+    anneal_epochs: 100    # décroissance linéaire vers 0 ; 0 = sigma constant
+
+train:
+  epochs: 267
+  batch_size: 100
+  num_workers: 0
+  device: cpu
+
+optimizer:
+  name: adam
+  lr: 0.0002              # point décimal obligatoire (0,0002 serait lu comme du texte)
+  betas: [0.9, 0.999]
+
+output:
+  dir: runs
+  save_every: 267          # checkpoint ckpt/epoch_XXX.pth toutes les N époques (+ last.pth à chaque époque)
+
+eval:
+  every: 27               # FID / precision / recall toutes les N époques
+  n_samples: 10000
+  k: 3                    # k plus proches voisins pour precision / recall

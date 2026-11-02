@@ -8,7 +8,7 @@ venv/
 .venv/
 
 # Données téléchargées (MNIST)
-data/
+/data/
 
 # Sorties générées
 samples/
