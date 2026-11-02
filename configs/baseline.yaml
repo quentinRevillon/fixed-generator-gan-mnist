@@ -4,11 +4,21 @@ seed: 0
 
 data:
   path: data              # remplacé par $DATA si défini (Juliet) ; pas de validation croisée
+  selection:              # Instance Selection : garder les images les plus denses
+    enabled: false
+    keep: 0.5             # fraction gardée
+    per_class: true       # true : dans chaque classe ; false : sur tout le dataset
+    space: classifier     # classifier (features) ou pixels (ACP à 50 dim)
+  instance_noise:         # bruit gaussien sur les entrées de D, réelles et générées
+    enabled: false
+    sigma: 0.1            # écart-type initial, images dans [-1, 1]
+    anneal_epochs: 100    # décroissance linéaire vers 0 ; 0 = sigma constant
 
 train:
   epochs: 50
   batch_size: 100
   num_workers: 4
+  # device: cpu           # facultatif, sinon cuda > mps > cpu ; le CPU rend les runs reproductibles
 
 optimizer:
   name: adam

@@ -12,6 +12,7 @@ from torchvision import datasets, transforms
 
 from evaluate import evaluate, generate, report
 from model import Generator, Discriminator
+from preprocessing import InstanceNoise, noise_sigma, training_set
 from utils import (D_train, G_train, load_config, set_seed, git_commit, get_device,
                    save_ckpt, load_ckpt, unwrap)
 
@@ -26,7 +27,7 @@ def fmt(seconds):
 
 def train(cfg, resume=False, trial=None):
     """Entraîne le GAN décrit par cfg et renvoie les métriques de la dernière époque."""
-    device = get_device()
+    device = torch.device(cfg['train'].get('device') or get_device())
     set_seed(cfg['seed'])
 
     # Dossier du run : jamais écrasé sans --resume
@@ -42,6 +43,7 @@ def train(cfg, resume=False, trial=None):
     data_path = os.getenv('DATA', cfg['data']['path'])
     transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean=(0.5,), std=(0.5,))])
     dataset = datasets.MNIST(root=data_path, train=True, transform=transform, download='DATA' not in os.environ)
+    dataset = training_set(dataset, cfg, device)
     loader = torch.utils.data.DataLoader(
         dataset, batch_size=cfg['train']['batch_size'], shuffle=True,
         num_workers=cfg['train']['num_workers'], pin_memory=device.type == 'cuda',
@@ -52,6 +54,7 @@ def train(cfg, resume=False, trial=None):
     D = Discriminator(MNIST_DIM).to(device)
     if torch.cuda.device_count() > 1:
         G, D = nn.DataParallel(G), nn.DataParallel(D)
+    D_input = InstanceNoise(D)  # sigma = 0 sans data.instance_noise
     criterion = nn.BCELoss()
     opt = cfg['optimizer']
     G_opt = optim.Adam(G.parameters(), lr=opt['lr'], betas=tuple(opt['betas']))
@@ -72,10 +75,11 @@ def train(cfg, resume=False, trial=None):
     t0, metrics = time.time(), {}
     for epoch in range(start, n_epochs + 1):
         t_ep, stats = time.time(), np.zeros(4)
+        D_input.sigma = noise_sigma(cfg, epoch)
         for x, _ in loader:
             x = x.view(-1, MNIST_DIM).to(device)
-            d_loss, d_real, d_fake = D_train(x, G, D, D_opt, criterion, device)
-            g_loss = G_train(x, G, D, G_opt, criterion, device)
+            d_loss, d_real, d_fake = D_train(x, G, D_input, D_opt, criterion, device)
+            g_loss = G_train(x, G, D_input, G_opt, criterion, device)
             stats += (d_loss, g_loss, d_real, d_fake)
         stats /= len(loader)
         metrics = dict(epoch=epoch, loss_D=stats[0], loss_G=stats[1], D_real=stats[2], D_fake=stats[3])
@@ -130,5 +134,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train GAN on MNIST.')
     parser.add_argument('--config', default='configs/baseline.yaml', help='Fichier YAML de configuration.')
     parser.add_argument('--resume', action='store_true', help='Reprendre depuis <run>/ckpt/last.pth.')
+    parser.add_argument('--seed', type=int, help='Remplace la seed du YAML et ajoute _s<seed> au nom du run.')
     args = parser.parse_args()
-    train(load_config(args.config), resume=args.resume)
+    cfg = load_config(args.config)
+    if args.seed is not None:
+        cfg.update(seed=args.seed, name=f"{cfg['name']}_s{args.seed}")
+    train(cfg, resume=args.resume)

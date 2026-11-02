@@ -26,3 +26,6 @@ runs/**
 !runs/**/G.pth
 !runs/**/grid.png
 runs/**/trial_*/**
+
+# Logs locaux des runs
+logs/
