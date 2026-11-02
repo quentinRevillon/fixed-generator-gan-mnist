@@ -105,7 +105,7 @@ def plot_classes(rows, settings, path):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Plot report figures from results/results.csv.')
     parser.add_argument('--run', required=True, help='Run à tracer (tel qu\'écrit dans la colonne run).')
-    parser.add_argument('--weights', choices=['last', 'best'], default='last')
+    parser.add_argument('--weights', choices=['last', 'best', 'best_kt'], default='last')
     parser.add_argument('--reference', choices=['val', 'test'], default='val')
     parser.add_argument('--out', default='figures', help='Dossier des figures.')
     parser.add_argument('--metric', choices=['cnn', 'prof'], default='cnn', help='Tableau de résultats à tracer.')

@@ -330,7 +330,8 @@ def format_summary(key, agg):
 
 # --- Évaluer une méthode d'échantillonnage sur un run (utilisé par la CLI ci-dessous et par sweep.py) ----------
 
-WEIGHT_FILES = {'last': ('G.pth', 'D.pth'), 'best': ('G_best.pth', 'D_best.pth')}
+WEIGHT_FILES = {'last': ('G.pth', 'D.pth'), 'best': ('G_best.pth', 'D_best.pth'),
+                'best_kt': ('G_best.pth', 'D_best_kt.pth')}  # best_kt : D passé par keep_training.py
 
 
 def load_run(run_dir, weights, device):
@@ -357,7 +358,7 @@ if __name__ == '__main__':
     src.add_argument('--samples', help='Dossier de PNG produits par generate.py.')
     src.add_argument('--sanity', action='store_true', help='Plafond : 10 000 images du split train vs référence.')
     src.add_argument('--train-classifier', action='store_true', help='(Ré)entraîne le classifieur de features.')
-    parser.add_argument('--weights', choices=['last', 'best'], default='last', help='G.pth/D.pth ou G_best/D_best.')
+    parser.add_argument('--weights', choices=sorted(WEIGHT_FILES), default='last', help='Jeu de poids G et D du run.')
     parser.add_argument('--sampling', default='configs/sampling/plain.yaml', help='Méthode d\'échantillonnage (YAML).')
     parser.add_argument('--seeds', type=int, nargs='+', default=[0], help='Seeds de l\'échantillonnage.')
     parser.add_argument('--reference', choices=['train', 'val', 'test'], default='val', help='Split réel de référence.')

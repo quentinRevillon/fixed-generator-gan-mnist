@@ -1,0 +1,5 @@
+# DRS tel que décrit par Azadi et al. 2019 (Figure 1, équation 8). À utiliser avec un D passé par keep_training.py.
+method: drs_azadi
+percentile: 80    # gamma = ce percentile de F̂ dans chaque batch ; le papier : 95 sur le jeu 2D, 80 sur ImageNet
+n_burnin: 10000   # le papier : 10 000 images pour la première estimation de M
+eps: 0.000001     # le papier : "a small constant", sans valeur : c'est notre choix

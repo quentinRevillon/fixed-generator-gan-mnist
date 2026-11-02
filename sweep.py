@@ -12,13 +12,13 @@ import argparse
 
 import yaml
 
-from evaluate import EVALUATORS, append_result, evaluate_sampling, format_summary, load_run, summarize
+from evaluate import EVALUATORS, WEIGHT_FILES, append_result, evaluate_sampling, format_summary, load_run, summarize
 from utils import get_device, load_config
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Sweep one parameter of a sampling method.')
     parser.add_argument('--run', required=True, help='Dossier contenant G.pth / D.pth (runs/<name> ou checkpoints).')
-    parser.add_argument('--weights', choices=['last', 'best'], default='last', help='G.pth/D.pth ou G_best/D_best.')
+    parser.add_argument('--weights', choices=sorted(WEIGHT_FILES), default='last', help='Jeu de poids G et D du run.')
     parser.add_argument('--sampling', required=True, help='Config de base de la méthode (YAML).')
     parser.add_argument('--param', required=True, help='Nom du paramètre à faire varier (ex. K, psi).')
     parser.add_argument('--values', nargs='+', required=True, help='Valeurs du paramètre.')

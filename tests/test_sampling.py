@@ -12,7 +12,8 @@ from sampling import (SAMPLERS, drs_accept_prob, drs_gamma, obrs_accept_prob, ob
 from model import Discriminator, Generator
 
 CONFIGS = [{'method': 'plain'}, {'method': 'truncation', 'psi': 1.0},
-           {'method': 'obrs', 'K': 3, 'n_calib': 5000}, {'method': 'drs', 'K': 3, 'n_calib': 5000}]
+           {'method': 'obrs', 'K': 3, 'n_calib': 5000}, {'method': 'drs', 'K': 3, 'n_calib': 5000},
+           {'method': 'drs_azadi', 'percentile': 80, 'n_burnin': 2000}]
 
 
 @pytest.fixture(scope='module')

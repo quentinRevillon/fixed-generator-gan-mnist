@@ -9,7 +9,8 @@ Toutes les méthodes ont la même signature :
     -------------|--------|-------------------------------------------------------------
     'plain'      | G      | référence : x = G(z), z ~ N(0, I)
     'truncation' | G      | témoin : z tronqué à [-psi, psi] (Brock et al. 2019)
-    'drs'        | G, D   | témoin : rejet de Azadi et al. 2019 (slides Def. 3.1)
+    'drs'        | G, D   | formule de la slide Def. 3.1, gamma calibré pour un budget K (comparaison avec OBRS)
+    'drs_azadi'  | G, D   | DRS tel que dans Azadi et al. 2019 (Figure 1, équation 8), D passé par keep_training.py
     'obrs'       | G, D   | méthode étudiée : rejet optimal à budget K (Verine et al. 2024, slides Thm 3.2)
 
 Utilisation :
@@ -183,12 +184,41 @@ def sample_drs(G, D, n, rng, batch_size=10_000, K=10, n_calib=50_000):
                'n_calib': n_calib}
 
 
+def drs_f_hat(log_r, log_M, gamma, eps):
+    """Équation 8 d'Azadi et al. : F̂ = d - d_M - log(1 - exp(d - d_M - eps)) - gamma ; accepter avec sigmoid(F̂)."""
+    a = log_r.double() - log_M
+    return a - torch.log(-torch.expm1(a - eps)) - gamma
+
+
+def sample_drs_azadi(G, D, n, rng, batch_size=10_000, percentile=80, n_burnin=10_000, eps=1e-6):
+    """DRS selon la Figure 1 du papier : M estimé sur un burn-in puis mis à jour, gamma par percentile dans chaque batch.
+
+    D doit avoir suivi keep_training.py (étape KeepTraining). Le papier fixe gamma au 95e percentile sur le jeu 2D et
+    au 80e sur ImageNet. Plus le percentile est haut, plus gamma est grand, donc plus on rejette.
+    """
+    log_M_burnin = calibration_pool(G, D, rng, n_burnin, batch_size).max().item()
+    log_M, kept, n_proposals, n_accepted, gammas = log_M_burnin, [], 0, 0, []
+    while n_accepted < n:
+        x, log_r = propose(G, D, batch_size, rng, batch_size)
+        log_M = max(log_M, log_r.max().item())
+        f_hat = drs_f_hat(log_r, log_M, 0.0, eps)
+        gamma = torch.quantile(f_hat, percentile / 100).item()
+        keep = torch.rand(batch_size, generator=rng).double() <= torch.sigmoid(f_hat - gamma)
+        kept.append(x[keep])
+        gammas.append(gamma)
+        n_proposals, n_accepted = n_proposals + batch_size, n_accepted + int(keep.sum())
+    return torch.cat(kept)[:n], {'n_proposals': n_proposals, 'acceptance_rate': n_accepted / n_proposals,
+                                 'percentile': percentile, 'log_M_burnin': log_M_burnin, 'log_M': log_M,
+                                 'gamma_mean': sum(gammas) / len(gammas)}
+
+
 # --- Registre et point d'entrée -------------------------------------------------------------------------------
 
 SAMPLERS = {
     'plain': sample_plain,
     'truncation': sample_truncation,
     'drs': sample_drs,
+    'drs_azadi': sample_drs_azadi,
     'obrs': sample_obrs,
 }
 

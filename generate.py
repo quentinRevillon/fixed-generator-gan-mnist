@@ -13,7 +13,7 @@ import os
 
 import torchvision
 
-from evaluate import load_run, to_unit_images
+from evaluate import WEIGHT_FILES, load_run, to_unit_images
 from sampling import sample
 from utils import get_device, load_config
 
@@ -23,7 +23,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate 10,000 MNIST samples with the trained GAN.')
     parser.add_argument('--batch_size', type=int, default=2048, help='Taille des batchs de génération.')
     parser.add_argument('--checkpoints', default='checkpoints', help='Dossier contenant G.pth et D.pth.')
-    parser.add_argument('--weights', choices=['last', 'best'], default='last', help='G.pth/D.pth ou G_best/D_best.')
+    parser.add_argument('--weights', choices=sorted(WEIGHT_FILES), default='last', help='Jeu de poids G et D du run.')
     parser.add_argument('--sampling', default='checkpoints/sampling.yaml', help='Méthode d\'échantillonnage (YAML).')
     parser.add_argument('--seed', type=int, default=0, help='Seed : mêmes images à chaque appel.')
     parser.add_argument('--out', default='samples', help='Dossier de sortie des PNG.')
