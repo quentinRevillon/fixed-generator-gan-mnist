@@ -1,0 +1,4 @@
+# Témoin : truncation trick (Brock et al. 2019). z normale tronquée à [-psi, psi]^100.
+# psi petit => précision ↑, rappel ↓ ; psi -> +inf => plain.
+method: truncation
+psi: 1.0
