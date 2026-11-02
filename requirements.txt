@@ -8,3 +8,4 @@ pillow
 pyyaml
 tensorboard
 optuna
+matplotlib

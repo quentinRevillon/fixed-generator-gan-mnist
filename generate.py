@@ -1,48 +1,43 @@
-import torch
-import torchvision
-import os
+"""Génère exactement 10 000 images MNIST 28x28 dans samples/ (interface imposée par le sujet).
+
+Lit le modèle rendu dans checkpoints/ : G.pth, D.pth et sampling.yaml (méthode d'inférence choisie par
+le groupe, ex. {method: obrs, K: 10} ; voir sampling.py). Le correcteur lance simplement :
+    python generate.py --batch_size 256
+
+Autres utilisations :
+    python generate.py --sampling configs/sampling/obrs.yaml        # tester une autre méthode
+    python generate.py --checkpoints runs/baseline_v1 --weights best --sampling configs/sampling/plain.yaml
+"""
 import argparse
+import os
 
+import torchvision
 
-from model import Generator
-from utils import load_model, get_device
+from evaluate import load_run, to_unit_images
+from sampling import sample
+from utils import get_device, load_config
+
+N_SAMPLES = 10_000
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Generate MNIST samples with the trained GAN.')
-    parser.add_argument("--batch_size", type=int, default=2048,
-                      help="The batch size to use for generation.")
-    parser.add_argument("--checkpoint", type=str, default='checkpoints/G.pth',
-                      help="Generator weights (default: checkpoints/G.pth, the submitted model).")
+    parser = argparse.ArgumentParser(description='Generate 10,000 MNIST samples with the trained GAN.')
+    parser.add_argument('--batch_size', type=int, default=2048, help='Taille des batchs de génération.')
+    parser.add_argument('--checkpoints', default='checkpoints', help='Dossier contenant G.pth et D.pth.')
+    parser.add_argument('--weights', choices=['last', 'best'], default='last', help='G.pth/D.pth ou G_best/D_best.')
+    parser.add_argument('--sampling', default='checkpoints/sampling.yaml', help='Méthode d\'échantillonnage (YAML).')
+    parser.add_argument('--seed', type=int, default=0, help='Seed : mêmes images à chaque appel.')
+    parser.add_argument('--out', default='samples', help='Dossier de sortie des PNG.')
     args = parser.parse_args()
 
     device = get_device()
-    print(f"Using device: {device.type}")
+    print(f'Using device: {device.type}')
+    G, D = load_run(args.checkpoints, args.weights, device)
+    cfg = load_config(args.sampling)
+    print(f'Échantillonnage : {cfg}')
 
-    print('Model Loading...')
-    # Model Pipeline
-    mnist_dim = 784
-
-    model = Generator(g_output_dim=mnist_dim).to(device)
-    model = load_model(model, args.checkpoint, device)
-    if torch.cuda.device_count() > 1:
-        model = torch.nn.DataParallel(model)
-    model.eval()
-
-    print('Model loaded.')
-
-
-
-    print('Start Generating')
-    os.makedirs('samples', exist_ok=True)
-
-    n_samples = 0
-    with torch.no_grad():
-        while n_samples<10000:
-            z = torch.randn(args.batch_size, 100).to(device)
-            x = model(z)
-            # tanh renvoie [-1, 1] ; on inverse Normalize(0.5, 0.5) pour revenir dans [0, 1] comme MNIST
-            x = (x.reshape(args.batch_size, 28, 28) + 1) / 2
-            for k in range(x.shape[0]):
-                if n_samples<10000:
-                    torchvision.utils.save_image(x[k:k+1], os.path.join('samples', f'{n_samples}.png'))
-                    n_samples += 1
+    x, stats = sample(G, D, N_SAMPLES, cfg, seed=args.seed, batch_size=args.batch_size)
+    os.makedirs(args.out, exist_ok=True)
+    for k, image in enumerate(to_unit_images(x)):
+        torchvision.utils.save_image(image, os.path.join(args.out, f'{k}.png'))
+    print(f"{N_SAMPLES} images dans {args.out}/ | acceptation {stats['acceptance_rate']:.3f} | "
+          f"{stats['n_proposals']} propositions | {stats['seconds']:.1f}s")
