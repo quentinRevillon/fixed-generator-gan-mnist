@@ -56,6 +56,9 @@ def train(cfg, resume=False, trial=None):
     opt = cfg['optimizer']
     G_opt = optim.Adam(G.parameters(), lr=opt['lr'], betas=tuple(opt['betas']))
     D_opt = optim.Adam(D.parameters(), lr=opt['lr'], betas=tuple(opt['betas']))
+    # Perte adversariale : 'bce' (baseline, défaut) ou 'rpgan' (R3GAN) avec pénalités R1 / R2
+    lcfg = cfg.get('loss', {})
+    loss_name, r1, r2 = lcfg.get('name', 'bce'), lcfg.get('r1_gamma', 0.), lcfg.get('r2_gamma', 0.)
 
     start = 1
     last_path = os.path.join(run_dir, 'ckpt', 'last.pth')
@@ -67,15 +70,16 @@ def train(cfg, resume=False, trial=None):
     fixed_z = torch.randn(64, Z_DIM, generator=torch.Generator().manual_seed(0)).to(device)
     n_epochs, save_every = cfg['train']['epochs'], cfg['output']['save_every']
     ev = cfg['eval']
-    print(f'Run {run_dir} | device {device.type} | {len(dataset)} images | époques {start}->{n_epochs}')
+    print(f'Run {run_dir} | device {device.type} | {len(dataset)} images | époques {start}->{n_epochs} | '
+          f'loss {loss_name} (R1={r1}, R2={r2})')
 
     t0, metrics = time.time(), {}
     for epoch in range(start, n_epochs + 1):
         t_ep, stats = time.time(), np.zeros(4)
         for x, _ in loader:
             x = x.view(-1, MNIST_DIM).to(device)
-            d_loss, d_real, d_fake = D_train(x, G, D, D_opt, criterion, device)
-            g_loss = G_train(x, G, D, G_opt, criterion, device)
+            d_loss, d_real, d_fake = D_train(x, G, D, D_opt, criterion, device, loss_name, r1, r2)
+            g_loss = G_train(x, G, D, G_opt, criterion, device, loss_name)
             stats += (d_loss, g_loss, d_real, d_fake)
         stats /= len(loader)
         metrics = dict(epoch=epoch, loss_D=stats[0], loss_G=stats[1], D_real=stats[2], D_fake=stats[3])

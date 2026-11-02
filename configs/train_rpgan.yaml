@@ -1,0 +1,30 @@
+# RpGAN seul, sans pénalité (attendu : instable). 10 époques suffisent à le montrer.
+name: train_rpgan            # dossier de sortie : <output.dir>/<name>/
+seed: 0
+
+data:
+  path: data              # remplacé par $DATA si défini (Juliet) ; pas de validation croisée
+
+train:
+  epochs: 10
+  batch_size: 100
+  num_workers: 4
+
+optimizer:
+  name: adam
+  lr: 0.0002              # point décimal obligatoire (0,0002 serait lu comme du texte)
+  betas: [0.9, 0.999]
+
+output:
+  dir: runs
+  save_every: 10          # checkpoint ckpt/epoch_XXX.pth toutes les N époques (+ last.pth à chaque époque)
+
+eval:
+  every: 10               # FID / precision / recall toutes les N époques
+  n_samples: 10000
+  k: 3                    # k plus proches voisins pour precision / recall
+
+loss:
+  name: rpgan             # 'bce' = baseline
+  r1_gamma: 0.0           # pénalité R1 (gradient de D sur les vraies images)
+  r2_gamma: 0.0           # pénalité R2 (gradient de D sur les fausses images)
