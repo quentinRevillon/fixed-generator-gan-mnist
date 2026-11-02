@@ -8,7 +8,7 @@
 
 | | Effet mesuré sur nos données | Verdict |
 |---|---|---|
-| **Instance Selection** (garder 50 % par chiffre) | Precision de 0,85 à 0,93, recall de 0,75 à 0,36, FID de 76 à 331 à 60 000 mises à jour | Le gain de qualité attendu existe, mais le FID se dégrade alors qu'il s'améliore dans le papier à basse résolution |
+| **Instance Selection** (garder 50 % par chiffre) | À 60 000 mises à jour : precision de 0,75 à 0,84, recall de 0,72 à 0,38, FID de 76 à 331 | Le gain de qualité attendu existe, mais le FID se dégrade alors qu'il s'améliore dans le papier à basse résolution |
 | **Instance Noise** (σ = 0,1 ou 0,3, décroissant) | FID de 76 à 65-68, écart non significatif (p = 0,10 et 0,23), P et R inchangés | Pas d'effet démontré |
 | **Effondrement** du GAN sur 1 à 3 chiffres | 15 runs sur 42, y compris sans aucune option (3 sur 8) | Aucune des deux méthodes ne le corrige sur nos seeds |
 
@@ -131,17 +131,17 @@ Les chiffres pris en compte diffèrent d'une ligne à l'autre : `sel_50` exclut 
 
 ## 6. Interprétation
 
-**La sélection fait ce qu'elle promet sur la qualité.** La precision monte, sur les vraies images (0,86 à 0,94) comme sur les GAN (0,85 à 0,93). Le coût en recall suit celui des données : à 50 %, même un GAN parfait ne dépasserait pas 0,63.
+**La sélection fait ce qu'elle promet sur la qualité.** La precision monte, sur les vraies images (0,86 à 0,94) comme sur les GAN en fin d'entraînement (0,85 à 0,93). Le coût en recall suit celui des données : à 50 %, même un GAN parfait ne dépasserait pas 0,63.
 
 **Elle dégrade le FID pour deux raisons mesurées.**
 1. **Le plafond baisse.** Le FID du sous-ensemble réel passe de 2,9 à 25,3. Par chiffre, il passe de 9,2 à 67,1. Dans l'excès au-dessus de ce plafond, `sel_50` et `data_ref` sont au même niveau (63) : le GAN n'apprend donc pas mieux la distribution réduite, il apprend juste une cible plus étroite.
-2. **Le mélange des chiffres se dérègle.** Les données sélectionnées sont équilibrées, mais `sel_50` ne génère que 0,4 % de 0 et 2,4 % de 2. Le FID global y est bien plus sensible qu'à la qualité des traits : `sel_50` vaut 331 au global, contre 131 par chiffre.
+2. **Le mélange des chiffres se dérègle.** Les données sélectionnées sont équilibrées, mais `sel_50` ne génère que 0,4 % de 0 et 2,4 % de 2. Le FID global y est bien plus sensible qu'à la qualité des traits : en fin d'entraînement, `sel_50` vaut 729 au global, contre 131 par chiffre.
 
 **Pourquoi des chiffres disparaissent (hypothèse).** Les images rejetées sont aussi celles qui font le lien entre les chiffres. Le rapport entre la distance au plus proche autre chiffre et la distance au plus proche même chiffre passe de 3,6 à 5,2 dans les features (de 3,2 à 3,7 en pixels). Un z gaussien continu traverse donc plus difficilement ces écarts. La mesure montre que les classes s'éloignent, mais pas que c'est la cause : il faudrait le tester, par exemple en réinjectant les images frontières.
 
-**Le bruit ne change presque rien.** Le FID à 60k gagne 8 à 11 points, sans signification statistique (Welch, p = 0,10 et 0,23), et l'écart s'annule à la fin. À chiffre fixé, `noise_03` est meilleur que la référence (55,5 contre 72,4 ; p = 0,04), mais ce test non corrigé est l'un des nombreux comparés ici et ne porte que sur 3 runs. Une explication plausible est que MNIST recouvre déjà bien ses supports au niveau de ce que voit un MLP, ou que ces σ sont trop faibles ; nous ne l'avons pas établi.
+**Le bruit ne change presque rien.** Le FID à 60k gagne 8 à 11 points, sans signification statistique (Welch, p = 0,10 et 0,23), et l'écart s'annule à la fin. À chiffre fixé, `noise_03` est meilleur que la référence (55,5 contre 72,4 ; p = 0,04), mais ce test n'est pas corrigé pour le nombre de comparaisons faites ici et ne porte que sur 3 runs. Une explication plausible est que MNIST recouvre déjà bien ses supports au niveau de ce que voit un MLP, ou que ces σ sont trop faibles ; nous ne l'avons pas établi.
 
-**L'effondrement n'est pas un problème de données.** Il touche 15 runs sur 42, dont 3 sur 8 sans aucune option. Il se joue au tout début : dans tous ces runs, D(x) reste au-dessus de 0,98 dès la 6e époque au plus tard, et le FID ne bouge plus. `sel_50` (4/8) et `noise_01` (4/8) ne diffèrent pas de `data_ref` (3/8) : le test exact de Fisher donne p = 1. Le 0 sur 3 de `noise_03` et de `sel_75` ne prouve rien : avec un taux de base de 3/8, il arrive une fois sur quatre par hasard. Sur nos 3 premiers seeds, `sel_50` semblait s'effondrer plus que la référence, et c'est bien avec 8 seeds que cet effet a disparu.
+**L'effondrement n'est pas un problème de données.** Il touche 15 runs sur 42, dont 3 sur 8 sans aucune option. Il se joue au tout début : dans tous ces runs, D(x) reste au-dessus de 0,98 dès la 6e époque au plus tard, et le FID ne bouge plus. `sel_50` (4/8) et `noise_01` (4/8) ne diffèrent pas de `data_ref` (3/8) : le test exact de Fisher donne p = 1. Le 0 sur 3 de `noise_03` et de `sel_75` ne prouve rien : avec un taux de base de 3/8, il arrive une fois sur quatre par hasard. Sur les 3 premières seeds, `sel_50` semblait s'effondrer plus que la référence (2 sur 3 contre 0 sur 3) : cet effet a disparu avec 8 seeds.
 
 **Sur tous les runs, le FID remonte après 60 000 mises à jour** (de 76 à 227 pour la référence) alors que la precision et le recall continuent de monter ou se stabilisent. Le mélange des chiffres dérive : les 2 tombent de 4,8 % à 1,4 %. Cela explique l'écart constaté plus tôt : la baseline à 50 époques (30 000 mises à jour) était encore en pleine descente. Ces chiffres finaux dépendent donc fortement du moment de l'arrêt, et le sujet concerne aussi le volet Entraînement.
 
