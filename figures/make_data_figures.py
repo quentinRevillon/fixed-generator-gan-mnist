@@ -1,6 +1,7 @@
-"""Tableaux et figures de rapport-donnée.md. À lancer depuis la racine : python figures/make_data_figures.py [--real]
+"""Tableaux et figures de rapport-donnée.md. À lancer depuis la racine : python figures/make_data_figures.py [--real | --per-class]
 
---real : mesures sur les vraies images seules (aucun GAN), sinon bilan des runs de configs/data/.
+--real : mesures sur les vraies images seules (aucun GAN) ; --per-class : FID par chiffre (long) ;
+sans option : bilan des runs de configs/data/.
 """
 import csv
 import glob
@@ -18,11 +19,14 @@ import matplotlib.pyplot as plt
 from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
 
 sys.path.insert(0, '.')
-from evaluate import evaluate, mnist
+from evaluate import evaluate, fid, generate, load_classifier, mnist, predict
+from model import Generator
 from preprocessing import embed, gaussian_score, select_instances
+from utils import load_model, set_seed
 
 OUT = 'figures/data'
 DEVICE = torch.device('cpu')
+BUDGET = 60000  # mises à jour : comparaison à budget égal, sans choisir le meilleur point sur le test
 SUBSETS = {'sel_75': (0.75, True, 'classifier'), 'sel_50': (0.5, True, 'classifier'),
            'sel_50_global': (0.5, False, 'classifier'), 'sel_50_pixels': (0.5, True, 'pixels')}
 RUNS = {'data_ref': (60000, '#333333'), 'sel_75': (45000, '#1f77b4'), 'sel_50': (30000, '#ff7f0e'),
@@ -60,53 +64,57 @@ def extremes():
     torchvision.utils.save_image(grid, f'{OUT}/kept_vs_rejected.png')
 
 
-def final_scores():
-    """Dernière ligne de results.csv pour chaque run, regroupée par variante."""
-    rows = {}
-    with open('results.csv') as f:
-        for r in csv.DictReader(f):
-            rows[r['run']] = r
+def load_runs():
+    """Courbes de chaque run depuis TensorBoard, regroupées par variante."""
     out = defaultdict(list)
-    for name in RUNS:
-        for s in range(3):
-            if f'{name}_s{s}' in rows:
-                out[name].append(rows[f'{name}_s{s}'])
+    for name, (n_images, _) in RUNS.items():
+        for run in sorted(glob.glob(f'runs/{name}_s[0-9]')):
+            ea = EventAccumulator(run, size_guidance={'scalars': 0, 'histograms': 0})
+            ea.Reload()
+            curves = {k: {e.step: e.value for e in ea.Scalars(f'eval/{k}')} for k in ('fid', 'precision', 'recall')}
+            steps = sorted(curves['fid'])
+            at = min(steps, key=lambda s: abs(s * n_images // 100 - BUDGET))  # évaluation la plus proche du budget
+            hist = {e.step: e.histogram_value for e in ea.Histograms('eval/classes')}[at]
+            classes = np.zeros(10)
+            for limit, count in zip(hist.bucket_limit, hist.bucket):
+                classes[int(np.clip(np.floor(limit + 0.49999), 0, 9))] += count
+            out[name].append(dict(curves=curves, steps=steps, at=at, classes=100 * classes / classes.sum(),
+                                  collapsed=curves['recall'][steps[-1]] < 0.01))
     return out
 
 
-def write_summary(scores):
+def stat(rs, key, last=False):
+    v = np.array([r['curves'][key][r['steps'][-1] if last else r['at']] for r in rs])
+    return v.mean(), v.std()
+
+
+def write_summary(runs):
+    """Moyennes sur les runs non effondrés, au budget commun et à la fin de l'entraînement."""
     with open(f'{OUT}/summary.csv', 'w', newline='') as f:
         w = csv.writer(f)
-        w.writerow(['variant', 'seeds', 'fid', 'fid_std', 'precision', 'precision_std', 'recall', 'recall_std',
-                    'classes_pct', 'fid_values'])
-        for name, rs in scores.items():
-            vals = [np.array([float(r[k]) for r in rs]) for k in ('fid', 'precision', 'recall')]
-            classes = np.mean([[int(c) for c in r['classes'].split('-')] for r in rs], 0) / 100
-            row = [name, len(rs)]
-            for v, d in zip(vals, (1, 3, 3)):
-                row += [f'{v.mean():.{d}f}', f'{v.std():.{d}f}']
-            row += [' '.join(f'{c:.1f}' for c in classes), ' '.join(f'{v:.1f}' for v in vals[0])]
+        w.writerow(['variant', 'seeds', 'collapsed', 'fid_60k', 'fid_60k_std', 'precision_60k', 'recall_60k',
+                    'fid_final', 'precision_final', 'recall_final', 'classes_60k'])
+        for name, rs in runs.items():
+            ok = [r for r in rs if not r['collapsed']]
+            row = [name, len(rs), len(rs) - len(ok), f"{stat(ok, 'fid')[0]:.1f}", f"{stat(ok, 'fid')[1]:.1f}",
+                   f"{stat(ok, 'precision')[0]:.3f}", f"{stat(ok, 'recall')[0]:.3f}",
+                   f"{stat(ok, 'fid', True)[0]:.1f}", f"{stat(ok, 'precision', True)[0]:.3f}",
+                   f"{stat(ok, 'recall', True)[0]:.3f}", ' '.join(f'{c:.1f}' for c in np.mean([r['classes'] for r in ok], 0))]
             w.writerow(row)
             print(row)
 
 
-def curves():
-    """FID et recall en fonction du nombre de mises à jour, moyenne des seeds."""
+def plot_curves(runs):
+    """FID et recall en fonction du nombre de mises à jour, moyenne des runs non effondrés."""
     fig, axes = plt.subplots(1, 2, figsize=(11, 4))
-    for name, (n_images, color) in RUNS.items():
-        series = defaultdict(list)
-        for run in glob.glob(f'runs/{name}_s[0-9]'):
-            ea = EventAccumulator(run, size_guidance={'scalars': 0})
-            ea.Reload()
-            if 'eval/fid' not in ea.Tags()['scalars']:
-                continue
-            for tag in ('eval/fid', 'eval/recall'):
-                for e in ea.Scalars(tag):
-                    series[tag, e.step * n_images // 100].append(e.value)
-        for ax, tag in zip(axes, ('eval/fid', 'eval/recall')):
-            pts = sorted((u, np.mean(v)) for (t, u), v in series.items() if t == tag)
-            if pts:
-                ax.plot(*zip(*pts), color=color, label=name)
+    for name, rs in runs.items():
+        ok = [r for r in rs if not r['collapsed']]
+        for ax, key in zip(axes, ('fid', 'recall')):
+            xs = [s * RUNS[name][0] // 100 for s in ok[0]['steps']]
+            ax.plot(xs, np.mean([[r['curves'][key][s] for s in r['steps']] for r in ok], 0),
+                    color=RUNS[name][1], label=f'{name} (n={len(ok)})')
+    for ax in axes:
+        ax.axvline(BUDGET, color='#999999', lw=0.8, ls='--')
     axes[0].set(xlabel='mises à jour', ylabel='FID', yscale='log')
     axes[1].set(xlabel='mises à jour', ylabel='recall')
     axes[1].legend(fontsize=7)
@@ -114,11 +122,11 @@ def curves():
     fig.savefig(f'{OUT}/curves.png', dpi=150)
 
 
-def class_mix(scores):
-    """Part de chaque chiffre dans les images générées, moyenne des seeds."""
+def class_mix(runs):
+    """Part de chaque chiffre dans les images générées au budget commun, moyenne des runs non effondrés."""
     fig, ax = plt.subplots(figsize=(8, 3.5))
-    names = list(scores)
-    m = np.array([np.mean([[int(c) for c in r['classes'].split('-')] for r in scores[n]], 0) / 100 for n in names])
+    names = list(runs)
+    m = np.array([np.mean([r['classes'] for r in runs[n] if not r['collapsed']], 0) for n in names])
     im = ax.imshow(m, cmap='RdBu_r', vmin=0, vmax=20, aspect='auto')
     ax.set(xticks=range(10), yticks=range(len(names)), yticklabels=names, xlabel='chiffre prédit')
     for (i, j), v in np.ndenumerate(m):
@@ -128,13 +136,81 @@ def class_mix(scores):
     fig.savefig(f'{OUT}/classes.png', dpi=150)
 
 
+def gaps():
+    """Écart entre classes : distance d'une image à sa plus proche voisine d'un autre chiffre / du même chiffre."""
+    x, y = mnist(train=True)
+    f = embed(x, 'classifier', DEVICE)
+    with open(f'{OUT}/class_gaps.csv', 'w', newline='') as out:
+        w = csv.writer(out)
+        w.writerow(['subset', 'pixels_other', 'pixels_same', 'pixels_ratio', 'features_other', 'features_same',
+                    'features_ratio'])
+        for name, (keep, per_class, space) in {'all': (1., True, 'classifier'), **SUBSETS}.items():
+            idx = select_instances(y, embed(x, space, DEVICE), keep, per_class)
+            sub = idx[torch.randperm(len(idx), generator=torch.Generator().manual_seed(0))[:10000]]
+            row = [name]
+            for v in (x.flatten(1), f):
+                d = torch.cdist(v[sub[:3000]], v[sub]).float()
+                same = y[sub[:3000], None] == y[sub][None]
+                d[d == 0] = float('inf')
+                other = d.masked_fill(same, float('inf')).min(1).values.mean().item()
+                near = d.masked_fill(~same, float('inf')).min(1).values.mean().item()
+                row += [f'{other:.2f}', f'{near:.2f}', f'{other / near:.3f}']
+            w.writerow(row)
+            print(row, flush=True)
+
+
+def per_class_real():
+    """Même mesure sur les vraies images sélectionnées : ce que le GAN peut atteindre au mieux."""
+    x, y = mnist(train=True)
+    xt, yt = mnist(train=False)
+    clf = load_classifier(DEVICE)
+    f_real, f_train = predict(clf, xt, DEVICE)[0], predict(clf, x, DEVICE)[0]
+    with open(f'{OUT}/per_class_real.csv', 'w', newline='') as out:
+        w = csv.writer(out)
+        w.writerow(['subset', 'mean_fid_per_digit'])
+        for name, (keep, per_class_, space) in {'all': (1., True, 'classifier'), **SUBSETS}.items():
+            if not per_class_:
+                continue
+            idx = select_instances(y, embed(x, space, DEVICE), keep, True)
+            w.writerow([name, f'{np.mean([fid(f_real[yt == c], f_train[idx][y[idx] == c]) for c in range(10)]):.1f}'])
+
+
+def per_class():
+    """Qualité à chiffre fixé : FID de chaque chiffre généré contre le même chiffre réel, runs non effondrés."""
+    clf = load_classifier(DEVICE)
+    xt, yt = mnist(train=False)
+    f_real = predict(clf, xt, DEVICE)[0]
+    res = defaultdict(list)
+    for name in RUNS:
+        for run in sorted(glob.glob(f'runs/{name}_s[0-9]')):
+            set_seed(0)
+            G = load_model(Generator(g_output_dim=784), f'{run}/G.pth', DEVICE)
+            f_fake, pred = predict(clf, generate(G, 50000, DEVICE), DEVICE)
+            counts = torch.bincount(pred, minlength=10)
+            if (counts >= 500).sum() <= 3:  # effondré sur quelques chiffres
+                continue
+            scores = [fid(f_real[yt == c], f_fake[pred == c]) for c in range(10) if counts[c] >= 500]
+            res[name].append((np.mean(scores), int((counts >= 500).sum())))
+            print(run, f'{np.mean(scores):.1f}', (counts >= 500).sum().item(), flush=True)
+    with open(f'{OUT}/per_class_fid.csv', 'w', newline='') as out:
+        w = csv.writer(out)
+        w.writerow(['variant', 'seeds', 'mean_fid_per_digit', 'std', 'digits_with_500_samples'])
+        for name, v in res.items():
+            a = np.array(v)
+            w.writerow([name, len(v), f'{a[:, 0].mean():.1f}', f'{a[:, 0].std():.1f}', f'{a[:, 1].mean():.1f}'])
+
+
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True)
     if '--real' in sys.argv:
         real_subsets()
         extremes()
+        gaps()
+        per_class_real()
+    elif '--per-class' in sys.argv:
+        per_class()
     else:
-        scores = final_scores()
-        write_summary(scores)
-        curves()
-        class_mix(scores)
+        runs = load_runs()
+        write_summary(runs)
+        plot_curves(runs)
+        class_mix(runs)

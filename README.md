@@ -90,3 +90,6 @@ When your code will be test, we will execute:
 ## Checkpoints
 Push the minimal amount of models in the folder *checkpoints*.
 
+## Volet Données
+
+Instance Selection et Instance Noise s'activent séparément dans la section `data` du YAML ([`preprocessing.py`](preprocessing.py)). Protocole, résultats et interprétation : [`rapport-donnée.md`](rapport-donnée.md).
