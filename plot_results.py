@@ -108,11 +108,12 @@ if __name__ == '__main__':
     parser.add_argument('--weights', choices=['last', 'best'], default='last')
     parser.add_argument('--reference', choices=['val', 'test'], default='val')
     parser.add_argument('--out', default='figures', help='Dossier des figures.')
+    parser.add_argument('--metric', choices=['cnn', 'prof'], default='cnn', help='Tableau de résultats à tracer.')
     parser.add_argument('--K', type=float, default=10, help='Budget OBRS / DRS montré dans classes.pdf.')
     parser.add_argument('--psi', type=float, default=1.5, help='Truncation montrée dans classes.pdf.')
     args = parser.parse_args()
 
-    rows = select(load_results(), args.run, args.weights, args.reference)
+    rows = select(load_results(args.metric), args.run, args.weights, args.reference)
     summary = summarize(rows)
     methods = by_method(summary)
     os.makedirs(args.out, exist_ok=True)

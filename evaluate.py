@@ -12,6 +12,7 @@ En ligne de commande (chaque évaluation d'un run ajoute une ligne par seed à r
     python evaluate.py --samples samples         # PNG produits par generate.py (comme le correcteur)
     python evaluate.py --sanity                  # plafond : 10 000 images réelles du split train vs référence
     python evaluate.py --train-classifier        # (ré)entraîne le classifieur de features
+    python evaluate.py --run checkpoints --metric prof --reference test     # réseaux de la plateforme du prof
 
 Depuis Python :
     from evaluate import evaluate, generate
@@ -25,6 +26,7 @@ import json
 import os
 import time
 from collections import defaultdict
+from functools import lru_cache
 
 import numpy as np
 import torch
@@ -194,12 +196,80 @@ def save_grid(images, path):
     torchvision.utils.save_image(images[:100], path, nrow=10)
 
 
+# --- Mesure de la plateforme du prof : FID Inception, precision / recall VGG (k = 5, 9 984 images) ------------
+# Page de résultats : "Historical FID uses Inception features on all images; historical P/R uses VGG features
+# with k=5 and 9,984 images". Prétraitement, poids et référence n'y sont pas précisés : c'est une approximation.
+
+PROF_K, PROF_PR_IMAGES = 5, 9984
+IMAGENET_MEAN, IMAGENET_STD = (0.485, 0.456, 0.406), (0.229, 0.224, 0.225)
+_prof_cache = {}
+
+
+@lru_cache(maxsize=None)
+def load_inception(device):
+    """Inception-v3 aux poids standard du FID (pytorch-fid), dernière couche de pooling, 2048 dimensions."""
+    from pytorch_fid.inception import InceptionV3  # import local : generate.py n'en a pas besoin
+    return InceptionV3([InceptionV3.BLOCK_INDEX_BY_DIM[2048]]).to(device).eval()
+
+
+@lru_cache(maxsize=None)
+def load_vgg(device):
+    """VGG16 ImageNet coupé après la 2e couche entièrement connectée, 4096 dimensions (Kynkäänniemi et al. 2019)."""
+    vgg = torchvision.models.vgg16(weights='IMAGENET1K_V1')
+    return nn.Sequential(vgg.features, vgg.avgpool, nn.Flatten(), *list(vgg.classifier)[:4]).to(device).eval()
+
+
+@torch.no_grad()
+def inception_features(images, device, bs=256):
+    """Features (N, 2048) d'images (N, 1, 28, 28) dans [0, 1] ; le réseau redimensionne et normalise lui-même."""
+    net = load_inception(device)
+    return torch.cat([net(images[i:i + bs].to(device).repeat(1, 3, 1, 1))[0].flatten(1).cpu()
+                      for i in range(0, len(images), bs)])
+
+
+def vgg_preprocess(x, device):
+    """Images (N, 1, 28, 28) dans [0, 1] -> (N, 3, 224, 224) normalisées comme ImageNet."""
+    mean = torch.tensor(IMAGENET_MEAN, device=device).view(1, 3, 1, 1)
+    std = torch.tensor(IMAGENET_STD, device=device).view(1, 3, 1, 1)
+    x = F.interpolate(x.to(device).repeat(1, 3, 1, 1), size=224, mode='bilinear', align_corners=False)
+    return (x - mean) / std
+
+
+@torch.no_grad()
+def vgg_features(images, device, bs=256):
+    """Features (N, 4096) d'images (N, 1, 28, 28) dans [0, 1]."""
+    net = load_vgg(device)
+    return torch.cat([net(vgg_preprocess(images[i:i + bs], device)).cpu() for i in range(0, len(images), bs)])
+
+
+def prof_real_features(device, reference):
+    """(features Inception, features VGG) du split réel `reference`, calculées une fois puis mises en cache."""
+    if reference not in _prof_cache:
+        real = mnist_split(reference)[0]
+        _prof_cache[reference] = inception_features(real, device), vgg_features(real[:PROF_PR_IMAGES], device)
+    return _prof_cache[reference]
+
+
+def evaluate_prof(images, device, reference='val'):
+    """Comme evaluate, mais avec les réseaux de la plateforme ; les classes viennent toujours du petit CNN."""
+    f_real, v_real = prof_real_features(device, reference)
+    v_fake = vgg_features(images[:PROF_PR_IMAGES], device)
+    return dict(fid=fid(f_real, inception_features(images, device)),
+                precision=coverage(v_fake, v_real, knn_radii(v_real, PROF_K)),
+                recall=coverage(v_real, v_fake, knn_radii(v_fake, PROF_K)),
+                classes=predict(load_classifier(device), images, device)[1].bincount(minlength=10).tolist(),
+                reference=reference)
+
+
+EVALUATORS = {'cnn': evaluate, 'prof': evaluate_prof}
+
+
 # --- Tableau commun des résultats : results/results.csv, une ligne par évaluation ------------------------------
 # Colonnes : date, git_commit | run, weights ('last' = G.pth, 'best' = G_best.pth) | reference ('val' ou 'test')
 # | method, params (JSON) | seed, n | fid, precision, recall | acceptance_rate, n_proposals, seconds (coût,
 # slide 82) | classes (nombre d'images par chiffre 0-9, séparés par '-').
 
-RESULTS_CSV = 'results/results.csv'
+RESULTS_CSV = {'cnn': 'results/results.csv', 'prof': 'results/results_prof.csv'}  # deux mesures, jamais mélangées
 COLUMNS = ['date', 'git_commit', 'run', 'weights', 'reference', 'method', 'params', 'seed', 'n',
            'fid', 'precision', 'recall', 'acceptance_rate', 'n_proposals', 'seconds', 'classes']
 SUMMARY_METRICS = ['fid', 'precision', 'recall', 'acceptance_rate', 'seconds']
@@ -216,8 +286,9 @@ def make_row(run, weights, reference, sampling_cfg, seed, metrics, stats):
             'seconds': round(stats['seconds'], 3), 'classes': '-'.join(map(str, metrics['classes']))}
 
 
-def append_result(row, path=RESULTS_CSV):
-    """Ajoute une ligne (dict) au CSV, en créant le fichier et son en-tête si besoin."""
+def append_result(row, metric='cnn'):
+    """Ajoute une ligne (dict) au CSV de la mesure `metric`, en créant le fichier et son en-tête si besoin."""
+    path = RESULTS_CSV[metric]
     os.makedirs(os.path.dirname(path), exist_ok=True)
     new = not os.path.exists(path)
     with open(path, 'a', newline='') as f:
@@ -227,9 +298,9 @@ def append_result(row, path=RESULTS_CSV):
         w.writerow(row)
 
 
-def load_results(path=RESULTS_CSV):
-    """Toutes les lignes du CSV (liste de dicts, valeurs en texte)."""
-    with open(path, newline='') as f:
+def load_results(metric='cnn'):
+    """Toutes les lignes du CSV de la mesure `metric` (liste de dicts, valeurs en texte)."""
+    with open(RESULTS_CSV[metric], newline='') as f:
         return list(csv.DictReader(f))
 
 
@@ -270,11 +341,12 @@ def load_run(run_dir, weights, device):
     return G.eval(), D.eval()
 
 
-def evaluate_sampling(G, D, sampling_cfg, seed, reference, device, run, weights, n=10_000, batch_size=10_000):
+def evaluate_sampling(G, D, sampling_cfg, seed, reference, device, run, weights, metric='cnn', n=10_000,
+                      batch_size=10_000):
     """Tire n images avec sampling_cfg, les évalue contre `reference` ; renvoie (ligne du tableau, images)."""
     x, stats = sample(G, D, n, sampling_cfg, seed=seed, batch_size=batch_size)
     images = to_unit_images(x)
-    metrics = evaluate(images, device, reference=reference)
+    metrics = EVALUATORS[metric](images, device, reference=reference)
     return make_row(run, weights, reference, sampling_cfg, seed, metrics, stats), images
 
 
@@ -288,7 +360,8 @@ if __name__ == '__main__':
     parser.add_argument('--weights', choices=['last', 'best'], default='last', help='G.pth/D.pth ou G_best/D_best.')
     parser.add_argument('--sampling', default='configs/sampling/plain.yaml', help='Méthode d\'échantillonnage (YAML).')
     parser.add_argument('--seeds', type=int, nargs='+', default=[0], help='Seeds de l\'échantillonnage.')
-    parser.add_argument('--reference', choices=['val', 'test'], default='val', help='Split réel de référence.')
+    parser.add_argument('--reference', choices=['train', 'val', 'test'], default='val', help='Split réel de référence.')
+    parser.add_argument('--metric', choices=sorted(EVALUATORS), default='cnn', help='cnn : petit CNN ; prof : Inception et VGG.')
     args = parser.parse_args()
     device = get_device()
 
@@ -299,8 +372,8 @@ if __name__ == '__main__':
         cfg = load_config(args.sampling)
         rows = []
         for seed in args.seeds:
-            row, images = evaluate_sampling(G, D, cfg, seed, args.reference, device, args.run, args.weights)
-            append_result(row)
+            row, images = evaluate_sampling(G, D, cfg, seed, args.reference, device, args.run, args.weights, args.metric)
+            append_result(row, args.metric)
             rows.append(row)
             print(f"seed {seed} : FID={row['fid']:.2f} P={row['precision']:.3f} R={row['recall']:.3f} "
                   f"accept={row['acceptance_rate']:.3f} t={row['seconds']:.1f}s")
@@ -309,4 +382,4 @@ if __name__ == '__main__':
             print(format_summary(key, agg))
     else:
         images = load_samples(args.samples) if args.samples else mnist_split('train')[0][:10_000]
-        print(format_metrics(evaluate(images, device, reference=args.reference)))
+        print(format_metrics(EVALUATORS[args.metric](images, device, reference=args.reference)))

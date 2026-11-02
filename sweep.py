@@ -12,7 +12,7 @@ import argparse
 
 import yaml
 
-from evaluate import append_result, evaluate_sampling, format_summary, load_run, summarize
+from evaluate import EVALUATORS, append_result, evaluate_sampling, format_summary, load_run, summarize
 from utils import get_device, load_config
 
 if __name__ == '__main__':
@@ -24,6 +24,7 @@ if __name__ == '__main__':
     parser.add_argument('--values', nargs='+', required=True, help='Valeurs du paramètre.')
     parser.add_argument('--seeds', type=int, nargs='+', default=[0, 1, 2], help='Seeds de l\'échantillonnage.')
     parser.add_argument('--reference', choices=['val', 'test'], default='val', help='Split réel de référence.')
+    parser.add_argument('--metric', choices=sorted(EVALUATORS), default='cnn', help='cnn : petit CNN ; prof : Inception et VGG.')
     args = parser.parse_args()
     device = get_device()
 
@@ -32,8 +33,8 @@ if __name__ == '__main__':
         cfg = {**load_config(args.sampling), args.param: value}
         rows = []
         for seed in args.seeds:
-            row, _ = evaluate_sampling(G, D, cfg, seed, args.reference, device, args.run, args.weights)
-            append_result(row)
+            row, _ = evaluate_sampling(G, D, cfg, seed, args.reference, device, args.run, args.weights, args.metric)
+            append_result(row, args.metric)
             rows.append(row)
         for key, agg in summarize(rows).items():             # une seule clé : cette valeur, toutes seeds
             print(format_summary(key, agg), flush=True)
