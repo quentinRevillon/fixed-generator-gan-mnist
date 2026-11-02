@@ -18,7 +18,7 @@ train:
   epochs: 50
   batch_size: 100
   num_workers: 4
-  # device: cpu           # facultatif, sinon cuda > mps > cpu ; le CPU rend les runs reproductibles
+  # device: cpu           # facultatif, sinon cuda > mps > cpu
 
 optimizer:
   name: adam

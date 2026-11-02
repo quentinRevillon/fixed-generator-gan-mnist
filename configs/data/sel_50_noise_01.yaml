@@ -17,8 +17,7 @@ data:
 train:
   epochs: 400
   batch_size: 100
-  num_workers: 0
-  device: cpu
+  num_workers: 4
 
 optimizer:
   name: adam
