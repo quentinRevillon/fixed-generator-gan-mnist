@@ -55,7 +55,7 @@
     \toprule
     & Images & Training & Measured with \\
     \midrule
-    \textbf{Baseline} & 50k + 10k validation & 200 epochs & Inception, VGG, small CNN \\
+    \textbf{Baseline} & 50k + 10k validation & 200 epochs & Inception, small CNN \\
     \textbf{Sampling} & same generator & 200 epochs & Inception, small CNN \\
     \textbf{Data} & 60k or fewer & 60k updates, 3 to 8 seeds & small CNN \\
     \textbf{Training} & 60k & 100 epochs, EMA, 3 seeds & small CNN \\
@@ -63,10 +63,7 @@
   \end{tabular}}
 
   \vspace{1em}
-  {\small
-  \textbf{FID} (Inception or small CNN): lower is better\\[0.4em]
-  \textbf{Precision} (VGG or small CNN): quality, higher is better\\[0.4em]
-  \textbf{Recall} (VGG or small CNN): diversity, higher is better}
+  \textbf{Metrics:} FID, precision, recall
 \end{frame}
 
 \begin{frame}{Baseline}
