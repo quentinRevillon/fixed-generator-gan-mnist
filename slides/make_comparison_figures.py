@@ -1,15 +1,17 @@
-"""Figures de slides/comparaison.tex (dans slides/figures/).
+"""Figures de slides/comparaison.tex (dans slides/figures/), avec des textes en anglais.
 
-Lit runs/baseline_200ep_prof/metrics.jsonl, les générateurs et, s'il existe, results/comparison_test.csv
-(produit par scripts/measure_runs.py).
+Lit runs/baseline_200ep_prof/, figures/data/kept_vs_rejected.png (Nicodème), les générateurs de Noé et, s'il existe,
+results/comparison_test.csv (produit par scripts/compare.sh).
 
 Utilisation, depuis la racine du repo :
-    python slides/make_comparison_figures.py --weights <dossier contenant les G de Noé et de Nicodème>
+    python slides/make_comparison_figures.py --weights <dossier>
+Le dossier contient G_ep50.pth, G_ep120.pth, G_ep200.pth, noe_baseline_rerun.pth et noe_train_r3gan.pth.
 """
 import argparse
 import csv
 import json
 import os
+import re
 import sys
 from collections import defaultdict
 
@@ -22,166 +24,306 @@ import numpy as np
 import torch
 import torchvision
 
+from data import mnist_split
 from evaluate import to_unit_images
 from model import Discriminator, Generator
-from sampling import sample
+from sampling import calibration_pool, drs_f_hat, propose, sample
 from utils import load_model
 
 OUT = 'slides/figures'
 RESULTS = 'results/comparison_test.csv'
 RUN = 'runs/baseline_200ep_prof'
+EPOCHS = (50, 120, 200)
 SURFACE, INK, MUTED, GRID, BLUE, ORANGE, AQUA = '#fcfcfb', '#0b0b0b', '#52514e', '#e6e5e0', '#2a78d6', '#eb6834', '#1baf7a'
-# Nom dans le CSV -> (étiquette de la slide, couleur, marque pleine). Les références de Noé et Nicodème sont creuses.
-CONFIGS = {'Baseline commune': ('Baseline commune', INK, True),
-           'DRS percentile 80': ('Inférence : DRS', BLUE, True),
-           'Reference de Noe (50 epoques)': ('Référence de Noé, 50 époques', ORANGE, False),
-           'RpGAN + R1 (50 epoques)': ('Entraînement : RpGAN + R1, 50 époques', ORANGE, True),
-           'R3GAN (50 epoques)': ('Entraînement : R3GAN, 50 époques', ORANGE, True),
-           'Reference de Nicodeme': ('Référence de Nicodème', AQUA, False),
-           'Bruit 0.1': ('Données : bruit 0,1', AQUA, True),
-           'Bruit 0.3': ('Données : bruit 0,3', AQUA, True),
-           'Selection 75 %': ('Données : sélection 75 %', AQUA, True),
-           'Selection 50 %': ('Données : sélection 50 %', AQUA, True)}
-GRIDS = (('Baseline', None), ('Bruit 0,1', 'nico_noise_01_s1.pth'), ('Sélection 50 %', 'nico_sel_50_s0.pth'),
-         ('R3GAN, 50 époques', 'noe_train_r3gan.pth'), ('DRS', 'drs'))
-plt.rcParams.update({'font.size': 13, 'axes.edgecolor': MUTED, 'axes.labelcolor': MUTED, 'xtick.color': MUTED,
+# Nom dans le CSV -> (étiquette de la slide, couleur du levier).
+CONFIGS = {'Baseline commune': ('Common baseline', INK),
+           'Bruit': ('Data: noise', AQUA),
+           'Selection': ('Data: selection', AQUA),
+           'RpGAN + R1': ('Training: RpGAN + R1', ORANGE),
+           'R3GAN': ('Training: R3GAN', ORANGE),
+           'DRS': ('Sampling: DRS', BLUE),
+           'R3GAN + DRS': ('R3GAN + DRS', MUTED)}
+plt.rcParams.update({'font.size': 15, 'axes.edgecolor': MUTED, 'axes.labelcolor': MUTED, 'xtick.color': MUTED,
                      'ytick.color': MUTED, 'axes.spines.top': False, 'axes.spines.right': False,
                      'figure.facecolor': SURFACE, 'axes.facecolor': SURFACE, 'savefig.facecolor': SURFACE})
 
 
-def plot_two_measures():
-    """FID de la baseline selon les deux mesures, côte à côte, chaque minimum annoté."""
+def load_evaluations():
+    """Lignes de metrics.jsonl de la baseline où les métriques ont été calculées, par époque."""
     with open(f'{RUN}/metrics.jsonl') as f:
-        rows = [r for r in map(json.loads, f) if 'fid_prof' in r]
-    fig, axes = plt.subplots(1, 2, figsize=(10.5, 4))
-    panels = (('fid_prof', 'Inception (mesure du classement)', (40, 60, 100, 150, 250)),
-              ('fid', 'Petit CNN MNIST', (50, 100, 200, 500, 1000, 2000)))
+        return {r['epoch']: r for r in map(json.loads, f) if 'fid_prof' in r}
+
+
+def image_grid(ax, x, title, nrow=6):
+    """Affiche des images (n, 784) dans [-1, 1] en grille, avec un titre."""
+    grid = torchvision.utils.make_grid(to_unit_images(x), nrow=nrow, padding=2, pad_value=1)
+    ax.imshow(grid.permute(1, 2, 0).numpy(), interpolation='nearest')
+    ax.set_title(title, fontsize=14, color=INK)
+    ax.axis('off')
+
+
+def fixed_noise(n=36):
+    """Le même bruit z pour toutes les grilles."""
+    return torch.randn(n, 100, generator=torch.Generator().manual_seed(0))
+
+
+@torch.no_grad()
+def plot_epochs(rows, weights):
+    """Mêmes z aux époques 50, 120 et 200, FID Inception en titre."""
+    epochs = (50, 106, 200) if os.path.exists(os.path.join(weights, 'G_ep106.pth')) else EPOCHS
+    fig, axes = plt.subplots(1, 3, figsize=(10.5, 4.2))
+    for ax, epoch in zip(axes, epochs):
+        G = load_model(Generator(784), os.path.join(weights, f'G_ep{epoch}.pth'), 'cpu').eval()
+        image_grid(ax, G(fixed_noise()), f"Epoch {epoch}\nInception FID {rows[epoch]['fid_prof']:.0f}, CNN FID {rows[epoch]['fid']:.0f}")
+    fig.tight_layout()
+    fig.savefig(f'{OUT}/cmp_epochs.png', dpi=200)
+
+
+def real_shares():
+    """Part de chaque chiffre (%) dans le split d'entraînement, d'après les vraies étiquettes."""
+    labels = mnist_split('train')[1]
+    return (100 * labels.bincount(minlength=10) / len(labels)).numpy()
+
+
+def digit_panel(ax, shares, title, real=None):
+    """Barres de la part de chaque chiffre ; en option, repères orange à la vraie distribution."""
+    ax.bar(range(10), shares, color=INK if real is not None else MUTED, width=0.7)
+    if real is not None:
+        ax.scatter(range(10), real, marker='_', s=420, linewidths=3, color=ORANGE, zorder=3, label='Real data')
+        ax.legend(frameon=False, fontsize=12, labelcolor=MUTED, loc='upper right')
+    for digit in (shares.argmax(), shares.argmin()):
+        ax.annotate(f'{shares[digit]:.0f}%', (digit, shares[digit]), xytext=(0, 4), textcoords='offset points', ha='center', color=INK, fontsize=13)
+    ax.set(xticks=range(10), xlabel='Digit', ylim=(0, 30))
+    ax.set_title(title, loc='left', fontsize=14, color=INK)
+    ax.grid(axis='y', color=GRID)
+    ax.set_axisbelow(True)
+
+
+def plot_digits(rows):
+    """Vraie distribution, puis part de chaque chiffre au minimum de chaque FID. Renvoie les parts par époque."""
+    real = real_shares()
+    panels = ((min(rows, key=lambda e: rows[e]['fid']), 'best CNN FID'), (min(rows, key=lambda e: rows[e]['fid_prof']), 'best Inception FID'))
+    fig, axes = plt.subplots(1, 3, figsize=(12, 3.9), sharey=True)
+    digit_panel(axes[0], real, 'Real data')
+    out = {'real': real}
+    for ax, (epoch, name) in zip(axes[1:], panels):
+        out[epoch] = 100 * np.array(rows[epoch]['classes']) / sum(rows[epoch]['classes'])
+        digit_panel(ax, out[epoch], f'Epoch {epoch}: {name}', real)
+    axes[0].set_ylabel('% of images')
+    fig.tight_layout()
+    fig.savefig(f'{OUT}/cmp_digits.png', dpi=200)
+    return out
+
+
+def plot_selection():
+    """La figure de Nicodème coupée en deux : images gardées et images retirées, chiffre par chiffre."""
+    image = plt.imread('figures/data/kept_vs_rejected.png')
+    middle = image.shape[1] // 2
+    fig, axes = plt.subplots(1, 2, figsize=(10.5, 5.3))
+    for ax, part, title in zip(axes, (image[:, :middle], image[:, middle:]), ('Kept: most typical', 'Removed: least typical')):
+        ax.imshow(part, interpolation='nearest')
+        ax.set_title(title, fontsize=16, color=INK)
+        ax.axis('off')
+    fig.tight_layout()
+    fig.savefig(f'{OUT}/cmp_selection.png', dpi=200)
+
+
+@torch.no_grad()
+def plot_loss_effect(weights):
+    """Même bruit, 50 époques : perte de base contre R3GAN (générateurs de Noé)."""
+    fig, axes = plt.subplots(1, 2, figsize=(8.2, 4.1))
+    for ax, name, title in zip(axes, ('noe_baseline_rerun.pth', 'noe_train_r3gan.pth'), ('Original loss', 'R3GAN loss')):
+        G = load_model(Generator(784), os.path.join(weights, name), 'cpu').eval()
+        image_grid(ax, G(fixed_noise()), title)
+    fig.tight_layout()
+    fig.savefig(f'{OUT}/cmp_loss_effect.png', dpi=200)
+
+
+@torch.no_grad()
+def plot_kept_rejected(percentile=80, n=36):
+    """Mêmes propositions de G à l'époque 200, séparées par la décision du DRS."""
+    G = load_model(Generator(784), f'{RUN}/G_best.pth', 'cpu').eval()
+    D = load_model(Discriminator(784), f'{RUN}/D_best.pth', 'cpu').eval()
+    rng = torch.Generator().manual_seed(0)
+    log_M = calibration_pool(G, D, rng, 10_000, 2000).max().item()
+    x, log_r = propose(G, D, 2000, rng, 2000)
+    f_hat = drs_f_hat(log_r, max(log_M, log_r.max().item()), 0.0, 1e-6)
+    keep = torch.rand(2000, generator=rng).double() <= torch.sigmoid(f_hat - torch.quantile(f_hat, percentile / 100))
+    fig, axes = plt.subplots(1, 2, figsize=(8.2, 4.1))
+    for ax, images, title in zip(axes, (x[keep][:n], x[~keep][:n]), ('Kept', 'Rejected')):
+        image_grid(ax, images, title)
+    fig.tight_layout()
+    fig.savefig(f'{OUT}/cmp_kept_rejected.png', dpi=200)
+
+
+def plot_two_measures(rows):
+    """FID de la baseline selon les deux réseaux, chaque minimum annoté."""
+    rows = list(rows.values())
+    fig, axes = plt.subplots(1, 2, figsize=(10.5, 3.9))
+    panels = (('fid_prof', 'Inception (trained on ImageNet)', (40, 60, 100, 150, 250)), ('fid', 'Small CNN (trained on MNIST)', (50, 100, 200, 500, 1000, 2000)))
     for ax, (key, title, ticks) in zip(axes, panels):
         best = min(rows, key=lambda r: r[key])
         ax.plot([r['epoch'] for r in rows], [r[key] for r in rows], color=INK, linewidth=2)
-        ax.scatter([best['epoch']], [best[key]], color=INK, s=45, zorder=3)
-        ax.annotate(f"minimum : époque {best['epoch']}", (best['epoch'], best[key]), xytext=(0, -11), textcoords='offset points',
+        ax.scatter([best['epoch']], [best[key]], color=ORANGE, s=70, zorder=3)
+        ax.annotate(f"best: epoch {best['epoch']}", (best['epoch'], best[key]), xytext=(0, -13), textcoords='offset points',
                     ha='right' if best['epoch'] > 150 else 'center', va='top', color=INK)
-        ax.set(yscale='log', xlabel='Époque', ylabel='FID', xlim=(0, 205), ylim=(best[key] / 1.8, max(r[key] for r in rows) * 1.2))
+        ax.set(yscale='log', xlabel='Epoch', ylabel='FID', xlim=(0, 205), ylim=(best[key] / 1.9, max(r[key] for r in rows) * 1.2))
         ax.set_yticks(ticks, [str(t) for t in ticks])
         ax.minorticks_off()
-        ax.set_title(title, loc='left', fontsize=13, color=INK)
+        ax.set_title(title, loc='left', fontsize=16, color=INK)
         ax.grid(axis='y', color=GRID)
     fig.tight_layout()
     fig.savefig(f'{OUT}/cmp_two_measures.png', dpi=200)
 
 
-def plot_drs_gain():
-    """FID et précision de la baseline et du DRS sur l'époque 200, avec et sans KeepTraining, percentile 80."""
-    with open('results/results_prof.csv', newline='') as f:
-        rows = [r for r in csv.DictReader(f) if r['run'] == RUN and r['reference'] == 'val']
-    configs = (('Sans tri', 'best', 'plain', MUTED), ('DRS', 'best', 'drs_azadi', BLUE), ('KeepTraining + DRS', 'best_kt', 'drs_azadi', ORANGE))
-    fig, axes = plt.subplots(1, 3, figsize=(10.5, 2.8), sharey=True)
-    for ax, (key, title, fmt) in zip(axes, (('fid', 'FID (plus bas = mieux)', '{:.1f}'), ('precision', 'Précision', '{:.3f}'), ('recall', 'Rappel', '{:.3f}'))):
-        values = [np.mean([float(r[key]) for r in rows if r['weights'] == w and r['method'] == m
-                           and (m == 'plain' or json.loads(r['params'])['percentile'] == 80)]) for _, w, m, _ in configs]
-        ax.barh([c[0] for c in configs], values, color=[c[3] for c in configs], height=0.65)
-        for y, value in enumerate(values):
-            ax.annotate(fmt.format(value).replace('.', ','), (value, y), xytext=(6, 0), textcoords='offset points', va='center', color=INK)
-        ax.set(xlim=(0, max(values) * 1.3))
-        ax.set_title(title, loc='left', fontsize=13, color=INK)
-        ax.grid(axis='x', color=GRID)
-        ax.set_axisbelow(True)
-    axes[0].invert_yaxis()
-    fig.tight_layout()
-    fig.savefig(f'{OUT}/cmp_drs_gain.png', dpi=200)
+def bar_panels(configs, panels, path):
+    """Trois panneaux de barres horizontales partageant les mêmes lignes, valeurs écrites, axes partant de 0.
 
-
-def plot_data_gain():
-    """Résultats de Nicodème à 60 000 mises à jour (figures/data/summary.csv de sa branche, copié dans slides/figures)."""
-    with open(f'{OUT}/nico_summary.csv', newline='') as f:
-        rows = {r['variant']: r for r in csv.DictReader(f)}
-    configs = (('Référence', 'data_ref', MUTED), ('Bruit 0,1', 'noise_01', AQUA), ('Bruit 0,3', 'noise_03', AQUA),
-               ('Sélection 75 %', 'sel_75', BLUE), ('Sélection 50 %', 'sel_50', BLUE))
-    panels = (('fid_60k', 'FID (plus bas = mieux)', '{:.0f}'), ('precision_60k', 'Précision', '{:.2f}'), ('recall_60k', 'Rappel', '{:.2f}'))
-    fig, axes = plt.subplots(1, 3, figsize=(10.5, 3.1), sharey=True)
+    configs : (étiquette, couleur, {colonne : valeur}) ; panels : (colonne, titre, format).
+    """
+    fig, axes = plt.subplots(1, len(panels), figsize=(10.5, 3.9), sharey=True)
     for ax, (key, title, fmt) in zip(axes, panels):
-        values = [float(rows[v][key]) for _, v, _ in configs]
-        ax.barh([c[0] for c in configs], values, color=[c[2] for c in configs], height=0.65)
+        values = [c[2][key] for c in configs]
+        ax.barh([c[0] for c in configs], values, color=[c[1] for c in configs], height=0.68)
         for y, value in enumerate(values):
-            ax.annotate(fmt.format(value).replace('.', ','), (value, y), xytext=(6, 0), textcoords='offset points', va='center', color=INK)
-        ax.set(xlim=(0, max(values) * 1.3))
-        ax.set_title(title, loc='left', fontsize=13, color=INK)
+            ax.annotate(fmt.format(value), (value, y), xytext=(6, 0), textcoords='offset points', va='center', color=INK)
+        ax.set(xlim=(0, max(values) * 1.35))
+        ax.set_title(title, loc='left', fontsize=14, color=INK)
         ax.grid(axis='x', color=GRID)
         ax.set_axisbelow(True)
     axes[0].invert_yaxis()
     fig.tight_layout()
-    fig.savefig(f'{OUT}/cmp_data_gain.png', dpi=200)
+    fig.savefig(path, dpi=200)
+
+
+def plot_data_results():
+    """Résultats de Nicodème à 60 000 mises à jour (figures/data/summary.csv)."""
+    with open('figures/data/summary.csv', newline='') as f:
+        rows = {r['variant']: r for r in csv.DictReader(f)}
+    variants = (('Reference', 'data_ref', MUTED), ('Noise 0.1', 'noise_01', AQUA), ('Noise 0.3', 'noise_03', AQUA),
+                ('Selection 75%', 'sel_75', BLUE), ('Selection 50%', 'sel_50', BLUE))
+    configs = [(label, color, {k: float(rows[v][k]) for k in ('fid_60k', 'precision_60k', 'recall_60k')}) for label, v, color in variants]
+    bar_panels(configs, (('fid_60k', 'CNN FID', '{:.0f}'), ('precision_60k', 'CNN precision', '{:.2f}'), ('recall_60k', 'CNN recall', '{:.2f}')),
+               f'{OUT}/cmp_data_results.png')
+
+
+def read_log(name):
+    """{époques, fid, precision, recall} d'un log d'entraînement de Noé (logs/<nom>.log)."""
+    with open(f'logs/{name}.log', encoding='utf8', errors='replace') as f:
+        found = re.findall(r'\[(\d+)/\d+\].*?FID=([\d.]+) P=([\d.]+) R=([\d.]+)', f.read())
+    return {'epochs': [int(m[0]) for m in found], 'fid': [float(m[1]) for m in found],
+            'precision': [float(m[2]) for m in found], 'recall': [float(m[3]) for m in found]}
+
+
+def plot_training_results():
+    """FID, précision et rappel du petit CNN pour les runs de Noé, au cours des 50 époques."""
+    runs = (('baseline_rerun', 'Original loss', MUTED, {'fid': 0, 'precision': -11, 'recall': 0}),
+            ('train_rpgan_r1', 'RpGAN + R1', ORANGE, {'fid': -9, 'precision': 11, 'recall': 8}),
+            ('train_r3gan', 'R3GAN', AQUA, {'fid': 9, 'precision': 0, 'recall': -8}))
+    panels = (('fid', 'CNN FID', '{:.0f}'), ('precision', 'CNN precision', '{:.2f}'), ('recall', 'CNN recall', '{:.2f}'))
+    ticks = (50, 100, 200, 500, 1000, 2000)
+    fig, axes = plt.subplots(1, 3, figsize=(12, 3.9))
+    for name, label, color, shifts in runs:
+        log = read_log(name)
+        for ax, (key, _, fmt) in zip(axes, panels):
+            ax.plot(log['epochs'], log[key], color=color, linewidth=2.5, marker='o', markersize=5, label=label)
+            ax.annotate(fmt.format(log[key][-1]), (log['epochs'][-1], log[key][-1]), xytext=(8, shifts[key]), textcoords='offset points',
+                        va='center', color=INK, fontsize=12)
+    for ax, (_, title, _) in zip(axes, panels):
+        ax.set(xlabel='Epoch', xlim=(8, 60))
+        ax.set_title(title, loc='left', fontsize=14, color=INK)
+        ax.grid(axis='y', color=GRID)
+    axes[0].set(yscale='log')
+    axes[0].set_yticks(ticks, [str(t) for t in ticks])
+    axes[0].minorticks_off()
+    axes[0].legend(frameon=False, fontsize=11, labelcolor=MUTED)
+    axes[1].set(ylim=(0, 1))
+    axes[2].set(ylim=(0, 1))
+    fig.tight_layout()
+    fig.savefig(f'{OUT}/cmp_training_results.png', dpi=200)
+
+
+def plot_sampling_results():
+    """DRS sur l'époque 200 mesuré avec le petit CNN, sans tri puis à chaque percentile (results/results.csv)."""
+    with open('results/results.csv', newline='') as f:
+        rows = [r for r in csv.DictReader(f) if r['run'] == RUN and r['reference'] == 'val' and r['weights'] == 'best']
+    keys = ('fid', 'precision', 'recall', 'acceptance_rate')
+    picked = [('No rejection', MUTED, [r for r in rows if r['method'] == 'plain'])]
+    for percentile in (50, 80, 95, 99):
+        picked.append((percentile, BLUE, [r for r in rows if r['method'] == 'drs_azadi' and json.loads(r['params'])['percentile'] == percentile]))
+    configs = []
+    for name, color, group in picked:
+        values = {k: np.mean([float(r[k]) for r in group]) for k in keys}
+        label = name if name == 'No rejection' else f"DRS, {100 * values['acceptance_rate']:.0f}% kept"
+        configs.append((label, color, values))
+        print(label, {k: round(v, 3) for k, v in values.items()})
+    bar_panels(configs, (('fid', 'CNN FID', '{:.0f}'), ('precision', 'CNN precision', '{:.3f}'), ('recall', 'CNN recall', '{:.3f}')),
+               f'{OUT}/cmp_sampling_results.png')
 
 
 def load_comparison():
-    """{nom : agrégats} : moyenne et écart-type de FID, précision et rappel, écart à 10 % par chiffre."""
+    """{nom : colonnes} : une valeur par seed d'entraînement pour FID, précision, rappel ; parts de chiffres cumulées."""
+    groups = defaultdict(list)
     with open(RESULTS, newline='') as f:
-        groups = defaultdict(list)
         for row in csv.DictReader(f):
             groups[row['name']].append(row)
     out = {}
     for name, rows in groups.items():
-        agg = {k: (np.mean([float(r[k]) for r in rows]), np.std([float(r[k]) for r in rows]))
-               for k in ('fid', 'precision', 'recall', 'acceptance_rate')}
         counts = np.array([[int(c) for c in r['classes'].split('-')] for r in rows]).sum(0)
-        agg['shares'] = 100 * counts / counts.sum()
-        agg['imbalance'] = float(np.abs(agg['shares'] - 10).sum() / 2)
-        out[name] = agg
+        shares = 100 * counts / counts.sum()
+        out[name] = {k: np.array([float(r[k]) for r in rows]) for k in ('fid', 'precision', 'recall', 'fid_cnn', 'precision_cnn', 'recall_cnn', 'acceptance_rate')}
+        out[name].update(shares=shares, imbalance=float(np.abs(shares - 10).sum() / 2))
     return out
 
 
-def marker_style(color, filled):
-    """Marque pleine, ou creuse pour une référence propre à un volet."""
-    return {'color': color, 'facecolors': color if filled else SURFACE, 'edgecolors': color, 's': 90, 'linewidths': 2, 'zorder': 3}
-
-
 def plot_fid(results):
-    """FID de chaque configuration, valeurs écrites, baseline commune en trait vertical."""
-    fig, ax = plt.subplots(figsize=(10.5, 4.9))
+    """Les deux FID par configuration : un point par seed d'entraînement, moyenne écrite, baseline en pointillés."""
     names = [n for n in CONFIGS if n in results]
-    ax.axvline(results['Baseline commune']['fid'][0], color=INK, linestyle=':', linewidth=1.2)
-    for y, name in enumerate(names):
-        label, color, filled = CONFIGS[name]
-        value = results[name]['fid'][0]
-        ax.scatter([value], [y], **{k: v for k, v in marker_style(color, filled).items() if k != 'color'})
-        ax.annotate(f'{value:.1f}'.replace('.', ','), (value, y), xytext=(10, 0), textcoords='offset points', va='center', color=INK)
-    ax.set_yticks(range(len(names)), [CONFIGS[n][0] for n in names])
-    ax.invert_yaxis()
-    ax.set(xlabel='FID Inception, contre MNIST test (plus bas = mieux)', xscale='log')
-    ax.grid(axis='x', color=GRID)
-    ax.set_axisbelow(True)
+    fig, axes = plt.subplots(1, 2, figsize=(10.5, 4.6), sharey=True)
+    for ax, (key, title) in zip(axes, (('fid', 'Inception FID'), ('fid_cnn', 'Small CNN FID'))):
+        ax.axvline(results['Baseline commune'][key].mean(), color=INK, linestyle=':', linewidth=1.5)
+        for y, name in enumerate(names):
+            values = results[name][key]
+            ax.scatter(values, [y] * len(values), color=CONFIGS[name][1], s=80, alpha=0.85, zorder=3)
+            ax.annotate(f'{values.mean():.0f}', (values.max(), y), xytext=(10, 0), textcoords='offset points', va='center', color=INK)
+        ax.set(xscale='log', xlabel='Lower is better')
+        ax.set_title(title, loc='left', fontsize=16, color=INK)
+        ax.grid(axis='x', color=GRID)
+        ax.set_axisbelow(True)
+    axes[0].set_yticks(range(len(names)), [CONFIGS[n][0] for n in names])
+    axes[0].invert_yaxis()
     fig.tight_layout()
     fig.savefig(f'{OUT}/cmp_fid.png', dpi=200)
 
 
 def plot_precision_recall(results):
-    """Précision et rappel : une marque par configuration, avec son nom."""
-    fig, ax = plt.subplots(figsize=(9.5, 4.9))
-    for name in CONFIGS:
-        if name not in results:
-            continue
-        label, color, filled = CONFIGS[name]
-        r, p = results[name]['recall'][0], results[name]['precision'][0]
-        ax.scatter([r], [p], **{k: v for k, v in marker_style(color, filled).items() if k != 'color'})
-        ax.annotate(label.split(' : ')[-1], (r, p), xytext=(8, 5), textcoords='offset points', fontsize=10, color=INK)
-    ax.set(xlabel='Rappel VGG (diversité)', ylabel='Précision VGG (qualité)')
-    ax.grid(color=GRID)
-    ax.set_axisbelow(True)
+    """Précision et rappel moyens selon les deux réseaux : une marque par configuration, avec son nom."""
+    fig, axes = plt.subplots(1, 2, figsize=(10.5, 4.6))
+    panels = (('precision', 'recall', 'VGG'), ('precision_cnn', 'recall_cnn', 'Small CNN'))
+    for ax, (precision, recall, title) in zip(axes, panels):
+        for name, (label, color) in CONFIGS.items():
+            if name in results:
+                r, p = results[name][recall].mean(), results[name][precision].mean()
+                ax.scatter([r], [p], color=color, s=100, zorder=3)
+                ax.annotate(label.split(': ')[-1], (r, p), xytext=(7, 5), textcoords='offset points', fontsize=11, color=INK)
+        ax.set(xlabel='Recall', ylabel='Precision')
+        ax.set_title(title, loc='left', fontsize=16, color=INK)
+        ax.grid(color=GRID)
+        ax.set_axisbelow(True)
     fig.tight_layout()
     fig.savefig(f'{OUT}/cmp_pr.png', dpi=200)
 
 
 def plot_balance(results):
-    """Écart à 10 % par chiffre de chaque configuration, axe partant de 0."""
+    """Annexe : part des images à changer de chiffre pour atteindre 10 % partout, axe partant de 0."""
     names = [n for n in CONFIGS if n in results]
     values = [results[n]['imbalance'] for n in names]
-    fig, ax = plt.subplots(figsize=(10.5, 4.9))
+    fig, ax = plt.subplots(figsize=(10.5, 4.6))
     ax.barh([CONFIGS[n][0] for n in names], values, color=[CONFIGS[n][1] for n in names], height=0.68)
     for y, value in enumerate(values):
-        ax.annotate(f'{value:.1f} %'.replace('.', ','), (value, y), xytext=(6, 0), textcoords='offset points', va='center', color=INK)
+        ax.annotate(f'{value:.0f}%', (value, y), xytext=(6, 0), textcoords='offset points', va='center', color=INK)
     ax.invert_yaxis()
-    ax.set(xlabel='Part des images à changer de chiffre pour atteindre 10 % partout', xlim=(0, max(values) * 1.15))
+    ax.set(xlabel='% of images to change for a perfect 10% of each digit', xlim=(0, max(values) * 1.15))
     ax.grid(axis='x', color=GRID)
     ax.set_axisbelow(True)
     fig.tight_layout()
@@ -189,24 +331,17 @@ def plot_balance(results):
 
 
 @torch.no_grad()
-def images_of(g_file, weights, z):
-    """36 images de la colonne : G(z) pour un générateur, images acceptées pour le DRS."""
-    G = load_model(Generator(784), os.path.join(weights, g_file) if g_file not in (None, 'drs') else f'{RUN}/G_best.pth', 'cpu').eval()
-    if g_file != 'drs':
-        return G(z)
-    D = load_model(Discriminator(784), f'{RUN}/D_best.pth', 'cpu').eval()
-    return sample(G, D, len(z), {'method': 'drs_azadi', 'percentile': 80, 'n_burnin': 10_000}, seed=0, batch_size=1000)[0]
-
-
-def plot_samples(weights):
-    """Une grille par approche : mêmes z sauf pour le DRS, qui garde une partie des images proposées."""
-    z = torch.randn(36, 100, generator=torch.Generator().manual_seed(0))
-    fig, axes = plt.subplots(1, len(GRIDS), figsize=(13, 3.1))
-    for ax, (title, g_file) in zip(axes, GRIDS):
-        grid = torchvision.utils.make_grid(to_unit_images(images_of(g_file, weights, z)), nrow=6, padding=2, pad_value=1)
-        ax.imshow(grid.permute(1, 2, 0).numpy(), interpolation='nearest')
-        ax.set_title(title, fontsize=13, color=INK)
-        ax.axis('off')
+def plot_samples():
+    """Une grille par approche, seed d'entraînement 0 : mêmes z, sauf pour le DRS qui garde une partie des propositions."""
+    z = fixed_noise()
+    runs = (('Baseline', 'cmp_baseline_s0'), ('Noise', 'cmp_noise_01_s0'), ('Selection', 'cmp_sel_50_s0'), ('R3GAN', 'cmp_r3gan_s0'))
+    fig, axes = plt.subplots(1, len(runs) + 1, figsize=(13, 3.1))
+    for ax, (title, run) in zip(axes, runs):
+        G = load_model(Generator(784), f'runs/{run}/G_best.pth', 'cpu').eval()
+        image_grid(ax, G(z), title)
+    G = load_model(Generator(784), 'runs/cmp_baseline_s0/G_best.pth', 'cpu').eval()
+    D = load_model(Discriminator(784), 'runs/cmp_baseline_s0/D_best.pth', 'cpu').eval()
+    image_grid(axes[-1], sample(G, D, len(z), {'method': 'drs_azadi', 'percentile': 80}, seed=0, batch_size=1000)[0], 'DRS')
     fig.tight_layout()
     fig.savefig(f'{OUT}/cmp_samples.png', dpi=200)
 
@@ -216,21 +351,29 @@ def print_table(results):
     for name in CONFIGS:
         if name in results:
             a = results[name]
-            print(f"{name}: FID {a['fid'][0]:.1f}±{a['fid'][1]:.1f} P {a['precision'][0]:.3f} R {a['recall'][0]:.3f} "
-                  f"acc {a['acceptance_rate'][0]:.3f} ecart {a['imbalance']:.1f} parts {np.round(a['shares'], 1).tolist()}")
+            print(f"{name}: FID {a['fid'].mean():.1f} ({np.round(a['fid'], 1).tolist()}) P {a['precision'].mean():.3f} R {a['recall'].mean():.3f} "
+                  f"acc {a['acceptance_rate'].mean():.3f} ecart {a['imbalance']:.1f} parts {np.round(a['shares'], 1).tolist()}")
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Draw the comparison slides figures.')
-    parser.add_argument('--weights', required=True, help='Dossier contenant les générateurs de Noé et de Nicodème.')
+    parser.add_argument('--weights', required=True, help='Dossier contenant les générateurs (voir en haut du fichier).')
     args = parser.parse_args()
-    plot_two_measures()
-    plot_data_gain()
-    plot_drs_gain()
-    plot_samples(args.weights)
+    os.makedirs(OUT, exist_ok=True)
+    evaluations = load_evaluations()
+    plot_epochs(evaluations, args.weights)
+    plot_digits(evaluations)
+    plot_selection()
+    plot_loss_effect(args.weights)
+    plot_kept_rejected()
+    plot_two_measures(evaluations)
+    plot_data_results()
+    plot_training_results()
+    plot_sampling_results()
     if os.path.exists(RESULTS):
         results = load_comparison()
         plot_fid(results)
         plot_precision_recall(results)
         plot_balance(results)
+        plot_samples()
         print_table(results)

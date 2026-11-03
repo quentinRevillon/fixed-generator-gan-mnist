@@ -1,4 +1,5 @@
-"""Mesure plusieurs générateurs de la même façon : FID Inception, précision et rappel VGG, contre MNIST test.
+"""Mesure plusieurs générateurs de la même façon, contre MNIST test, avec les deux mesures :
+FID Inception, précision et rappel VGG ; FID, précision et rappel du petit CNN.
 
 Le manifeste est un CSV sans en-tête, une ligne par configuration : nom,chemin_de_G[,chemin_de_D]
 Avec D, on mesure le DRS au percentile 80 ; sans D, les images de G sans tri.
@@ -9,7 +10,7 @@ Utilisation, depuis la racine du repo :
 import csv
 import sys
 
-from evaluate import evaluate_prof, to_unit_images
+from evaluate import evaluate, evaluate_prof, to_unit_images
 from model import Discriminator, Generator
 from sampling import sample
 from utils import get_device, load_model
@@ -27,10 +28,13 @@ def load_models(g_path, d_path, device):
 
 
 def measure(G, D, seed, device):
-    """(FID, précision, rappel, taux d'acceptation, classes) de 10 000 images d'une seed."""
+    """Les deux mesures, le taux d'acceptation et les classes de 10 000 images d'une seed."""
     x, stats = sample(G, D, 10_000, DRS if D is not None else PLAIN, seed=seed, batch_size=10_000)
-    m = evaluate_prof(to_unit_images(x), device, reference='test')
-    return m['fid'], m['precision'], m['recall'], stats['acceptance_rate'], '-'.join(map(str, m['classes']))
+    images = to_unit_images(x)
+    m = evaluate_prof(images, device, reference='test')
+    c = evaluate(images, device, reference='test')
+    return (m['fid'], m['precision'], m['recall'], c['fid'], c['precision'], c['recall'], stats['acceptance_rate'],
+            '-'.join(map(str, m['classes'])))
 
 
 if __name__ == '__main__':
@@ -39,11 +43,12 @@ if __name__ == '__main__':
         manifest = [(row + [''])[:3] for row in csv.reader(f) if row]
     with open(sys.argv[2], 'w', newline='') as f:
         out = csv.writer(f, lineterminator='\n')
-        out.writerow(['name', 'run', 'seed', 'fid', 'precision', 'recall', 'acceptance_rate', 'classes'])
+        out.writerow(['name', 'run', 'seed', 'fid', 'precision', 'recall', 'fid_cnn', 'precision_cnn', 'recall_cnn',
+                      'acceptance_rate', 'classes'])
         for name, g_path, d_path in manifest:
             G, D = load_models(g_path, d_path, device)
             for seed in SEEDS:
                 row = [name, g_path, seed, *measure(G, D, seed, device)]
                 out.writerow(row)
                 f.flush()
-                print(row[:7], flush=True)
+                print(row[:10], flush=True)
