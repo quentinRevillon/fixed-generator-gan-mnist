@@ -20,9 +20,10 @@ import torchvision
 import yaml
 from torch.utils.tensorboard import SummaryWriter
 
-from data import train_loader
+from data import train_dataset, train_loader
 from evaluate import evaluate, evaluate_prof, format_metrics, generate, save_grid, to_unit_images
 from model import Generator, Discriminator
+from preprocessing import add_instance_noise, noise_sigma, training_set
 from utils import (D_train, G_train, environment, get_device, git_commit, load_ckpt, load_config, make_deterministic,
                    save_ckpt, set_seed, unwrap)
 
@@ -60,13 +61,19 @@ def build_models(cfg, device):
     return G, D, G_opt, D_opt
 
 
-def train_one_epoch(loader, G, D, G_opt, D_opt, criterion, device):
+def loss_params(cfg):
+    """(perte, gamma R1, gamma R2) de la section loss du YAML ; sans cette section, la BCE de la baseline."""
+    loss = cfg.get('loss', {})
+    return loss.get('name', 'bce'), loss.get('r1_gamma', 0.), loss.get('r2_gamma', 0.)
+
+
+def train_one_epoch(loader, G, D, G_opt, D_opt, criterion, device, loss):
     """Une époque (un pas de D puis un pas de G par batch) ; renvoie les moyennes des pertes et scores."""
     stats = np.zeros(4)
     for x, _ in loader:
         x = x.view(-1, MNIST_DIM).to(device)
-        d_loss, d_real, d_fake = D_train(x, G, D, D_opt, criterion, device)
-        g_loss = G_train(x, G, D, G_opt, criterion, device)
+        d_loss, d_real, d_fake = D_train(x, G, D, D_opt, criterion, device, *loss)
+        g_loss = G_train(x, G, D, G_opt, criterion, device, loss[0])
         stats += (d_loss, g_loss, d_real, d_fake)
     stats /= len(loader)
     return dict(loss_D=stats[0], loss_G=stats[1], D_real=stats[2], D_fake=stats[3])
@@ -106,8 +113,10 @@ def train(cfg, resume=False, trial=None):
     set_seed(cfg['seed'])
     make_deterministic()
     run_dir = create_run_dir(cfg, resume, device)
-    loader = train_loader(cfg['train']['batch_size'], cfg['seed'])   # split 'train', voir data.py
+    dataset = training_set(train_dataset(), cfg, device)   # split 'train', voir data.py
+    loader = train_loader(cfg['train']['batch_size'], cfg['seed'], dataset)
     G, D, G_opt, D_opt = build_models(cfg, device)
+    D_input = add_instance_noise(D, cfg)   # D lui-même sans data.instance_noise
     criterion = nn.BCELoss()
 
     start, best_fid = 1, float('inf')
@@ -126,7 +135,9 @@ def train(cfg, resume=False, trial=None):
     t0, metrics = time.time(), {}
     for epoch in range(start, n_epochs + 1):
         t_ep = time.time()
-        metrics = train_one_epoch(loader, G, D, G_opt, D_opt, criterion, device)
+        if D_input is not D:
+            D_input.sigma = noise_sigma(cfg, epoch)
+        metrics = train_one_epoch(loader, G, D_input, G_opt, D_opt, criterion, device, loss_params(cfg))
 
         # Évaluation sur 'val' tous les eval.every (et à la dernière époque). fork_rng restaure l'état du RNG
         # global à la sortie : évaluer (ou pas) ne change jamais la suite de l'entraînement.
@@ -176,5 +187,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train GAN on MNIST.')
     parser.add_argument('--config', default='configs/baseline.yaml', help='Fichier YAML de configuration.')
     parser.add_argument('--resume', action='store_true', help='Reprendre depuis <run>/ckpt/last.pth.')
+    parser.add_argument('--seed', type=int, help='Remplace la seed du YAML et ajoute _s<seed> au nom du run.')
     args = parser.parse_args()
-    train(load_config(args.config), resume=args.resume)
+    cfg = load_config(args.config)
+    if args.seed is not None:
+        cfg.update(seed=args.seed, name=f"{cfg['name']}_s{args.seed}")
+    train(cfg, resume=args.resume)

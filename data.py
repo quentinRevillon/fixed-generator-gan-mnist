@@ -48,9 +48,13 @@ def mnist_split(split):
     return x.unsqueeze(1).float() / 255, y
 
 
-def train_loader(batch_size, seed):
-    """DataLoader mélangé (ordre fixé par seed) sur le split 'train', images aplaties dans [-1, 1]."""
+def train_dataset():
+    """Dataset du split 'train', images aplaties dans [-1, 1]."""
     x, y = mnist_split('train')
-    dataset = torch.utils.data.TensorDataset(x.view(len(x), -1) * 2 - 1, y)
-    return torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True,
-                                       generator=torch.Generator().manual_seed(seed))
+    return torch.utils.data.TensorDataset(x.view(len(x), -1) * 2 - 1, y)
+
+
+def train_loader(batch_size, seed, dataset=None):
+    """DataLoader mélangé (ordre fixé par seed) sur `dataset`, par défaut tout le split 'train'."""
+    return torch.utils.data.DataLoader(train_dataset() if dataset is None else dataset, batch_size=batch_size,
+                                       shuffle=True, generator=torch.Generator().manual_seed(seed))

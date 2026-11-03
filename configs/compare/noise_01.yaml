@@ -1,0 +1,28 @@
+# Baseline + bruit d'instance (Sønderby et al. 2017), seul changement.
+name: cmp_noise_01
+seed: 0
+
+data:
+  instance_noise:
+    enabled: true
+    sigma: 0.1
+    anneal_epochs: 100
+
+train:
+  epochs: 200
+  batch_size: 100
+
+optimizer:
+  name: adam
+  lr: 0.0002
+  betas: [0.9, 0.999]
+
+output:
+  dir: runs
+  save_every: 100
+
+eval:
+  every: 10
+  n_samples: 10000
+  k: 3
+  prof: true
