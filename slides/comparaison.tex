@@ -147,8 +147,8 @@
     \item We keep $x$ with probability $\sigma\big(\hat F(x)\big)$.
   \end{enumerate}
   \[ \hat F(x) = d(x) - d_M - \log\big(1 - e^{\,d(x) - d_M - \epsilon}\big) - \gamma \]
-  {\small\color{muted}$d_M$: best score seen. $\gamma$: a percentile of $\hat F$ in each batch.}\\[1em]
-  {\small\textbf{Settings:} percentile 80, $d_M$ from 10,000 images, $\epsilon = 10^{-6}$, D as trained.}
+  {\small\color{muted}$d_M$: best score seen.}\\[1em]
+  {\small\textbf{Settings:} $\gamma$ = 80th percentile of $\hat F$ in each batch, $d_M$ from 10,000 images, $\epsilon = 10^{-6}$, D as trained.}
   \source{Discriminator Rejection Sampling, Azadi et al. 2019.}
 \end{frame}
 
@@ -172,7 +172,8 @@
     & Paper & Us \\
     \midrule
     DRS & better FID, modes kept & \textbf{same} \\
-    KeepTraining & helps & {\color{warm}\textbf{worse FID}} \\
+    & closer to the real distribution & {\color{warm}\textbf{barely closer}} \\
+    KeepTraining & helps (2D Gaussians) & {\color{warm}\textbf{worse FID}} \\
     Selection & more precision, less recall & \textbf{same} \\
     & better FID & {\color{warm}\textbf{worse FID}} \\
     Noise & stabilises training & {\color{warm}\textbf{no clear effect}} \\
