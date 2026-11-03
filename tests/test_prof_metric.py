@@ -48,6 +48,13 @@ def test_metrics_write_to_separate_tables():
     assert set(ev.EVALUATORS) == {'cnn', 'prof'}
 
 
+def test_results_table_uses_unix_line_endings(monkeypatch, tmp_path):
+    path = tmp_path / 'results.csv'
+    monkeypatch.setitem(ev.RESULTS_CSV, 'cnn', str(path))
+    ev.append_result({'run': 'r'}, 'cnn')
+    assert b'\r' not in path.read_bytes()
+
+
 def test_training_evaluation_adds_the_leaderboard_measure_on_request(monkeypatch):
     monkeypatch.setattr(train, 'evaluate', lambda images, device, k, reference: {'fid': 1.0})
     monkeypatch.setattr(train, 'evaluate_prof', lambda images, device, reference: {'fid': 2.0, 'precision': 0.5, 'recall': 0.25})
