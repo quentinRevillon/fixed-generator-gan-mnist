@@ -35,6 +35,7 @@ RESULTS = 'results/comparison_test.csv'
 RUN = 'runs/baseline_200ep_prof'
 EPOCHS = (50, 120, 200)
 SURFACE, INK, MUTED, GRID, BLUE, ORANGE, AQUA = '#fcfcfb', '#0b0b0b', '#52514e', '#e6e5e0', '#2a78d6', '#eb6834', '#1baf7a'
+LIGHT_BLUE = '#a9cbef'
 # Nom dans le CSV -> (étiquette de la slide, couleur du levier).
 CONFIGS = {'Baseline commune': ('Common baseline', INK),
            'Bruit': ('Data: noise', AQUA),
@@ -242,7 +243,7 @@ def plot_sampling_results():
     keys = ('fid', 'precision', 'recall', 'acceptance_rate')
     picked = [('No rejection', MUTED, [r for r in rows if r['method'] == 'plain'])]
     for percentile in (50, 80, 95, 99):
-        picked.append((percentile, BLUE, [r for r in rows if r['method'] == 'drs_azadi' and json.loads(r['params'])['percentile'] == percentile]))
+        picked.append((percentile, BLUE if percentile == 80 else LIGHT_BLUE, [r for r in rows if r['method'] == 'drs_azadi' and json.loads(r['params'])['percentile'] == percentile]))
     configs = []
     for name, color, group in picked:
         values = {k: np.mean([float(r[k]) for r in group]) for k in keys}

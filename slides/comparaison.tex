@@ -140,35 +140,16 @@
 
 \begin{frame}{Sampling: method}
   \vspace{0.5em}
-  G does not change.
   \begin{enumerate}
-    \setlength\itemsep{0.5em}
+    \setlength\itemsep{0.4em}
     \item G proposes an image $x$.
     \item D gives it a score $d(x)$.
-    \item We keep $x$ with probability $\sigma\big(\hat F(x)\big)$, then start again.
+    \item We keep $x$ with probability $\sigma\big(\hat F(x)\big)$.
   \end{enumerate}
   \[ \hat F(x) = d(x) - d_M - \log\big(1 - e^{\,d(x) - d_M - \epsilon}\big) - \gamma \]
-  {\small\color{muted}$d_M$: best score seen. $\gamma$: sets how strict we are (percentile of $\hat F$ in each batch).}
+  {\small\color{muted}$d_M$: best score seen. $\gamma$: a percentile of $\hat F$ in each batch.}\\[1em]
+  {\small\textbf{Settings:} percentile 80, $d_M$ from 10,000 images, $\epsilon = 10^{-6}$, D as trained.}
   \source{Discriminator Rejection Sampling, Azadi et al. 2019.}
-\end{frame}
-
-\begin{frame}{Sampling: settings}
-  \vspace{0.2em}
-  {\footnotesize\begin{tabular}{lll}
-    \toprule
-    Setting & Value & How it was chosen \\
-    \midrule
-    \textbf{Percentile of $\gamma$} & \textbf{80} & tested 50, 80, 95, 99 on validation \\
-    Images to estimate $d_M$ & 10,000 & from the paper \\
-    $\epsilon$ & $10^{-6}$ & our choice (paper: ``a small constant'') \\
-    Discriminator & as trained & paper's KeepTraining tested: worse FID \\
-    Generator & epoch 200 & best Inception FID on validation \\
-    \bottomrule
-  \end{tabular}}
-
-  \vspace{0.9em}
-  {\small\textbf{Why 80:} the paper's value on ImageNet. Above it, the Inception FID stops improving: 36.7 without rejection, then 32.8, 31.6, 31.3, 31.8 at percentiles 50, 80, 95, 99.}\\[0.7em]
-  {\small\textbf{The share of images kept is not a setting.} We fix the percentile: 30\% kept is what we then measure at percentile 80.}
 \end{frame}
 
 \begin{frame}{Sampling: images}
@@ -179,32 +160,27 @@
 
 \begin{frame}{Sampling: results}
   \centering\vspace{0.4em}
-  \includegraphics[width=\linewidth]{cmp_sampling_results.png}\\[0.5em]
-  {\small Percentile 80 (kept): 1.6 s on CPU for 10,000 images. Limit: 1,200 s.}
-  \source{Generator at epoch 200, against validation, 3 draws. The CNN FID keeps falling above percentile 80, but its precision and recall do not move.}
+  \includegraphics[width=\linewidth]{cmp_sampling_results.png}\\[0.6em]
+  Higher percentile: stricter, fewer images kept. We use 80.
+  \source{Generator at epoch 200, against validation, 3 draws. 1.6 s on CPU for 10,000 images at percentile 80.}
 \end{frame}
 
 \begin{frame}{Compared with the papers}
-  \vspace{0.1em}
-  {\scriptsize\begin{tabular}{@{}llll@{}}
+  \vspace{0.6em}
+  {\small\begin{tabular}{@{}lll@{}}
     \toprule
-    Method & Paper & Ours & Verdict \\
+    & Paper & Us \\
     \midrule
-    \textbf{DRS} & FID $-6$ to $-8\%$, modes kept & Inception FID $-14\%$, recall kept & \textbf{agrees} \\
-    DRS, stricter & no gain past a certain rate & Inception FID flat above percentile 80 & \textbf{agrees} \\
-    KeepTraining & part of the method, helps & worse FID & {\color{warm}\textbf{differs}} \\[0.3em]
-    \textbf{Selection 50\%} & P 0.66 $\to$ 0.77, R 0.62 $\to$ 0.59 & P 0.75 $\to$ 0.84, R 0.72 $\to$ 0.38 & \textbf{same direction} \\
-    & FID 21.4 $\to$ 12.6 & FID 76 $\to$ 331 & {\color{warm}\textbf{opposite}} \\
-    \textbf{Noise} & stabilises GAN training & no significant effect, collapses remain & {\color{warm}\textbf{not confirmed}} \\[0.3em]
-    \textbf{RpGAN alone} & diverges & diverges & \textbf{agrees} \\
-    \textbf{RpGAN + R1} & diverges for any $\gamma$ & stable at $\gamma = 1$ & {\color{warm}\textbf{differs}} \\
-    \textbf{Relativistic loss} & all modes covered & no collapse, better digit balance & \textbf{agrees} \\
+    DRS & better FID, modes kept & \textbf{same} \\
+    KeepTraining & helps & {\color{warm}\textbf{worse FID}} \\
+    Selection & more precision, less recall & \textbf{same} \\
+    & better FID & {\color{warm}\textbf{worse FID}} \\
+    Noise & stabilises training & {\color{warm}\textbf{no clear effect}} \\
+    RpGAN + R1 & diverges & {\color{warm}\textbf{stable}} \\
+    Relativistic loss & no missing modes & \textbf{same} \\
     \bottomrule
   \end{tabular}}
-
-  \vspace{0.7em}
-  {\small Not the same setting: the papers use ImageNet, 2D Gaussians or Stacked MNIST with large networks, we use MNIST with a small MLP.}
-  \source{Azadi et al. 2019, Tables 2--3. DeVries et al. 2020, Table 1 (SAGAN, $64\times64$). Sønderby et al. 2017: super-resolution, no FID given. Huang et al. 2024, Table 1. Ours: Selection and Noise with the small CNN.}
+  \source{Papers: ImageNet, 2D Gaussians or Stacked MNIST with large networks. Us: MNIST with a small MLP.}
 \end{frame}
 
 \begin{frame}{Conclusion}
