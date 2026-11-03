@@ -184,23 +184,20 @@
 \end{frame}
 
 \begin{frame}{Conclusion}
-  \vspace{0.8em}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.54\textwidth}
-    \textbf{What we learned}\\[0.8em]
-    \small
-    Longer training: sharper digits, worse balance\\[0.7em]
-    Relativistic loss: CNN FID divided by 4, no collapse\\[0.7em]
-    Selection: more precision, less recall\\[0.7em]
-    Rejection: cheap, modest gain\\[0.7em]
-    The two FIDs do not see the same thing
-    \column{0.42\textwidth}
-    \textbf{What comes next}\\[0.8em]
-    \small
-    Same split, budget and measures for all\\[0.7em]
-    RpGAN + R1 with rejection\\[0.7em]
-    Several seeds for each method
-  \end{columns}
+  \vspace{0.6em}
+  {\Large\textbf{The loss gives the largest gain.}}\\[1.2em]
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    & Small CNN FID & Effect \\
+    \midrule
+    Data: selection 50\% & 76 $\to$ 331 & worse \\
+    Data: noise 0.1 & 76 $\to$ 65 & not significant \\
+    \textbf{Training: RpGAN + R1} & \textbf{59 $\to$ 14} & \textbf{best, no collapse} \\
+    Sampling: DRS & 169 $\to$ 146 & modest, cheap \\
+    \bottomrule
+  \end{tabular}\\[1.2em]
+  \textbf{Next:} same split and budget for all, then RpGAN + R1 with DRS.
+  \source{Each row against its own reference, with its own protocol.}
 \end{frame}
 
 \end{document}
