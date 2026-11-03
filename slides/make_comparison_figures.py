@@ -121,7 +121,7 @@ def plot_selection():
     image = plt.imread('figures/data/kept_vs_rejected.png')
     middle = image.shape[1] // 2
     fig, axes = plt.subplots(1, 2, figsize=(10.5, 5.3))
-    for ax, part, title in zip(axes, (image[:, :middle], image[:, middle:]), ('Kept: most typical', 'Removed: least typical')):
+    for ax, part, title in zip(axes, (image[:, :middle], image[:, middle:]), ('Kept: highest s(x)', 'Removed: lowest s(x)')):
         ax.imshow(part, interpolation='nearest')
         ax.set_title(title, fontsize=16, color=INK)
         ax.axis('off')

@@ -86,9 +86,10 @@
 
 \begin{frame}{Data: method}
   \vspace{0.8em}
-  \textbf{Selection:} keep the most typical images of each digit
+  \textbf{Selection:} score each image, keep the highest scores of each digit
   \[ s(x) = -\big(f(x)-\mu_c\big)^\top \Sigma_c^{-1} \big(f(x)-\mu_c\big) \]
-  {\small\textbf{Settings:} keep 75\% or 50\%, CNN features}\\[1.6em]
+  {\small $s(x)$ is high when $x$ looks like the average image of its digit $c$}\\[0.3em]
+  {\small\textbf{Settings:} keep 75\% or 50\%. $f$: CNN features}\\[1.3em]
   \textbf{Noise:} add noise to D's inputs
   \[ D(x + \sigma_t\,\varepsilon), \quad \varepsilon \sim \mathcal{N}(0, I) \]
   {\small\textbf{Settings:} $\sigma_0 = 0.1$ or $0.3$, fading to 0 over 100 epochs}
