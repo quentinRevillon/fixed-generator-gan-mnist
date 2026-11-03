@@ -1,0 +1,23 @@
+# Même entraînement que baseline_200ep (même seed, donc mêmes poids), mesuré plus souvent et aussi avec Inception et VGG.
+# G_best.pth est ici la meilleure époque selon le FID Inception. Sauvegarde toutes les 10 époques pour retrouver l'époque 120.
+name: baseline_200ep_prof # dossier de sortie : <output.dir>/<name>/
+seed: 0
+
+train:
+  epochs: 200
+  batch_size: 100
+
+optimizer:
+  name: adam
+  lr: 0.0002              # point décimal obligatoire (0,0002 serait lu comme du texte)
+  betas: [0.9, 0.999]
+
+output:
+  dir: runs
+  save_every: 10          # checkpoint ckpt/epoch_XXX.pth toutes les N époques (+ last.pth à chaque époque)
+
+eval:
+  every: 2                # métriques sur 'val' toutes les N époques
+  n_samples: 10000
+  k: 3                    # k plus proches voisins du petit CNN ; Inception et VGG utilisent k = 5
+  prof: true              # ajoute fid_prof, precision_prof, recall_prof (Inception et VGG)
