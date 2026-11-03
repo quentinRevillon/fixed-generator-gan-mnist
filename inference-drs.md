@@ -32,7 +32,7 @@
 | 3 | DRS du papier d'Azadi, sur l'époque 120 | FID de 56,3 à 52,2 | Section 7 |
 | 4 | DRS du papier d'Azadi, sur l'époque 200 | **FID de 36,7 à 31,6** | Section 5 |
 | 5 | Chaîne complète avec `generate.py`, batchs de 256 | FID de 37,1 à 31,7, 10 000 PNG | Section 5.4 |
-| 6 | Tests automatiques | 40 tests passent | `tests/` |
+| 6 | Tests automatiques | 41 tests passent | `tests/` |
 
 ## 3. Comment marche le DRS
 
