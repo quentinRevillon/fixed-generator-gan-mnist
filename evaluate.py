@@ -293,7 +293,7 @@ def append_result(row, metric='cnn'):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     new = not os.path.exists(path)
     with open(path, 'a', newline='') as f:
-        w = csv.DictWriter(f, fieldnames=COLUMNS, extrasaction='ignore')
+        w = csv.DictWriter(f, fieldnames=COLUMNS, extrasaction='ignore', lineterminator='\n')
         if new:
             w.writeheader()
         w.writerow(row)
