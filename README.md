@@ -7,15 +7,33 @@ On entraîne le générateur imposé (`model.py`, architecture **non modifiable*
 
 On mesure leur effet sur la qualité et la diversité : FID, précision, rappel et inspection visuelle.
 
-- Choix d'organisation et justifications : [architecture-choix.md](architecture-choix.md)
-- Volet Inférence (méthodes, résultats, plan des slides) : [docs/inference.md](docs/inference.md)
+## Où trouver quoi
+
+| Je cherche | Document | Branche |
+|---|---|---|
+| La baseline : réglages, résultats, vérifications | `baseline.md` | `quentin/baseline` |
+| Le volet Inférence : DRS, OBRS, troncature | `inference-drs.md` | `quentin/inference` |
+| Le volet Données | `rapport-donnée.md` | `nico/preprocessing` |
+| Le volet Entraînement | `training-r3gan.md` | `noe/training` |
+| Les choix d'organisation et leurs sources | [architecture-choix.md](architecture-choix.md) | toutes |
+| Les slides | `slides/presentation.tex` | `quentin/inference` |
+
+## Les branches
+
+| Branche | Contenu | Part de |
+|---|---|---|
+| `main` | la version commune du groupe | |
+| `quentin/baseline` | split, reproductibilité, mesure du classement, baseline de référence | `main` |
+| `quentin/inference` | la baseline, plus les méthodes d'inférence et leurs résultats | `quentin/baseline` |
+| `nico/preprocessing` | volet Données | `main` |
+| `noe/training` | volet Entraînement | `main` |
 
 ## Démarrage rapide
 
 ```bash
 python -m venv venv && source venv/bin/activate     # Windows : .venv\Scripts\activate
 pip install -r requirements.txt -r requirements-dev.txt
-python -m pytest tests -q                          # 26 tests, quelques secondes, sans GPU
+python -m pytest tests -q                          # quelques secondes, sans GPU
 python generate.py --batch_size 256                # 10 000 images dans samples/ (interface imposée)
 python evaluate.py --samples samples               # les évaluer comme le correcteur
 ```
@@ -28,16 +46,17 @@ Hors de Juliet, MNIST est téléchargé dans `data/`. Sur Juliet, `$DATA=/projec
 |---|---|---|
 | Entraîner | `python train.py --config configs/baseline.yaml` (`--resume` pour reprendre) | `runs/<name>/` |
 | Suivre | `tensorboard --logdir runs` | courbes, grilles |
-| Évaluer un run | `python evaluate.py --run runs/<name> --weights best --sampling configs/sampling/obrs.yaml --seeds 0 1 2` | lignes dans `results/results.csv` |
-| Faire varier un paramètre | `python sweep.py --run runs/<name> --sampling configs/sampling/obrs.yaml --param K --values 1 2 5 10` | idem |
-| Figures | `python plot_results.py --run runs/<name> --reference val` | `figures/` |
+| Évaluer un run | `python evaluate.py --run runs/<name> --weights best --seeds 0 1 2 --metric prof` | lignes dans `results/results_prof.csv` (`--metric cnn` : `results/results.csv`) |
+| Faire varier un paramètre (`quentin/inference`) | `python sweep.py --run runs/<name> --weights best --sampling configs/sampling/drs_azadi.yaml --param percentile --values 50 80 95 99 --metric prof` | idem |
+| Tracer les figures | `python figures/make_baseline_figures.py --weights <dossier>` ; `python figures/make_inference_figures.py` | `figures/baseline/`, `figures/inference/` |
 | Tuner | `python tune.py --config configs/baseline.yaml --n-trials 20 --epochs 20` | `runs/optuna.db` |
 | Rendre | copier `G_best.pth` / `D_best.pth` dans `checkpoints/G.pth` / `D.pth`, écrire la méthode dans `checkpoints/sampling.yaml` | `checkpoints/` |
 
 **Sur Juliet** (Slurm, compte `m25146`) :
-- `scripts/train.sh [config]` ;
+- `bash scripts/run.sh "<commande>" [limite]` lance n'importe quelle commande sur un GPU, par exemple `bash scripts/run.sh "python train.py --config configs/baseline_200ep_prof.yaml" 01:30:00` ;
+- `scripts/train.sh [config]` (limite de 20 minutes) ;
 - `scripts/tune.sh [config] [n_trials]` ;
-- `scripts/sweep.sh [run] [weights] [reference]` lance l'étude d'inférence complète ;
+- `scripts/sweep.sh [run] [weights] [reference]` lance l'étude d'inférence complète (`quentin/inference`) ;
 - `scripts/generate.sh`.
 
 Créer le venv `venv/` à la racine avant de lancer ces scripts.
@@ -58,17 +77,29 @@ Défini dans `data.py`. C'est un contrat entre les trois volets : on ne le chang
 model.py              G et D imposés (non modifiés)
 utils.py, train.py, evaluate.py, generate.py, tune.py   les fichiers de Nicodème (structure à plat)
 data.py               split train / val / test
-sampling.py           inférence : plain, truncation, DRS, OBRS
-sweep.py, plot_results.py   étude d'inférence et figures
+sampling.py           comment tirer des images : plain sur quentin/baseline ; truncation, DRS, OBRS en plus sur quentin/inference
+keep_training.py, sweep.py   étape KeepTraining du DRS, variation d'un paramètre (quentin/inference)
 configs/              une config YAML par expérience (entraînement) ou par méthode (configs/sampling/)
 checkpoints/          ce que rend generate.py : G.pth, D.pth, sampling.yaml, mnist_classifier.pth
-runs/<name>/          un run (config, metrics.jsonl, G/D last et best : versionnés)
-results/results.csv   une ligne par évaluation : le tableau commun du rapport
+runs/<name>/          un run (config, metrics.jsonl, poids utiles : versionnés)
+results/              un tableau par mesure : results.csv (petit CNN), results_prof.csv (Inception et VGG)
+figures/              les figures par volet, et les scripts make_*_figures.py qui les tracent
+slides/               la présentation LaTeX et ses figures (quentin/inference)
+tests/                tests unitaires : python -m pytest tests -q
 ```
+
+Les runs de la baseline :
+
+| Dossier | Contenu |
+|---|---|
+| `runs/baseline_200ep_prof/` | **La baseline de référence** : 200 époques, mesures toutes les 2 époques, poids de l'époque 200 |
+| `runs/baseline_200ep/` | Premier passage, mêmes poids, mesures toutes les 10 époques. Conservé car le DRS sur l'époque 120 y renvoie |
+| `runs/baseline_v1/` | Premier essai à 50 époques (split 50 000 / 10 000) |
+| `runs/baseline/` | Baseline de Nicodème à 50 époques, sur 60 000 images |
 
 ## Reproductibilité
 
-- **Même config + même machine ⇒ mêmes poids au bit près**, même après `--resume`, et quelle que soit la fréquence d'évaluation.
+- **Même config + même machine ⇒ mêmes poids au bit près**, même après `--resume`, et quelle que soit la fréquence d'évaluation. Vérifié sur 200 époques entre deux nœuds A100 de Juliet.
 - `generate.py` et toutes les méthodes d'échantillonnage prennent une `--seed` : mêmes images à chaque appel, sur tout device.
 - Chaque run enregistre sa config, son commit git et son environnement (Python, torch, matériel).
 - Un Mac et un GPU ne donnent pas les mêmes poids : la baseline de référence est entraînée sur Juliet.

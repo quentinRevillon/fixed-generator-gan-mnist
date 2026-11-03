@@ -15,21 +15,22 @@ Les citations ont été relevées dans le texte des papiers. Références compl�
 ## 1. Organisation du repo
 
 ```
-configs/baseline.yaml      la baseline commune (une config = une expérience)
+configs/baseline_200ep_prof.yaml   la baseline de référence (une config = une expérience)
 configs/sampling/*.yaml    une config par méthode d'échantillonnage
 model.py                   Generator / Discriminator — fournis, NON modifiés
 utils.py                   pas d'entraînement D/G, config, seed, déterminisme, checkpoints
 data.py                    split figé train / val / test
 train.py                   entraînement : train(cfg) + CLI --config / --resume
-evaluate.py                FID, precision / recall, classes, tableau des résultats
-sampling.py                inférence : plain, truncation, DRS, OBRS
-sweep.py, plot_results.py  faire varier un paramètre d'échantillonnage, figures
+evaluate.py                FID, precision / recall, classes, tableaux de résultats
+sampling.py                inférence : plain (quentin/baseline) ; truncation, DRS, OBRS (quentin/inference)
+keep_training.py, sweep.py étape KeepTraining du DRS, variation d'un paramètre (quentin/inference)
 tune.py                    recherche d'hyperparamètres (Optuna)
 generate.py                10 000 images dans samples/ (interface imposée)
-scripts/{train,tune,sweep,generate}.sh   lancement Slurm sur Juliet
+scripts/*.sh               lancement Slurm sur Juliet
 checkpoints/               modèle rendu : G.pth, D.pth, sampling.yaml (+ mnist_classifier.pth)
 runs/<name>/               sorties d'un run (dossier léger versionné, voir §5)
-results/results.csv        une ligne par évaluation (versionné)
+results/                   une ligne par évaluation : results.csv (petit CNN), results_prof.csv (Inception, VGG)
+figures/                   figures par volet et scripts make_*_figures.py
 tests/                     tests unitaires : python -m pytest tests -q
 ```
 
@@ -54,7 +55,7 @@ tests/                     tests unitaires : python -m pytest tests -q
 | lr | 0.0002 | [Papier] DCGAN : *« We found the suggested learning rate of 0.001, to be too high, using 0.0002 instead »*. C'est aussi le code fourni. |
 | Optimiseur | Adam (0.9, 0.999) | Code fourni. **Contredit par DCGAN** sur β1, voir §11. |
 | batch_size | 100 | [Sans papier] 500 batchs par époque sur 50 000 images. DCGAN utilise 128, le code fourni 64. |
-| Époques | 50, **à revoir** | [Sans papier] Choix mesuré, voir ci-dessous. |
+| Époques | 200 | [Sans papier] Choix mesuré, voir ci-dessous. |
 | Seed | 0 | [Papier] Lucic 2018 : *« varying the random seed may influence on the results »*. |
 | Validation | split fixe | Voir ci-dessous. |
 
@@ -76,7 +77,7 @@ tests/                     tests unitaires : python -m pytest tests -q
 |---|---|---|---|---|---|
 | FID | 2449 | 1821 | 892 | 459 | 323 |
 
-Un essai à 200 époques (`configs/baseline_200ep.yaml`) est en attente sur Juliet. La valeur finale sera décidée sur ce résultat.
+Le run de référence va donc jusqu'à 200 époques (`configs/baseline_200ep_prof.yaml`). Ses résultats et le choix de l'époque sont dans `baseline.md`.
 
 Tout le monde compare ses méthodes **à cette baseline**, en ne changeant qu'une chose à la fois. [Cours] Slide 84 : *« State a hypothesis and change one component at a time »*.
 
@@ -88,7 +89,9 @@ Tout le monde compare ses méthodes **à cette baseline**, en ne changeant qu'un
 - `last.pth` contient les états RNG : `--resume` reprend à l'identique. [Cours] Cours Slurm : *« Resume needs model, optimizer, epoch and relevant random states »*.
 - `runs/<name>/config.yaml` contient `git_commit` et `environment` (versions, matériel). [Cours] Cours Slurm : *« Keep the seed and software versions »*.
 
-**Vérifié sur CPU, 2 époques :** avec ou sans évaluation, et avec ou sans reprise, `G.pth` est identique au bit près. **Pas encore vérifié sur GPU.**
+**Vérifié sur CPU, 2 époques :** avec ou sans évaluation, et avec ou sans reprise, `G.pth` est identique au bit près.
+
+**Vérifié sur GPU, 200 époques :** deux runs sur deux nœuds A100 différents (`juliet3` et `juliet2`), avec des mesures toutes les 10 ou toutes les 2 époques, donnent des poids de G et de D identiques au bit près.
 
 **Limites :**
 - [Cours] Cours Slurm : *« The same seed is useful, but does not guarantee identical results on different hardware »*. D'où une seule baseline de référence, entraînée sur Juliet.
@@ -136,17 +139,19 @@ Un run écrit dans `runs/<name>/` (`name` et `output.dir` sont dans le YAML) :
 
 ### Deux mesures à ne pas confondre
 
-| | Classement du prof | Notre `evaluate.py` aujourd'hui |
-|---|---|---|
-| FID | Inception, toutes les images | petit CNN MNIST, 128 dim. |
-| Précision / rappel | VGG, k = 5, 9 984 images | même CNN, k = 3, 10 000 images |
-| Référence réelle | non précisée | `val`, ou `test` pour les chiffres finaux |
+| | Classement du prof | `--metric prof` | `--metric cnn` |
+|---|---|---|---|
+| FID | Inception, toutes les images | Inception, 10 000 images | petit CNN MNIST, 128 dim. |
+| Précision / rappel | VGG, k = 5, 9 984 images | VGG16, k = 5, 9 984 images | même CNN, k = 3, 10 000 images |
+| Référence réelle | non précisée | `val`, ou `test` pour les chiffres finaux | idem |
 
 [Cours] Page de résultats du prof : *« Historical FID uses Inception features on all images; historical P/R uses VGG features with k=5 and 9,984 images (complete batches of 256) »*. Le prétraitement, les poids et la version de VGG ne sont pas précisés.
 
-**Le même modèle donne des chiffres très différents :** `checkpoints/G.pth` obtient FID 44,0 / P 0,705 / R 0,502 au classement, et FID 97,6 / P 0,834 / R 0,744 avec notre mesure. On ne compare jamais les deux.
+**Le même modèle donne des chiffres très différents :** `checkpoints/G.pth` obtient FID 44,0 / P 0,705 / R 0,502 au classement, FID 43,2 / P 0,389 / R 0,429 avec `--metric prof` contre `val`, et FID 97,6 / P 0,834 / R 0,744 avec `--metric cnn` contre `val`. On ne compare jamais deux mesures différentes.
 
-**Proposition à valider, pas encore implémentée :** ajouter Inception et VGG comme mesure principale, pour décider sur la même mesure que le prof, et garder le CNN pour l'histogramme des classes.
+**Notre FID Inception est proche du classement, notre précision VGG non** (détails dans `baseline.md`). Les précisions et rappels ne servent donc qu'à comparer nos configurations entre elles.
+
+**Les deux mesures ne choisissent pas la même époque :** le petit CNN est très sensible au mélange des chiffres, Inception beaucoup moins. `baseline.md` le montre. On garde les deux : Inception et VGG pour décider sur la même mesure que le classement, le CNN pour voir l'équilibre des chiffres.
 
 ### Pourquoi un petit CNN entraîné sur MNIST
 
@@ -223,10 +228,10 @@ FID, precision et recall ne comparent pas des pixels mais des **représentations
 
 ## 10. Conventions d'équipe
 
-- **Une branche par personne / volet** (`nico/preprocessing`, `noe/training`, `quentin/inference`). [Cours] Slide 76 : *« Share a baseline, checkpoints, interfaces and evaluation protocol »*.
+- **Une branche par personne / volet** (`nico/preprocessing`, `noe/training`, `quentin/inference`), et une branche pour la baseline commune (`quentin/baseline`). [Cours] Slide 76 : *« Share a baseline, checkpoints, interfaces and evaluation protocol »*.
 - **Une config par expérience**, nommée explicitement (`data_diffaug_p0.3`, `train_wgangp`, ...), avec la seed dans le nom si on en compare plusieurs.
 - **Un seul changement à la fois**, puis les combinaisons utiles. [Cours] Slide 76 : *« Compare each intervention separately, then useful combinations »*.
-- **`results/results.csv`** : chaque `evaluate.py --run` ou `sweep.py` ajoute une ligne par seed (run, méthode, paramètres, FID, P, R, coût, classes). On le commite.
+- **`results/results.csv` et `results/results_prof.csv`** : chaque `evaluate.py --run` ou `sweep.py` ajoute une ligne par seed (run, méthode, paramètres, FID, P, R, coût, classes) au tableau de sa mesure. On les commite.
 - On évalue le rendu final comme le correcteur : `python generate.py` puis `python evaluate.py --samples samples`.
 
 ## 11. Là où une source va contre notre choix
@@ -234,16 +239,16 @@ FID, precision et recall ne comparent pas des pixels mais des **représentations
 | Notre choix | Ce que dit la source | Statut |
 |---|---|---|
 | β1 = 0.9 | DCGAN : *« suggested value of 0.9 resulted in training oscillation and instability while reducing it to 0.5 helped stabilize training »* (GAN convolutionnel, pas MLP) | gardé car c'est le code fourni ; à tester |
-| FID et P/R sur petit CNN | la plateforme utilise Inception et VGG | proposition au §8 |
-| k = 3 | Kynkäänniemi 2019 recommande k = 3, la plateforme utilise k = 5 | à aligner si on prend la mesure du prof |
+| FID et P/R sur petit CNN | la plateforme utilise Inception et VGG | résolu : les deux mesures existent (§8) |
+| k = 3 | Kynkäänniemi 2019 recommande k = 3, la plateforme utilise k = 5 | k = 3 pour le CNN, k = 5 pour `--metric prof` |
 | Référence `val` / `test` | Heusel calcule les statistiques réelles sur *« all images from the training dataset »* ; la référence de la plateforme est inconnue | à demander au prof |
-| D utilisé sans recalibration | Azadi 2019 continue l'entraînement de D *« using early stopping on the validation set »* ; Turner 2019 recalibre sur *« a held out calibration set (e.g., 10% »* | pas implémenté ; piste d'amélioration |
+| D utilisé sans recalibration | Azadi 2019 continue l'entraînement de D *« using early stopping on the validation set »* ; Turner 2019 recalibre sur *« a held out calibration set (e.g., 10% »* | KeepTraining implémenté et mesuré : voir `inference-drs.md` |
 | Comparaisons de FID à 10 000 images | Chong 2020 : le biais dépend du générateur | limite assumée |
 | `MedianPruner` | Akiba 2019 : ASHA fait mieux | à changer si on garde Optuna |
 
 ## 12. Volet Inférence (`sampling.py`)
 
-Détails et résultats : [docs/inference.md](docs/inference.md).
+Détails et résultats : `inference-drs.md`, sur la branche `quentin/inference`.
 
 **Consigne.** [Cours] Slide 82 : *« Keep the trained generator. Report acceptance rates, total generation time and the full evaluation batch »*. Aucune méthode ne réentraîne G.
 
@@ -251,16 +256,17 @@ Détails et résultats : [docs/inference.md](docs/inference.md).
 |---|---|
 | Utiliser D comme rapport de densités | [Papier] Goodfellow 2014 : *« For G fixed, the optimal discriminator »* vaut `p_data / (p_data + p_g)`. Che 2020 l'écrit `e^{d(x)} ≈ p_d / p_g`, avec d le logit de D. |
 | Logit avant la sigmoïde | [Papier] Azadi 2019 et Che 2020 raisonnent sur le logit. La stabilité numérique est [Sans papier]. |
-| **OBRS, méthode étudiée** | [Papier] Verine 2024, Thm 3.1 (Thm 3.2 des slides) : acceptation `min((p/p̂)(c_K/M), 1)`, optimale à budget K pour toute f-divergence. Thm 3.3 (Prop. 3.3 des slides) : effet sur précision et rappel. |
-| DRS, témoin | [Papier] Azadi 2019, slides Def. 3.1. γ calibré pour le même budget K : [Sans papier], pour comparer à coût égal (slide 81). |
-| Truncation, témoin | [Papier] Brock 2019 : *« truncating a z vector by resampling »*. Sans régularisation orthogonale, *« only 16% of models are amenable to truncation »*. |
+| **DRS, méthode implémentée comme dans le papier** | [Papier] Azadi 2019, Figure 1 et équation 8 : KeepTraining, 10 000 images pour estimer M, γ par percentile dans chaque batch. ε et les réglages de KeepTraining sont [Sans papier]. |
+| OBRS, comparaison | [Papier] Verine 2024, Thm 3.1 (Thm 3.2 des slides) : acceptation `min((p/p̂)(c_K/M), 1)`, optimale à budget K pour toute f-divergence. Thm 3.3 (Prop. 3.3 des slides) : effet sur précision et rappel. |
+| DRS réglé par K, comparaison | [Papier] Azadi 2019, slides Def. 3.1. γ calibré pour le même budget K : [Sans papier], pour comparer à coût égal (slide 81). |
+| Troncature, comparaison | [Papier] Brock 2019 : *« truncating a z vector by resampling »*. Sans régularisation orthogonale, *« only 16% of models are amenable to truncation »*. |
 | Hasard sur CPU avec un générateur dédié | [Sans papier] Même seed, mêmes images. |
 
 **Brancher une nouvelle méthode :** écrire `sample_xxx(G, D, n, rng, batch_size, **params)`, l'ajouter à `SAMPLERS`, créer `configs/sampling/xxx.yaml`.
 
 ## 13. Références
 
-**Dans `inference papers/` :**
+**Inférence :**
 - Azadi et al. (2019). *Discriminator Rejection Sampling*. ICLR.
 - Brock et al. (2019). *Large Scale GAN Training for High Fidelity Natural Image Synthesis*. ICLR.
 - Che et al. (2020). *Your GAN is Secretly an Energy-based Model and You Should Use Discriminator Driven Latent Sampling*. arXiv:2003.06060.
