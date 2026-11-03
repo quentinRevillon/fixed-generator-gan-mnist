@@ -181,14 +181,14 @@ def per_class():
     xt, yt = mnist(train=False)
     f_real = predict(clf, xt, DEVICE)[0]
     res = defaultdict(list)
-    for name in RUNS:
-        for run in sorted(glob.glob(f'runs/{name}_s[0-9]')):
+    for name, rs in load_runs().items():
+        for run, r in zip(sorted(glob.glob(f'runs/{name}_s[0-9]')), rs):
+            if r['collapsed']:
+                continue
             set_seed(0)
             G = load_model(Generator(g_output_dim=784), f'{run}/G.pth', DEVICE)
             f_fake, pred = predict(clf, generate(G, 50000, DEVICE), DEVICE)
             counts = torch.bincount(pred, minlength=10)
-            if (counts >= 500).sum() <= 3:  # effondré sur quelques chiffres
-                continue
             scores = [fid(f_real[yt == c], f_fake[pred == c]) for c in range(10) if counts[c] >= 500]
             res[name].append((np.mean(scores), int((counts >= 500).sum())))
             print(run, f'{np.mean(scores):.1f}', (counts >= 500).sum().item(), flush=True)
@@ -198,6 +198,19 @@ def per_class():
         for name, v in res.items():
             a = np.array(v)
             w.writerow([name, len(v), f'{a[:, 0].mean():.1f}', f'{a[:, 0].std():.1f}', f'{a[:, 1].mean():.1f}'])
+
+
+def by_budget(runs):
+    """Par run : FID à 60 000 mises à jour, FID final, meilleur FID et son moment, effondrement."""
+    with open(f'{OUT}/runs.csv', 'w', newline='') as f:
+        w = csv.writer(f)
+        w.writerow(['variant', 'seed', 'fid_60k', 'fid_final', 'fid_best', 'updates_best', 'collapsed'])
+        for name, rs in runs.items():
+            for seed, r in enumerate(rs):
+                fids = r['curves']['fid']
+                best = min(fids, key=fids.get)
+                w.writerow([name, seed, f"{fids[r['at']]:.1f}", f"{fids[r['steps'][-1]]:.1f}", f'{fids[best]:.1f}',
+                            best * RUNS[name][0] // 100, int(r['collapsed'])])
 
 
 if __name__ == '__main__':
@@ -212,5 +225,6 @@ if __name__ == '__main__':
     else:
         runs = load_runs()
         write_summary(runs)
+        by_budget(runs)
         plot_curves(runs)
         class_mix(runs)

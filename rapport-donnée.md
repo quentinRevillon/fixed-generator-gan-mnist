@@ -95,11 +95,11 @@ La sélection globale laisse 1,4 % de 2 et 21,7 % de 1 : c'est pour cela que le 
 
 **FID à chiffre fixé** (générateur final, chiffres avec au moins 500 images sur 50 000) :
 
-| Variante | FID moyen par chiffre | Plafond des vraies images | Excès | Chiffres pris en compte |
+| Variante | FID moyen par chiffre | Plancher des vraies images | Excès | Chiffres pris en compte |
 |---|---:|---:|---:|---:|
-| `data_ref` | 72,4 | 9,2 | 63 | 10 |
+| `data_ref` | 71,7 | 9,2 | 63 | 10 |
 | `sel_75` | 79,6 | 30,4 | 49 | 8,3 |
-| `sel_50` | 130,6 | 67,1 | 63 | 8 |
+| `sel_50` | 130,5 | 67,1 | 63 | 8 |
 | `noise_01` | 64,1 | 9,2 | 55 | 9,8 |
 | `noise_03` | 55,5 | 9,2 | 46 | 9,3 |
 
@@ -134,16 +134,16 @@ Les chiffres pris en compte diffèrent d'une ligne à l'autre : `sel_50` exclut 
 **La sélection fait ce qu'elle promet sur la qualité.** La precision monte, sur les vraies images (0,86 à 0,94) comme sur les GAN en fin d'entraînement (0,85 à 0,93). Le coût en recall suit celui des données : à 50 %, même un GAN parfait ne dépasserait pas 0,63.
 
 **Elle dégrade le FID pour deux raisons mesurées.**
-1. **Le plafond baisse.** Le FID du sous-ensemble réel passe de 2,9 à 25,3. Par chiffre, il passe de 9,2 à 67,1. Dans l'excès au-dessus de ce plafond, `sel_50` et `data_ref` sont au même niveau (63) : le GAN n'apprend donc pas mieux la distribution réduite, il apprend juste une cible plus étroite.
+1. **Le meilleur score possible se dégrade.** Le FID du sous-ensemble réel passe de 2,9 à 25,3. Par chiffre, il passe de 9,2 à 67,1. Dans l'excès au-dessus de ce plafond, `sel_50` et `data_ref` sont au même niveau (63) : le GAN n'apprend donc pas mieux la distribution réduite, il apprend juste une cible plus étroite.
 2. **Le mélange des chiffres se dérègle.** Les données sélectionnées sont équilibrées, mais `sel_50` ne génère que 0,4 % de 0 et 2,4 % de 2. Le FID global y est bien plus sensible qu'à la qualité des traits : en fin d'entraînement, `sel_50` vaut 729 au global, contre 131 par chiffre.
 
 **Pourquoi des chiffres disparaissent (hypothèse).** Les images rejetées sont aussi celles qui font le lien entre les chiffres. Le rapport entre la distance au plus proche autre chiffre et la distance au plus proche même chiffre passe de 3,6 à 5,2 dans les features (de 3,2 à 3,7 en pixels). Un z gaussien continu traverse donc plus difficilement ces écarts. La mesure montre que les classes s'éloignent, mais pas que c'est la cause : il faudrait le tester, par exemple en réinjectant les images frontières.
 
-**Le bruit ne change presque rien.** Le FID à 60k gagne 8 à 11 points, sans signification statistique (Welch, p = 0,10 et 0,23), et l'écart s'annule à la fin. À chiffre fixé, `noise_03` est meilleur que la référence (55,5 contre 72,4 ; p = 0,04), mais ce test n'est pas corrigé pour le nombre de comparaisons faites ici et ne porte que sur 3 runs. Une explication plausible est que MNIST recouvre déjà bien ses supports au niveau de ce que voit un MLP, ou que ces σ sont trop faibles ; nous ne l'avons pas établi.
+**Le bruit ne change presque rien.** Le FID à 60k gagne 8 à 11 points, sans signification statistique (Welch, p = 0,10 et 0,23), et l'écart s'annule à la fin. À chiffre fixé, `noise_03` est meilleur que la référence (55,5 contre 71,7 ; p = 0,04), mais ce test n'est pas corrigé pour le nombre de comparaisons faites ici et ne porte que sur 3 runs. Une explication plausible est que MNIST recouvre déjà bien ses supports au niveau de ce que voit un MLP, ou que ces σ sont trop faibles ; nous ne l'avons pas établi.
 
-**L'effondrement n'est pas un problème de données.** Il touche 15 runs sur 42, dont 3 sur 8 sans aucune option. Il se joue au tout début : dans tous ces runs, D(x) reste au-dessus de 0,98 dès la 6e époque au plus tard, et le FID ne bouge plus. `sel_50` (4/8) et `noise_01` (4/8) ne diffèrent pas de `data_ref` (3/8) : le test exact de Fisher donne p = 1. Le 0 sur 3 de `noise_03` et de `sel_75` ne prouve rien : avec un taux de base de 3/8, il arrive une fois sur quatre par hasard. Sur les 3 premières seeds, `sel_50` semblait s'effondrer plus que la référence (2 sur 3 contre 0 sur 3) : cet effet a disparu avec 8 seeds.
+**L'effondrement n'est pas un problème de données.** Il touche 15 runs sur 42, dont 3 sur 8 sans aucune option. Il se joue au tout début : dans tous ces runs, D(x) reste au-dessus de 0,98 dès la 7e époque au plus tard, et le FID ne bouge plus. `sel_50` (4/8) et `noise_01` (4/8) ne diffèrent pas de `data_ref` (3/8) : le test exact de Fisher donne p = 1. Le 0 sur 3 de `noise_03` et de `sel_75` ne prouve rien : avec un taux de base de 3/8, il arrive une fois sur quatre par hasard. Sur les 3 premières seeds, `sel_50` semblait s'effondrer plus que la référence (2 sur 3 contre 0 sur 3) : cet effet a disparu avec 8 seeds.
 
-**Sur tous les runs, le FID remonte après 60 000 mises à jour** (de 76 à 227 pour la référence) alors que la precision et le recall continuent de monter ou se stabilisent. Le mélange des chiffres dérive : les 2 tombent de 4,8 % à 1,4 %. Cela explique l'écart constaté plus tôt : la baseline à 50 époques (30 000 mises à jour) était encore en pleine descente. Ces chiffres finaux dépendent donc fortement du moment de l'arrêt, et le sujet concerne aussi le volet Entraînement.
+**Sur tous les runs, le FID remonte après 60 000 mises à jour** (de 76 à 227 pour la référence) alors que la precision et le recall continuent de monter ou se stabilisent. Le mélange des chiffres dérive : les 2 tombent de 4,8 % à 1,3 %, et ce mélange se rapproche de celui d'une sélection globale à 50 % (corrélation 0,78 à 60k, 0,95 à la fin, sur 10 classes). Le GAN semble donc concentrer sa masse sur les chiffres les plus denses, sans qu'on puisse en conclure la cause. D sur-apprend aussi : en fin d'entraînement, son score moyen vaut 0,68-0,76 sur les images vues et 0,51-0,60 sur le test pour `data_ref` ; sous `sel_50`, les images rejetées (jamais vues) reçoivent le même score que le test. Cette mesure a été faite une seule fois, hors de `make_data_figures.py`. Cela explique l'écart constaté plus tôt : la baseline à 50 époques (30 000 mises à jour) était encore en pleine descente. Ces chiffres finaux dépendent donc fortement du moment de l'arrêt, et le sujet concerne aussi le volet Entraînement.
 
 **Réponse à la question de départ.** En filtrant les images, on change bien la distribution apprise, et dans le sens prévu par le papier pour la precision et le recall. Mais le bénéfice du papier repose sur des hypothèses absentes ici : un modèle conditionnel, des données avec de vrais déchets et une capacité recyclée. Sur MNIST avec un MLP sans condition, la queue de distribution est de la diversité utile.
 
