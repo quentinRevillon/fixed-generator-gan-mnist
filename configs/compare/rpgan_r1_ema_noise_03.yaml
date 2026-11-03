@@ -1,0 +1,37 @@
+# Données + Entraînement : RpGAN + R1 + EMA (Noé), plus le bruit d'instance sigma = 0,3 décroissant (Nicodème),
+# la variante de bruit sans run effondré dans rapport-donnée.md.
+name: cmp_rpgan_r1_ema_noise_03
+seed: 0
+
+data:
+  instance_noise:
+    enabled: true
+    sigma: 0.3
+    anneal_epochs: 100
+
+loss:
+  name: rpgan
+  r1_gamma: 1.0
+  r2_gamma: 0.0
+
+ema:
+  decay: 0.999
+
+train:
+  epochs: 200
+  batch_size: 100
+
+optimizer:
+  name: adam
+  lr: 0.0002
+  betas: [0.9, 0.999]
+
+output:
+  dir: runs
+  save_every: 200
+
+eval:
+  every: 10
+  n_samples: 10000
+  k: 3
+  prof: true

@@ -23,8 +23,13 @@ REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
 def D_logits(D, x):
-    """Sortie de D avant la sigmoïde finale (model.py reste inchangé)."""
+    """Sortie de D avant la sigmoïde finale (model.py reste inchangé).
+
+    Si D est enveloppé par preprocessing.InstanceNoise, on applique le même bruit que son forward, puis le vrai D :
+    le bruit d'instance (volet Données) se combine ainsi avec la perte RpGAN (volet Entraînement)."""
     D = unwrap(D)
+    if hasattr(D, 'perturb'):
+        x, D = D.perturb(x), unwrap(D.D)
     for fc in (D.fc1, D.fc2, D.fc3):
         x = F.leaky_relu(fc(x), 0.2)
     return D.fc4(x)

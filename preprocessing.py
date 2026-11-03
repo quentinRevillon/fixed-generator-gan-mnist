@@ -80,5 +80,9 @@ class InstanceNoise(nn.Module):
         super().__init__()
         self.D, self.sigma = D, 0.
 
+    def perturb(self, x):
+        """Entrée bruitée vue par D ; utilisée aussi par utils.D_logits (perte RpGAN), qui lit D couche par couche."""
+        return x + self.sigma * torch.randn_like(x) if self.sigma else x
+
     def forward(self, x):
-        return self.D(x + self.sigma * torch.randn_like(x) if self.sigma else x)
+        return self.D(self.perturb(x))

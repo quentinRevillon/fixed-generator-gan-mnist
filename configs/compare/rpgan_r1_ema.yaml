@@ -1,0 +1,31 @@
+# Volet Entraînement, réglage final : RpGAN + R1 (gamma = 1) + EMA 0.999 du générateur (Noé).
+# Même split, même nombre de mises à jour et même optimiseur que la baseline commune.
+name: cmp_rpgan_r1_ema
+seed: 0
+
+loss:
+  name: rpgan
+  r1_gamma: 1.0
+  r2_gamma: 0.0
+
+ema:
+  decay: 0.999
+
+train:
+  epochs: 200
+  batch_size: 100
+
+optimizer:
+  name: adam
+  lr: 0.0002
+  betas: [0.9, 0.999]
+
+output:
+  dir: runs
+  save_every: 200
+
+eval:
+  every: 10
+  n_samples: 10000
+  k: 3
+  prof: true
