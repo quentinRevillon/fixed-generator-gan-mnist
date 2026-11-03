@@ -1,0 +1,3 @@
+# Méthode d'inférence du modèle rendu (lue par generate.py). Décision du groupe : voir results/results.csv.
+# Exemples : {method: plain} | {method: obrs, K: 10} | {method: truncation, psi: 1.0}
+method: plain
