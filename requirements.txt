@@ -8,3 +8,5 @@ pillow
 pyyaml
 tensorboard
 optuna
+matplotlib
+pytorch-fid

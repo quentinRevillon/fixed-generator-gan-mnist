@@ -1,0 +1,23 @@
+name: baseline_v1
+seed: 0
+train:
+  epochs: 50
+  batch_size: 100
+optimizer:
+  name: adam
+  lr: 0.0002
+  betas:
+  - 0.9
+  - 0.999
+output:
+  dir: runs
+  save_every: 10
+eval:
+  every: 10
+  n_samples: 10000
+  k: 3
+git_commit: b82cf19
+environment:
+  python: 3.9.25
+  torch: 2.8.0+cu128
+  device: 'cuda: NVIDIA A100-SXM4-80GB'

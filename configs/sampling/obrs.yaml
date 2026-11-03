@@ -1,0 +1,5 @@
+# Méthode étudiée : Optimal Budgeted Rejection Sampling (Verine et al. 2024, slides Thm 3.2 / Prop 3.3).
+# a(x) = min(1, exp(d(x) - tau_K)), tau_K calibré pour un taux d'acceptation de 1/K.
+method: obrs
+K: 10            # budget : propositions par image gardée (taux d'acceptation 1/K)
+n_calib: 50000   # taille du pool qui calibre tau_K

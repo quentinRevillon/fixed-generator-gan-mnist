@@ -1,0 +1,208 @@
+% Présentation de 5 minutes, en anglais : une idée et une image par slide.
+%
+% Figures :   python slides/make_comparison_figures.py --weights <dossier> (depuis la racine du repo)
+% Compiler :  pdflatex comparaison.tex (deux fois, depuis ce dossier)
+\documentclass[aspectratio=169,14pt]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[english]{babel}
+\usepackage{amsmath,booktabs}
+\graphicspath{{figures/}}
+
+\definecolor{ink}{HTML}{0B0B0B}
+\definecolor{muted}{HTML}{52514E}
+\definecolor{warm}{HTML}{EB6834}
+\definecolor{surface}{HTML}{FCFCFB}
+\setbeamercolor{background canvas}{bg=surface}
+\setbeamercolor{normal text}{fg=ink}
+\setbeamercolor{frametitle}{fg=ink}
+\setbeamercolor{title}{fg=ink}
+\setbeamercolor{author}{fg=muted}
+\setbeamerfont{frametitle}{size=\Large,series=\bfseries}
+\setbeamerfont{title}{size=\LARGE,series=\bfseries}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}{\hfill{\scriptsize\color{muted}\insertframenumber}\hspace{1em}\vspace{0.5em}}
+
+% Figure du fichier #1, ou mention d'attente tant que les résultats ne sont pas arrivés.
+\newcommand{\mesure}[2]{\IfFileExists{figures/#1}{\includegraphics[#2]{#1}}{\vspace{3em}{\color{warm}\textbf{Results pending}}}}
+% Petite précision en bas de slide.
+\newcommand{\source}[1]{\vfill{\scriptsize\color{muted}#1\par}}
+
+\title{GAN on MNIST with a fixed generator}
+\author{Quentin Revillon, Noé Mosca, Nicodème Gorge}
+\date{}
+
+\begin{document}
+
+\begin{frame}[plain,noframenumbering]
+  \titlepage
+\end{frame}
+
+\begin{frame}{Three levers}
+  \vspace{1.2em}
+  \begin{tabular}{lll}
+    \textbf{Data} & What does it learn from? & {\color{muted}selection, noise} \\[1em]
+    \textbf{Training} & How does it learn? & {\color{muted}R3GAN loss} \\[1em]
+    \textbf{Sampling} & Which images do we keep? & {\color{muted}rejection (DRS)} \\
+  \end{tabular}
+
+  \vspace{1.8em}
+  Does each one improve \textbf{quality} or \textbf{diversity}?
+\end{frame}
+
+\begin{frame}{Protocol}
+  \vspace{0.3em}
+  {\footnotesize\begin{tabular}{llll}
+    \toprule
+    & Images & Training & Measured with \\
+    \midrule
+    \textbf{Baseline} & 50k + 10k validation & 200 epochs & Inception, VGG, small CNN \\
+    \textbf{Sampling} & same generator & 200 epochs & small CNN \\
+    \textbf{Data} & 60k or fewer & 60k updates, 3 to 8 seeds & small CNN \\
+    \textbf{Training} & 60k & 50 epochs, 1 seed & small CNN \\
+    \bottomrule
+  \end{tabular}}
+
+  \vspace{1em}
+  {\small
+  \textbf{FID} (Inception or small CNN): distance to real images, lower is better\\[0.4em]
+  \textbf{Precision} (VGG or small CNN): do generated images look real?\\[0.4em]
+  \textbf{Recall} (VGG or small CNN): do they cover all real images?}
+\end{frame}
+
+\begin{frame}{Baseline}
+  \centering\vspace{0.6em}
+  \includegraphics[width=\linewidth]{cmp_epochs.png}
+\end{frame}
+
+\begin{frame}{Two FIDs}
+  \vspace{0.1em}
+  \includegraphics[width=\linewidth]{cmp_two_measures.png}\\[0.3em]
+  {\small $\mathrm{FID} = \|\mu_r-\mu_g\|^2 + \mathrm{Tr}\big(\Sigma_r+\Sigma_g-2(\Sigma_r\Sigma_g)^{1/2}\big)$ on the features of each network.}\\[0.2em]
+  {\small Same generator, same images: only the network changes.}
+\end{frame}
+
+\begin{frame}{Digit proportions}
+  \centering\vspace{0.4em}
+  \includegraphics[width=\linewidth]{cmp_digits.png}\\[0.6em]
+  {\small Digits recognised by our small CNN (98.7\% accuracy on MNIST test)}
+\end{frame}
+
+\begin{frame}{Test: correct the proportions}
+  \vspace{0.6em}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.5\textwidth}
+    \small
+    1. Generate 100,000 images\\[0.2em]
+    {\color{muted}same generator, epoch 120}\\[0.8em]
+    2. Keep 10,000 of them\\[0.2em]
+    {\color{muted}with the digit proportions of real MNIST}\\[0.8em]
+    3. Compute the FID again
+    \column{0.46\textwidth}\centering
+    \begin{tabular}{lcc}
+      \toprule
+      FID & Before & After \\
+      \midrule
+      Small CNN & 75 & \textbf{30} \\
+      Inception & 56 & \textbf{61} \\
+      \bottomrule
+    \end{tabular}
+  \end{columns}
+
+  \vspace{1.5em}
+  The digits are drawn the same way: only their proportions change.\\[0.5em]
+  The small CNN's FID drops. Inception's barely moves.
+\end{frame}
+
+\begin{frame}{Data: method}
+  \vspace{0.6em}
+  \textbf{Selection:} keep the most typical images of each digit.
+  \[ s(x) = -\big(f(x)-\mu_c\big)^\top \Sigma_c^{-1} \big(f(x)-\mu_c\big) \]
+  {\small\color{muted}$f$: features of the small CNN. $\mu_c, \Sigma_c$: mean and covariance of digit $c$.}\\[1.2em]
+  \textbf{Noise:} add noise to D's inputs, fading to 0 during training.
+  \[ D(x + \sigma_t\,\varepsilon), \quad \varepsilon \sim \mathcal{N}(0, I) \]
+  \source{DeVries et al. 2020; Sønderby et al. 2017.}
+\end{frame}
+
+\begin{frame}{Data: images}
+  \centering\vspace{0.2em}
+  \includegraphics[width=0.84\linewidth]{cmp_selection.png}
+\end{frame}
+
+\begin{frame}{Data: results}
+  \centering\vspace{0.4em}
+  \includegraphics[width=\linewidth]{cmp_data_results.png}\\[0.5em]
+  {\small Selection 50\%: only 0.4\% of 0s are generated.}
+  \source{Nicodème: 60,000 images, 60,000 updates, against MNIST test, 3 to 8 seeds, collapsed runs excluded.}
+\end{frame}
+
+\begin{frame}{Training: method}
+  \vspace{0.4em}
+  D no longer judges one image: it compares a real and a fake one.
+  \[ \mathcal{L}_D = \mathrm{softplus}\big(D(\text{fake}) - D(\text{real})\big) + \tfrac{\gamma}{2}\big(R_1 + R_2\big) \]
+  \[ \mathcal{L}_G = \mathrm{softplus}\big(D(\text{real}) - D(\text{fake})\big) \]
+  $R_1$ and $R_2$ penalise the gradients of D:
+  \[ R_1 = \|\nabla D(\text{real})\|^2 \qquad R_2 = \|\nabla D(\text{fake})\|^2 \]
+  {\small\color{muted}$D$: score before the sigmoid. The generator does not change.}
+  \source{R3GAN, Huang et al. 2024.}
+\end{frame}
+
+\begin{frame}{Training: images}
+  \centering\vspace{0.3em}
+  \includegraphics[width=0.84\linewidth]{cmp_loss_effect.png}
+  \source{Same noise, 50 epochs. Noé's first runs.}
+\end{frame}
+
+\begin{frame}{Training: results}
+  \centering\vspace{0.4em}
+  \includegraphics[width=\linewidth]{cmp_training_results.png}\\[0.5em]
+  {\small RpGAN alone diverges. R3GAN with the paper's Adam betas collapses.}
+  \source{Noé: 60,000 images, 50 epochs, against MNIST test, one seed.}
+\end{frame}
+
+\begin{frame}{Sampling: method}
+  \vspace{0.5em}
+  G does not change.
+  \begin{enumerate}
+    \setlength\itemsep{0.5em}
+    \item G proposes an image $x$.
+    \item D gives it a score $d(x)$.
+    \item We keep $x$ with probability $\sigma\big(\hat F(x)\big)$, then start again.
+  \end{enumerate}
+  \[ \hat F(x) = d(x) - d_M - \log\big(1 - e^{\,d(x) - d_M - \epsilon}\big) - \gamma \]
+  {\small\color{muted}$d_M$: best score seen. $\gamma$: sets how strict we are (percentile of $\hat F$ in each batch).}
+  \source{Discriminator Rejection Sampling, Azadi et al. 2019.}
+\end{frame}
+
+\begin{frame}{Sampling: images}
+  \centering\vspace{0.3em}
+  \includegraphics[width=0.84\linewidth]{cmp_kept_rejected.png}
+  \source{Same generator, epoch 200. Percentile 80.}
+\end{frame}
+
+\begin{frame}{Sampling: results}
+  \centering\vspace{0.4em}
+  \includegraphics[width=\linewidth]{cmp_sampling_results.png}\\[0.5em]
+  {\small Keeping 30\% of the images costs 1.6 s on CPU for 10,000 images.}
+  \source{Baseline at epoch 200. Against validation, 3 draws.}
+\end{frame}
+
+
+
+
+\begin{frame}{Conclusion}
+  \vspace{0.6em}
+  \begin{itemize}
+    \setlength\itemsep{0.7em}
+    \item \textbf{Longer training:} Inception FID 156 $\to$ 37, but digit proportions drift
+    \item \textbf{Data:} selection raises CNN precision (0.75 $\to$ 0.84) and lowers CNN recall (0.72 $\to$ 0.38); noise has no clear effect
+    \item \textbf{Training:} at 50 epochs, CNN FID 188 $\to$ 49, CNN recall 0.32 $\to$ 0.58, same CNN precision
+    \item \textbf{Sampling:} with 30\% kept, CNN FID 169 $\to$ 146, CNN precision 0.86 $\to$ 0.89, same CNN recall
+    \item \textbf{Metrics:} the two FIDs do not see the same thing
+  \end{itemize}
+\end{frame}
+
+
+
+\end{document}
