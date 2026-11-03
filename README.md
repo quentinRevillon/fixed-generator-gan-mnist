@@ -68,40 +68,49 @@ Sur Juliet : `scripts/train.sh [config]`, `scripts/tune.sh [config] [n_trials]`,
 
 **Méthode :** on remplace la perte GAN d'origine par celle de **R3GAN**, une perte relativiste (RpGAN) avec les pénalités de gradient R1 et R2, tirée de Huang et al., *The GAN is dead; long live the GAN! A Modern GAN Baseline*, NeurIPS 2024 ([arXiv:2501.05441](https://arxiv.org/abs/2501.05441)). **Le générateur et `model.py` ne sont pas modifiés :** seule la façon de l'entraîner change.
 
-![Exemples : vraies images, baseline, RpGAN + R1, R3GAN avec le même bruit z](figures/examples_same_z.png)
+![Exemples : vraies images, baseline, RpGAN + R1 avec le même bruit z](figures/examples_best.png)
 
-**Résultats** (évaluation du groupe ; 50 époques, batch 100, seed 0) :
+**Résultats finaux** (évaluation du groupe ; 100 époques, batch 100, EMA 0.999, **3 seeds** par configuration) :
 
-| Config | FID ↓ | Precision ↑ | Recall ↑ |
-|---|---|---|---|
-| `baseline_rerun` (perte BCE d'origine) | 188,0 | 0,64 | 0,32 |
-| `train_rpgan` (RpGAN seul) | diverge | 0,00 | 0,00 |
-| **`train_rpgan_r1`** (RpGAN + R1) | **43,6** | **0,65** | **0,60** |
-| `train_r3gan` (RpGAN + R1 + R2) | 48,9 | 0,65 | 0,58 |
-| `train_r3gan_adam` (+ betas Adam 0 / 0.99) | effondrement | 0,46 | 0,00 |
+| Configuration | FID ↓ | Precision ↑ | Recall ↑ | Seeds stables |
+|---|---|---|---|---|
+| Baseline (perte BCE d'origine) | 58,7 ± 4,8 | **0,80** | 0,79 | 2 / 3 |
+| **RpGAN + R1, γ = 1** | **14,0 ± 0,9** | 0,72 | 0,80 | **3 / 3** |
+| R3GAN (RpGAN + R1 + R2), γ = 1 | 14,4 ± 0,9 | 0,70 | 0,80 | 3 / 3 |
+| RpGAN + R1, γ = 10 | 17,7 ± 0,9 | 0,67 | 0,79 | 3 / 3 |
+| RpGAN + R1, γ = 0,1 | diverge | — | — | 0 / 3 |
 
-Le FID est divisé par 4 et le recall doublé, à precision égale. Les dix chiffres sont aussi mieux couverts. Sans R1, la perte relativiste diverge. L'explication complète (papier, formules, courbes, répartition des chiffres, limites) est dans **[training-r3gan.md](training-r3gan.md)**.
+- **Le FID est divisé par 4** et l'entraînement devient fiable : aucune seed effondrée, contre 1 sur 3 pour la baseline.
+- **Le recall est le même partout.** La baseline couvre tous les chiffres, mais dans de mauvaises proportions (4 % de « 2 », 16 % de « 1 »). La perte relativiste corrige ces proportions (8 à 12 % par chiffre), ce que le FID mesure et que la precision et le recall par plus proches voisins ne voient pas.
+- **Le prix à payer :** un peu de precision (0,80 → 0,72), que le rejet du volet Inférence peut récupérer.
+- **R2 n'apporte rien de mesurable**, γ = 1 est le bon réglage, et sans R1 la perte relativiste diverge.
 
-**Utilisation :** une section `loss:` dans le YAML choisit la perte. Sans elle, l'entraînement est exactement la baseline.
+Le meilleur générateur est `runs/ema100_rpgan_r1_s1/G.pth` (FID 13,1). L'explication complète (papier, formules, première série à 50 époques, courbes, répartition des chiffres, limites) est dans **[training-r3gan.md](training-r3gan.md)**.
+
+**Utilisation :** deux sections facultatives du YAML. Sans elles, l'entraînement est exactement la baseline.
 
 ```yaml
 loss:
   name: rpgan      # 'bce' = baseline (défaut)
   r1_gamma: 1.0    # pénalité R1 (gradient de D sur les vraies images)
-  r2_gamma: 1.0    # pénalité R2 (gradient de D sur les fausses images)
+  r2_gamma: 0.0    # pénalité R2 (gradient de D sur les fausses images)
+ema:
+  decay: 0.999     # moyenne mobile des poids de G : c'est elle qui est sauvegardée dans G.pth
 ```
 
 ```bash
-python train.py --config configs/train_r3gan.yaml
+python train.py --config configs/sweep/ema100_rpgan_r1_s1.yaml       # un run
+python scripts/sweep_training.py                                       # toute la campagne (3 seeds + balayage de γ)
 ```
 
 | Fichiers ajoutés | Contenu |
 |---|---|
-| `configs/baseline_rerun.yaml`, `configs/train_*.yaml` | une config par expérience de l'ablation |
+| `configs/train_*.yaml`, `configs/baseline_rerun.yaml` | première série (50 époques, seed 0) |
+| `configs/sweep/` | campagne finale : une config par run (100 époques, EMA, seeds 0-2, γ) |
 | `runs/<config>/G.pth`, `runs/<config>/grid.png` | générateur entraîné et grille de 100 images de chaque run |
 | `logs/<config>.log` | logs d'entraînement (pertes, FID / P / R toutes les 10 époques) |
 | `results.csv` | une ligne par évaluation |
-| `figures/` | figures de [training-r3gan.md](training-r3gan.md) et script `make_training_figures.py` pour les régénérer |
+| `figures/` | figures de [training-r3gan.md](training-r3gan.md) et scripts `make_*_figures.py` pour les régénérer |
 
 ## generate.py
 Use the file *generate.py* to generate 10000 samples of MNIST in the folder samples, from `checkpoints/G.pth` (or `--checkpoint <path>`). Outputs are rescaled to [0, 1]. You can launch this script on juliet with `scripts/generate.sh`

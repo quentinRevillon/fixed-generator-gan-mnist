@@ -1,0 +1,57 @@
+[15:40:16] Phase 1 : 3 seeds x {baseline, rpgan_r1, r3gan}, 100 époques, EMA
+[15:40:16] ema100_baseline_s0 : démarrage
+[15:40:16] ema100_baseline_s1 : démarrage
+[15:40:16] ema100_rpgan_r1_s0 : démarrage
+[15:40:16] ema100_baseline_s2 : démarrage
+[15:40:16] ema100_rpgan_r1_s2 : démarrage
+[15:40:16] ema100_rpgan_r1_s1 : démarrage
+[23:23:03] ema100_baseline_s0 : terminé (code 0)
+[23:23:03] ema100_r3gan_s0 : démarrage
+[23:23:05] ema100_baseline_s2 : terminé (code 0)
+[23:23:05] ema100_r3gan_s1 : démarrage
+[23:23:05] ema100_baseline_s1 : terminé (code 0)
+[23:23:05] ema100_r3gan_s2 : démarrage
+[23:27:10] ema100_rpgan_r1_s1 : terminé (code 0)
+[23:27:59] ema100_rpgan_r1_s2 : terminé (code 0)
+[23:27:59] ema100_rpgan_r1_s0 : terminé (code 0)
+[23:52:17] ema100_r3gan_s1 : terminé (code 1)
+[23:52:17] ema100_r3gan_s2 : terminé (code 1)
+=== relance 03/11 15:35 depuis /Volumes/Untitled ===
+[15:35:49] Phase 1 : 3 seeds x {baseline, rpgan_r1, r3gan}, 100 époques, EMA
+[15:35:49] ema100_baseline_s0 : déjà fait, ignoré
+[15:35:49] ema100_rpgan_r1_s0 : déjà fait, ignoré
+[15:35:49] ema100_baseline_s2 : déjà fait, ignoré
+[15:35:49] ema100_baseline_s1 : déjà fait, ignoré
+[15:35:49] ema100_rpgan_r1_s2 : déjà fait, ignoré
+[15:35:49] ema100_rpgan_r1_s1 : déjà fait, ignoré
+[15:35:49] ema100_r3gan_s0 : déjà fait, ignoré
+[15:35:49] ema100_r3gan_s1 : reprise
+[15:35:49] ema100_r3gan_s2 : reprise
+=== relance 03/11 16:41 (disque reconnecté) ===
+[16:41:27] Phase 1 : 3 seeds x {baseline, rpgan_r1, r3gan}, 100 époques, EMA
+[16:41:27] ema100_baseline_s1 : déjà fait, ignoré
+[16:41:27] ema100_baseline_s0 : déjà fait, ignoré
+[16:41:27] ema100_baseline_s2 : déjà fait, ignoré
+[16:41:27] ema100_rpgan_r1_s0 : déjà fait, ignoré
+[16:41:27] ema100_rpgan_r1_s1 : déjà fait, ignoré
+[16:41:27] ema100_rpgan_r1_s2 : déjà fait, ignoré
+[16:41:27] ema100_r3gan_s0 : déjà fait, ignoré
+[16:41:27] ema100_r3gan_s2 : reprise
+[16:41:27] ema100_r3gan_s1 : reprise
+[16:44:18] ema100_r3gan_s1 : terminé (code 0)
+[16:44:18] ema100_r3gan_s2 : terminé (code 0)
+[16:44:18] FID moyens : {'rpgan_r1': 14.032833333333334, 'r3gan': 14.419366666666667} -> balayage de gamma sur rpgan_r1
+[16:44:18] Phase 2 : gamma in (0.1, 10.0) sur rpgan_r1, 3 seeds
+[16:44:18] ema100_rpgan_r1_g0.1_s1 : démarrage
+[16:44:18] ema100_rpgan_r1_g0.1_s2 : démarrage
+[16:44:18] ema100_rpgan_r1_g10_s0 : démarrage
+[16:44:18] ema100_rpgan_r1_g0.1_s0 : démarrage
+[16:44:18] ema100_rpgan_r1_g10_s2 : démarrage
+[16:44:18] ema100_rpgan_r1_g10_s1 : démarrage
+[17:30:02] ema100_rpgan_r1_g0.1_s0 : terminé (code -15)
+[17:30:02] ema100_rpgan_r1_g0.1_s1 : terminé (code -15)
+[17:30:02] ema100_rpgan_r1_g0.1_s2 : terminé (code -15)
+[18:14:24] ema100_rpgan_r1_g10_s0 : terminé (code 0)
+[18:15:26] ema100_rpgan_r1_g10_s1 : terminé (code 0)
+[18:15:26] ema100_rpgan_r1_g10_s2 : terminé (code 0)
+[18:15:26] Campagne terminée

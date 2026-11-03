@@ -154,19 +154,31 @@ def unwrap(model):
     return model.module if isinstance(model, torch.nn.DataParallel) else model
 
 
-def save_ckpt(path, G, D, G_opt, D_opt, epoch, seed):
-    torch.save({'G': unwrap(G).state_dict(), 'D': unwrap(D).state_dict(),
-                'G_opt': G_opt.state_dict(), 'D_opt': D_opt.state_dict(),
-                'epoch': epoch, 'seed': seed}, path)
+def save_ckpt(path, G, D, G_opt, D_opt, epoch, seed, G_ema=None):
+    ckpt = {'G': unwrap(G).state_dict(), 'D': unwrap(D).state_dict(),
+            'G_opt': G_opt.state_dict(), 'D_opt': D_opt.state_dict(),
+            'epoch': epoch, 'seed': seed}
+    if G_ema is not None:
+        ckpt['G_ema'] = G_ema.state_dict()
+    torch.save(ckpt, path)
 
 
-def load_ckpt(path, G, D, G_opt, D_opt, device):
+def load_ckpt(path, G, D, G_opt, D_opt, device, G_ema=None):
     ckpt = torch.load(path, map_location=device)
     unwrap(G).load_state_dict(ckpt['G'])
     unwrap(D).load_state_dict(ckpt['D'])
     G_opt.load_state_dict(ckpt['G_opt'])
     D_opt.load_state_dict(ckpt['D_opt'])
+    if G_ema is not None:
+        G_ema.load_state_dict(ckpt.get('G_ema', ckpt['G']))
     return ckpt['epoch']
+
+
+@torch.no_grad()
+def ema_update(G_ema, G, decay):
+    # moyenne mobile exponentielle des poids : G_ema <- decay * G_ema + (1 - decay) * G
+    for p_ema, p in zip(G_ema.parameters(), unwrap(G).parameters()):
+        p_ema.lerp_(p, 1 - decay)
 
 
 def load_model(G, folder, device):

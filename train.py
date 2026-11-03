@@ -1,4 +1,5 @@
 import argparse
+import copy
 import os
 import time
 import numpy as np
@@ -13,7 +14,7 @@ from torchvision import datasets, transforms
 from evaluate import evaluate, generate, report
 from model import Generator, Discriminator
 from utils import (D_train, G_train, load_config, set_seed, git_commit, get_device,
-                   save_ckpt, load_ckpt, unwrap)
+                   save_ckpt, load_ckpt, unwrap, ema_update)
 
 MNIST_DIM, Z_DIM = 784, 100
 
@@ -59,11 +60,15 @@ def train(cfg, resume=False, trial=None):
     # Perte adversariale : 'bce' (baseline, défaut) ou 'rpgan' (R3GAN) avec pénalités R1 / R2
     lcfg = cfg.get('loss', {})
     loss_name, r1, r2 = lcfg.get('name', 'bce'), lcfg.get('r1_gamma', 0.), lcfg.get('r2_gamma', 0.)
+    # EMA facultative : G_ema sert à l'évaluation, aux grilles et au G.pth rendu (le G brut va dans G_raw.pth)
+    ema_decay = cfg.get('ema', {}).get('decay', 0.)
+    G_ema = copy.deepcopy(unwrap(G)).requires_grad_(False) if ema_decay else None
+    G_out = G_ema if G_ema is not None else unwrap(G)
 
     start = 1
     last_path = os.path.join(run_dir, 'ckpt', 'last.pth')
     if resume and os.path.exists(last_path):
-        start = load_ckpt(last_path, G, D, G_opt, D_opt, device) + 1
+        start = load_ckpt(last_path, G, D, G_opt, D_opt, device, G_ema) + 1
         print(f'Reprise à l\'époque {start}')
 
     writer = SummaryWriter(run_dir)
@@ -71,7 +76,7 @@ def train(cfg, resume=False, trial=None):
     n_epochs, save_every = cfg['train']['epochs'], cfg['output']['save_every']
     ev = cfg['eval']
     print(f'Run {run_dir} | device {device.type} | {len(dataset)} images | époques {start}->{n_epochs} | '
-          f'loss {loss_name} (R1={r1}, R2={r2})')
+          f'loss {loss_name} (R1={r1}, R2={r2}) | EMA {ema_decay or "non"}')
 
     t0, metrics = time.time(), {}
     for epoch in range(start, n_epochs + 1):
@@ -80,6 +85,8 @@ def train(cfg, resume=False, trial=None):
             x = x.view(-1, MNIST_DIM).to(device)
             d_loss, d_real, d_fake = D_train(x, G, D, D_opt, criterion, device, loss_name, r1, r2)
             g_loss = G_train(x, G, D, G_opt, criterion, device, loss_name)
+            if G_ema is not None:
+                ema_update(G_ema, G, ema_decay)
             stats += (d_loss, g_loss, d_real, d_fake)
         stats /= len(loader)
         metrics = dict(epoch=epoch, loss_D=stats[0], loss_G=stats[1], D_real=stats[2], D_fake=stats[3])
@@ -88,13 +95,13 @@ def train(cfg, resume=False, trial=None):
         for tag, v in zip(['loss/D', 'loss/G', 'D(x)', 'D(G(z))'], stats):
             writer.add_scalar(tag, v, epoch)
         with torch.no_grad():
-            grid = (G(fixed_z).view(-1, 1, 28, 28) + 1) / 2
+            grid = (G_out(fixed_z).view(-1, 1, 28, 28) + 1) / 2
         writer.add_image('samples', torchvision.utils.make_grid(grid, nrow=8), epoch)
 
         # Évaluation FID / precision / recall tous les eval.every (et à la dernière époque)
         evaluated = ev['every'] and (epoch % ev['every'] == 0 or epoch == n_epochs)
         if evaluated:
-            images = generate(unwrap(G), ev['n_samples'], device)
+            images = generate(G_out, ev['n_samples'], device)
             m = evaluate(images, device, ev['k'])
             for key in ('fid', 'precision', 'recall'):
                 writer.add_scalar(f'eval/{key}', m[key], epoch)
@@ -109,11 +116,14 @@ def train(cfg, resume=False, trial=None):
                     raise optuna.TrialPruned()
 
         # Checkpoints : last.pth + G.pth / D.pth à chaque époque, epoch_XXX.pth tous les save_every
-        save_ckpt(last_path, G, D, G_opt, D_opt, epoch, cfg['seed'])
-        torch.save(unwrap(G).state_dict(), os.path.join(run_dir, 'G.pth'))
+        save_ckpt(last_path, G, D, G_opt, D_opt, epoch, cfg['seed'], G_ema)
+        torch.save(G_out.state_dict(), os.path.join(run_dir, 'G.pth'))
         torch.save(unwrap(D).state_dict(), os.path.join(run_dir, 'D.pth'))
+        if G_ema is not None:
+            torch.save(unwrap(G).state_dict(), os.path.join(run_dir, 'G_raw.pth'))
         if epoch % save_every == 0 or epoch == n_epochs:
-            save_ckpt(os.path.join(run_dir, 'ckpt', f'epoch_{epoch:03d}.pth'), G, D, G_opt, D_opt, epoch, cfg['seed'])
+            save_ckpt(os.path.join(run_dir, 'ckpt', f'epoch_{epoch:03d}.pth'), G, D, G_opt, D_opt, epoch, cfg['seed'],
+                      G_ema)
 
         # Progression
         elapsed = time.time() - t0

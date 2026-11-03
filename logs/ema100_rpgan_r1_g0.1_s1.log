@@ -1,0 +1,55 @@
+Run runs/ema100_rpgan_r1_g0.1_s1 | device mps | 60000 images | époques 1->100 | loss rpgan (R1=0.1, R2=0.0) | EMA 0.999
+[001/100] D=0.025 G=6.816 D(x)=0.48 D(G(z))=0.09 | 51.1s/ep | écoulé 0m51s | restant ~1h24m20s
+[002/100] D=0.000 G=13.692 D(x)=0.53 D(G(z))=0.00 | 51.0s/ep | écoulé 1m42s | restant ~1h23m42s
+[003/100] D=0.004 G=13.691 D(x)=0.54 D(G(z))=0.02 | 47.2s/ep | écoulé 2m30s | restant ~1h21m04s
+[004/100] D=0.006 G=6.697 D(x)=0.80 D(G(z))=0.01 | 49.5s/ep | écoulé 3m20s | restant ~1h20m00s
+[005/100] D=0.006 G=6.709 D(x)=0.85 D(G(z))=0.01 | 54.6s/ep | écoulé 4m14s | restant ~1h20m40s
+[006/100] D=0.005 G=6.752 D(x)=0.88 D(G(z))=0.01 | 52.7s/ep | écoulé 5m07s | restant ~1h20m18s
+[007/100] D=0.005 G=6.780 D(x)=0.89 D(G(z))=0.01 | 63.7s/ep | écoulé 6m11s | restant ~1h22m13s
+[008/100] D=0.005 G=6.807 D(x)=0.90 D(G(z))=0.01 | 59.1s/ep | écoulé 7m10s | restant ~1h22m31s
+[009/100] D=0.005 G=6.819 D(x)=0.91 D(G(z))=0.01 | 56.5s/ep | écoulé 8m07s | restant ~1h22m05s
+[010/100] D=0.005 G=6.832 D(x)=0.91 D(G(z))=0.01 | FID=2672.49 P=1.000 R=0.000 | 62.7s/ep | écoulé 9m09s | restant ~1h22m29s
+[011/100] D=0.005 G=6.840 D(x)=0.91 D(G(z))=0.01 | 56.0s/ep | écoulé 10m05s | restant ~1h21m43s
+[012/100] D=0.005 G=6.845 D(x)=0.92 D(G(z))=0.01 | 59.2s/ep | écoulé 11m05s | restant ~1h21m18s
+[013/100] D=0.005 G=6.858 D(x)=0.92 D(G(z))=0.01 | 55.7s/ep | écoulé 12m01s | restant ~1h20m25s
+[014/100] D=0.005 G=7.897 D(x)=0.82 D(G(z))=0.01 | 56.1s/ep | écoulé 12m57s | restant ~1h19m33s
+[015/100] D=0.006 G=6.651 D(x)=0.89 D(G(z))=0.01 | 70.0s/ep | écoulé 14m07s | restant ~1h20m00s
+[016/100] D=0.006 G=6.656 D(x)=0.90 D(G(z))=0.01 | 71.0s/ep | écoulé 15m18s | restant ~1h20m21s
+[017/100] D=0.006 G=6.661 D(x)=0.90 D(G(z))=0.01 | 78.4s/ep | écoulé 16m37s | restant ~1h21m08s
+[018/100] D=0.006 G=6.664 D(x)=0.90 D(G(z))=0.01 | 65.1s/ep | écoulé 17m42s | restant ~1h20m39s
+[019/100] D=0.006 G=6.667 D(x)=0.90 D(G(z))=0.01 | 71.6s/ep | écoulé 18m53s | restant ~1h20m34s
+[020/100] D=0.006 G=6.667 D(x)=0.90 D(G(z))=0.01 | FID=2225.21 P=0.000 R=0.000 | 70.2s/ep | écoulé 20m04s | restant ~1h20m17s
+[021/100] D=0.006 G=6.668 D(x)=0.90 D(G(z))=0.01 | 72.7s/ep | écoulé 21m17s | restant ~1h20m05s
+[022/100] D=0.006 G=6.669 D(x)=0.90 D(G(z))=0.01 | 67.1s/ep | écoulé 22m24s | restant ~1h19m26s
+[023/100] D=0.006 G=6.669 D(x)=0.90 D(G(z))=0.01 | 71.6s/ep | écoulé 23m36s | restant ~1h19m00s
+[024/100] D=0.006 G=6.688 D(x)=0.90 D(G(z))=0.01 | 66.0s/ep | écoulé 24m42s | restant ~1h18m13s
+[025/100] D=0.006 G=6.675 D(x)=0.90 D(G(z))=0.01 | 70.3s/ep | écoulé 25m52s | restant ~1h17m37s
+[026/100] D=0.006 G=6.677 D(x)=0.91 D(G(z))=0.01 | 1066.5s/ep | écoulé 43m39s | restant ~2h04m14s
+[027/100] D=0.006 G=6.678 D(x)=0.91 D(G(z))=0.01 | 48.6s/ep | écoulé 44m27s | restant ~2h00m12s
+[028/100] D=0.006 G=6.680 D(x)=0.91 D(G(z))=0.01 | 63.3s/ep | écoulé 45m31s | restant ~1h57m02s
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/spawn.py", line 132, in _main
+    self = reduction.pickle.load(from_parent)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/torch/multiprocessing/reductions.py", line 560, in rebuild_storage_filename
+    storage = torch.UntypedStorage._new_shared_filename_cpu(manager, handle, size)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: No such file or directory
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/spawn.py", line 132, in _main
+    self = reduction.pickle.load(from_parent)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/torch/multiprocessing/reductions.py", line 560, in rebuild_storage_filename
+    storage = torch.UntypedStorage._new_shared_filename_cpu(manager, handle, size)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: No such file or directory
+/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 14 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
