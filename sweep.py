@@ -1,9 +1,10 @@
 """Fait varier un paramètre d'une méthode d'échantillonnage et évalue chaque valeur sur plusieurs seeds.
 
-Chaque (valeur, seed) ajoute une ligne à results/results.csv ; plot_results.py en tire les figures.
-La référence est 'val' par défaut : c'est sur elle que l'on choisit K ou psi.
+Chaque (valeur, seed) ajoute une ligne au tableau de la mesure : results/results.csv ou results/results_prof.csv.
+La référence est 'val' par défaut : c'est sur elle que l'on choisit K, psi ou le percentile.
 
 Utilisation :
+    python sweep.py --run runs/baseline_200ep_prof --weights best --sampling configs/sampling/drs_azadi.yaml --param percentile --values 50 80 95 99 --metric prof
     python sweep.py --run checkpoints --sampling configs/sampling/obrs.yaml --param K --values 1 2 5 10 20 --seeds 0 1 2
     python sweep.py --run checkpoints --sampling configs/sampling/drs.yaml  --param K --values 2 5 10 20
     python sweep.py --run checkpoints --sampling configs/sampling/truncation.yaml --param psi --values 0.5 1 1.5 2 3

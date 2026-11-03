@@ -6,6 +6,7 @@ import pytest
 import torch
 
 import evaluate as ev
+import train
 
 
 @pytest.fixture
@@ -45,3 +46,11 @@ def test_vgg_preprocess_gives_imagenet_input():
 def test_metrics_write_to_separate_tables():
     assert ev.RESULTS_CSV['cnn'] != ev.RESULTS_CSV['prof']
     assert set(ev.EVALUATORS) == {'cnn', 'prof'}
+
+
+def test_training_evaluation_adds_the_leaderboard_measure_on_request(monkeypatch):
+    monkeypatch.setattr(train, 'evaluate', lambda images, device, k, reference: {'fid': 1.0})
+    monkeypatch.setattr(train, 'evaluate_prof', lambda images, device, reference: {'fid': 2.0, 'precision': 0.5, 'recall': 0.25})
+    assert train.evaluate_epoch(None, 'cpu', {'k': 3}) == {'fid': 1.0}
+    assert train.evaluate_epoch(None, 'cpu', {'k': 3, 'prof': True}) == {
+        'fid': 1.0, 'fid_prof': 2.0, 'precision_prof': 0.5, 'recall_prof': 0.25}

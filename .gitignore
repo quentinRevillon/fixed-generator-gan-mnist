@@ -17,8 +17,12 @@ outputs/
 # macOS
 .DS_Store
 
+# Tests
+.pytest_cache/
+
 # Grilles produites par evaluate.py hors des runs
 grid*.png
+figures/samples_*.png
 
 # Runs : on versionne le dossier léger (config, métriques, poids last/best de G et D, grille) pour que
 # chacun puisse rejouer et évaluer le run ; ckpt/ (34 Mo), TensorBoard et essais Optuna restent locaux.
@@ -26,6 +30,7 @@ runs/**
 !runs/**/
 !runs/**/config.yaml
 !runs/**/metrics.jsonl
+!runs/**/keep_training.jsonl
 !runs/**/G.pth
 !runs/**/D.pth
 !runs/**/G_best.pth

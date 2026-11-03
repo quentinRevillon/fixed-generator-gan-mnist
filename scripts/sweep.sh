@@ -1,9 +1,9 @@
 #!/bin/bash
 # Étude d'inférence complète sur Juliet : plain, OBRS(K), DRS(K), truncation(psi), 3 seeds chacun.
-# Les lignes s'ajoutent à results/results.csv, puis les figures sont écrites dans figures/.
+# Les lignes s'ajoutent à results/results.csv.
 # Usage : scripts/sweep.sh [run_dir] [weights] [reference]
-#         scripts/sweep.sh runs/baseline_v1 best val      # choisir K / psi
-#         scripts/sweep.sh runs/baseline_v1 best test     # chiffres finaux du rapport
+#         scripts/sweep.sh runs/baseline_200ep_prof best val      # choisir K / psi
+#         scripts/sweep.sh runs/baseline_200ep_prof best test     # chiffres finaux du rapport
 run=${1:-checkpoints}
 weights=${2:-last}
 reference=${3:-val}
@@ -32,5 +32,4 @@ python evaluate.py \${common} --sampling configs/sampling/plain.yaml
 python sweep.py \${common} --sampling configs/sampling/obrs.yaml --param K --values 1.5 2 3 5 10 20 50
 python sweep.py \${common} --sampling configs/sampling/drs.yaml --param K --values 1.5 2 3 5 10 20 50
 python sweep.py \${common} --sampling configs/sampling/truncation.yaml --param psi --values 0.5 1 1.5 2 2.5 3
-python plot_results.py --run ${run} --weights ${weights} --reference ${reference} --out figures/${reference}
 EOT

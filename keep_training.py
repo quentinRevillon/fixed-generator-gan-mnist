@@ -6,8 +6,8 @@ Le papier ne donne ni nombre de pas ni patience : eval_every, patience, max_step
 Écrit dans le dossier du run : D_<weights>_kt.pth (meilleur D sur la validation) et keep_training.jsonl (historique).
 
 Utilisation :
-    python keep_training.py --run runs/baseline_200ep --weights best
-    python evaluate.py --run runs/baseline_200ep --weights best_kt --sampling configs/sampling/drs_azadi.yaml
+    python keep_training.py --run runs/baseline_200ep_prof --weights best
+    python evaluate.py --run runs/baseline_200ep_prof --weights best_kt --sampling configs/sampling/drs_azadi.yaml
 """
 import argparse
 import copy

@@ -21,7 +21,7 @@ import yaml
 from torch.utils.tensorboard import SummaryWriter
 
 from data import train_loader
-from evaluate import evaluate, format_metrics, generate, save_grid, to_unit_images
+from evaluate import evaluate, evaluate_prof, format_metrics, generate, save_grid, to_unit_images
 from model import Generator, Discriminator
 from utils import (D_train, G_train, environment, get_device, git_commit, load_ckpt, load_config, make_deterministic,
                    save_ckpt, set_seed, unwrap)
@@ -72,9 +72,18 @@ def train_one_epoch(loader, G, D, G_opt, D_opt, criterion, device):
     return dict(loss_D=stats[0], loss_G=stats[1], D_real=stats[2], D_fake=stats[3])
 
 
+def evaluate_epoch(images, device, ev):
+    """Métriques sur 'val' : petit CNN, plus Inception et VGG (suffixe _prof) si la config contient eval.prof: true."""
+    metrics = evaluate(images, device, ev['k'], reference='val')
+    if ev.get('prof'):
+        prof = evaluate_prof(images, device, reference='val')
+        metrics.update(fid_prof=float(prof['fid']), precision_prof=float(prof['precision']), recall_prof=float(prof['recall']))
+    return metrics
+
+
 def log_epoch(writer, run_dir, epoch, metrics, G, fixed_z):
     """TensorBoard (courbes, grille à z fixe, métriques) + une ligne JSON dans runs/<name>/metrics.jsonl."""
-    for key in ('loss_D', 'loss_G', 'D_real', 'D_fake', 'fid', 'precision', 'recall'):
+    for key in ('loss_D', 'loss_G', 'D_real', 'D_fake', 'fid', 'precision', 'recall', 'fid_prof', 'precision_prof', 'recall_prof'):
         if key in metrics:
             writer.add_scalar(key, metrics[key], epoch)
     with torch.no_grad():
@@ -89,7 +98,7 @@ def train(cfg, resume=False, trial=None):
     Fichiers écrits dans runs/<name>/ :
         config.yaml, metrics.jsonl          configuration exacte et une ligne par époque (versionnés)
         G.pth, D.pth                        dernière époque (versionnés)
-        G_best.pth, D_best.pth              meilleure époque selon le FID sur 'val' (versionnés)
+        G_best.pth, D_best.pth              meilleure époque selon le FID sur 'val', Inception si eval.prof (versionnés)
         ckpt/last.pth, ckpt/epoch_XXX.pth   état complet pour --resume (non versionnés)
         grid.png, events.out.tfevents.*     grille finale, TensorBoard
     """
@@ -125,9 +134,10 @@ def train(cfg, resume=False, trial=None):
         if evaluated:
             with torch.random.fork_rng():
                 images = generate(unwrap(G), ev['n_samples'], device)
-                metrics.update(evaluate(images, device, ev['k'], reference='val'))
-            if metrics['fid'] < best_fid:  # la dernière époque n'est pas forcément la meilleure
-                best_fid = metrics['fid']
+                metrics.update(evaluate_epoch(images, device, ev))
+            score = metrics['fid_prof' if ev.get('prof') else 'fid']
+            if score < best_fid:  # la dernière époque n'est pas forcément la meilleure
+                best_fid = score
                 torch.save(unwrap(G).state_dict(), os.path.join(run_dir, 'G_best.pth'))
                 torch.save(unwrap(D).state_dict(), os.path.join(run_dir, 'D_best.pth'))
             if trial is not None:  # Optuna : rapport intermédiaire + abandon des essais peu prometteurs

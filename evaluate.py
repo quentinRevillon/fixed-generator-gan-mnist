@@ -1,14 +1,15 @@
-"""Évaluation : FID, precision / recall (k-NN), histogramme des classes, tableau results/results.csv.
+"""Évaluation : FID, precision / recall (k-NN), histogramme des classes, tableaux de résultats.
 
-Les métriques comparent des features (avant-dernière couche, 128 dim) d'un petit classifieur MNIST
-partagé par tout le groupe (checkpoints/mnist_classifier.pth), calculées sur une référence réelle
-(split 'val' pendant le développement, 'test' pour les chiffres finaux, voir data.py)
-et sur les images générées. Détails et formules : architecture-choix.md.
+Deux mesures, jamais mélangées :
+    'cnn'  : features d'un petit classifieur MNIST partagé (checkpoints/mnist_classifier.pth), k = 3 -> results/results.csv
+    'prof' : FID sur Inception, precision / recall sur VGG (k = 5, 9 984 images), comme le classement -> results/results_prof.csv
+Les features sont calculées sur une référence réelle (split 'val' pendant le développement, 'test' pour les
+chiffres finaux, voir data.py) et sur les images générées. Détails et formules : architecture-choix.md.
 
-En ligne de commande (chaque évaluation d'un run ajoute une ligne par seed à results/results.csv) :
-    python evaluate.py --run runs/baseline_v1 --weights best                                  # plain, seed 0
-    python evaluate.py --run checkpoints --sampling configs/sampling/obrs.yaml --seeds 0 1 2
-    python evaluate.py --run checkpoints --sampling configs/sampling/obrs.yaml --reference test
+En ligne de commande (chaque évaluation d'un run ajoute une ligne par seed au tableau de sa mesure) :
+    python evaluate.py --run runs/baseline_200ep_prof --weights best --seeds 0 1 2            # plain, petit CNN
+    python evaluate.py --run runs/baseline_200ep_prof --weights best --seeds 0 1 2 --metric prof
+    python evaluate.py --run checkpoints --sampling configs/sampling/plain.yaml --reference test
     python evaluate.py --samples samples         # PNG produits par generate.py (comme le correcteur)
     python evaluate.py --sanity                  # plafond : 10 000 images réelles du split train vs référence
     python evaluate.py --train-classifier        # (ré)entraîne le classifieur de features

@@ -10,8 +10,8 @@ Toutes les méthodes ont la même signature :
     'plain'      | G      | référence : x = G(z), z ~ N(0, I)
     'truncation' | G      | témoin : z tronqué à [-psi, psi] (Brock et al. 2019)
     'drs'        | G, D   | formule de la slide Def. 3.1, gamma calibré pour un budget K (comparaison avec OBRS)
-    'drs_azadi'  | G, D   | DRS tel que dans Azadi et al. 2019 (Figure 1, équation 8), D passé par keep_training.py
-    'obrs'       | G, D   | méthode étudiée : rejet optimal à budget K (Verine et al. 2024, slides Thm 3.2)
+    'drs_azadi'  | G, D   | DRS tel que dans Azadi et al. 2019 (Figure 1, équation 8), réglé par percentile
+    'obrs'       | G, D   | rejet optimal à budget K (Verine et al. 2024, slides Thm 3.2)
 
 Utilisation :
     from sampling import sample
@@ -193,8 +193,9 @@ def drs_f_hat(log_r, log_M, gamma, eps):
 def sample_drs_azadi(G, D, n, rng, batch_size=10_000, percentile=80, n_burnin=10_000, eps=1e-6):
     """DRS selon la Figure 1 du papier : M estimé sur un burn-in puis mis à jour, gamma par percentile dans chaque batch.
 
-    D doit avoir suivi keep_training.py (étape KeepTraining). Le papier fixe gamma au 95e percentile sur le jeu 2D et
-    au 80e sur ImageNet. Plus le percentile est haut, plus gamma est grand, donc plus on rejette.
+    Le papier passe d'abord D par keep_training.py ; chez nous, le D d'origine donne le meilleur FID (inference-drs.md).
+    Le papier fixe gamma au 95e percentile sur le jeu 2D et au 80e sur ImageNet. Plus le percentile est haut, plus gamma
+    est grand, donc plus on rejette.
     """
     log_M_burnin = calibration_pool(G, D, rng, n_burnin, batch_size).max().item()
     log_M, kept, n_proposals, n_accepted, gammas = log_M_burnin, [], 0, 0, []

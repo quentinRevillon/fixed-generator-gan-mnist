@@ -1,12 +1,11 @@
 """Génère exactement 10 000 images MNIST 28x28 dans samples/ (interface imposée par le sujet).
 
 Lit le modèle rendu dans checkpoints/ : G.pth, D.pth et sampling.yaml (méthode d'inférence choisie par
-le groupe, ex. {method: obrs, K: 10} ; voir sampling.py). Le correcteur lance simplement :
+le groupe, voir sampling.py). Le correcteur lance simplement :
     python generate.py --batch_size 256
 
-Autres utilisations :
-    python generate.py --sampling configs/sampling/obrs.yaml        # tester une autre méthode
-    python generate.py --checkpoints runs/baseline_v1 --weights best --sampling configs/sampling/plain.yaml
+Autre utilisation :
+    python generate.py --checkpoints runs/baseline_200ep_prof --weights best --sampling configs/sampling/plain.yaml
 """
 import argparse
 import os
