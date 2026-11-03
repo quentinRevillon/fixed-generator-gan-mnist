@@ -40,15 +40,12 @@
 \end{frame}
 
 \begin{frame}{Three levers}
-  \vspace{1.2em}
-  \begin{tabular}{lll}
-    \textbf{Data} & What does it learn from? & {\color{muted}selection, noise} \\[1em]
-    \textbf{Training} & How does it learn? & {\color{muted}R3GAN loss} \\[1em]
-    \textbf{Sampling} & Which images do we keep? & {\color{muted}rejection (DRS)} \\
+  \vspace{1.6em}
+  \begin{tabular}{ll}
+    \textbf{Data} & selection, noise \\[1em]
+    \textbf{Training} & R3GAN loss \\[1em]
+    \textbf{Sampling} & rejection (DRS) \\
   \end{tabular}
-
-  \vspace{1.8em}
-  Does each one improve \textbf{quality} or \textbf{diversity}?
 \end{frame}
 
 \begin{frame}{Protocol}
@@ -66,9 +63,9 @@
 
   \vspace{1em}
   {\small
-  \textbf{FID} (Inception or small CNN): distance to real images, lower is better\\[0.4em]
-  \textbf{Precision} (VGG or small CNN): do generated images look real?\\[0.4em]
-  \textbf{Recall} (VGG or small CNN): do they cover all real images?}
+  \textbf{FID} (Inception or small CNN): lower is better\\[0.4em]
+  \textbf{Precision} (VGG or small CNN): quality, higher is better\\[0.4em]
+  \textbf{Recall} (VGG or small CNN): diversity, higher is better}
 \end{frame}
 
 \begin{frame}{Baseline}
@@ -89,32 +86,6 @@
   {\small Digits recognised by our small CNN (98.7\% accuracy on MNIST test)}
 \end{frame}
 
-\begin{frame}{Test: correct the proportions}
-  \vspace{0.6em}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.5\textwidth}
-    \small
-    1. Generate 100,000 images\\[0.2em]
-    {\color{muted}same generator, epoch 120}\\[0.8em]
-    2. Keep 10,000 of them\\[0.2em]
-    {\color{muted}with the digit proportions of real MNIST}\\[0.8em]
-    3. Compute the FID again
-    \column{0.46\textwidth}\centering
-    \begin{tabular}{lcc}
-      \toprule
-      FID & Before & After \\
-      \midrule
-      Small CNN & 75 & \textbf{30} \\
-      Inception & 56 & \textbf{61} \\
-      \bottomrule
-    \end{tabular}
-  \end{columns}
-
-  \vspace{1.5em}
-  The digits are drawn the same way: only their proportions change.\\[0.5em]
-  The small CNN's FID drops. Inception's barely moves.
-\end{frame}
-
 \begin{frame}{Data: method}
   \vspace{0.6em}
   \textbf{Selection:} keep the most typical images of each digit.
@@ -125,9 +96,15 @@
   \source{DeVries et al. 2020; Sønderby et al. 2017.}
 \end{frame}
 
-\begin{frame}{Data: images}
+\begin{frame}{Data: training images}
   \centering\vspace{0.2em}
   \includegraphics[width=0.84\linewidth]{cmp_selection.png}
+\end{frame}
+
+\begin{frame}{Data: generated images}
+  \centering\vspace{1em}
+  \includegraphics[width=\linewidth]{cmp_data_samples.png}
+  \source{Same noise. Nicodème's final models, after 120,000 updates. Noise 0.1: seed 1, others: seed 0.}
 \end{frame}
 
 \begin{frame}{Data: results}

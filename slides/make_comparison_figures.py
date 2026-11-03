@@ -5,7 +5,7 @@ results/comparison_test.csv (produit par scripts/compare.sh).
 
 Utilisation, depuis la racine du repo :
     python slides/make_comparison_figures.py --weights <dossier>
-Le dossier contient G_ep50.pth, G_ep120.pth, G_ep200.pth, noe_baseline_rerun.pth et noe_train_r3gan.pth.
+Le dossier contient G_ep50.pth, G_ep120.pth, G_ep200.pth, les noe_*.pth et les nico_*.pth (poids de leurs branches).
 """
 import argparse
 import csv
@@ -126,6 +126,19 @@ def plot_selection():
         ax.axis('off')
     fig.tight_layout()
     fig.savefig(f'{OUT}/cmp_selection.png', dpi=200)
+
+
+@torch.no_grad()
+def plot_data_samples(weights):
+    """Même bruit : images générées par les modèles finaux de Nicodème, référence, bruit et sélection."""
+    runs = (('Reference', 'nico_data_ref_s0.pth'), ('Noise 0.1', 'nico_noise_01_s1.pth'),
+            ('Selection 75%', 'nico_sel_75_s0.pth'), ('Selection 50%', 'nico_sel_50_s0.pth'))
+    fig, axes = plt.subplots(1, len(runs), figsize=(12, 3.5))
+    for ax, (title, name) in zip(axes, runs):
+        G = load_model(Generator(784), os.path.join(weights, name), 'cpu').eval()
+        image_grid(ax, G(fixed_noise()), title)
+    fig.tight_layout()
+    fig.savefig(f'{OUT}/cmp_data_samples.png', dpi=200)
 
 
 @torch.no_grad()
@@ -364,6 +377,7 @@ if __name__ == '__main__':
     plot_epochs(evaluations, args.weights)
     plot_digits(evaluations)
     plot_selection()
+    plot_data_samples(args.weights)
     plot_loss_effect(args.weights)
     plot_kept_rejected()
     plot_two_measures(evaluations)
