@@ -144,9 +144,9 @@ def plot_data_samples(weights):
 
 @torch.no_grad()
 def plot_loss_effect(weights):
-    """Même bruit, 100 époques avec EMA : baseline contre RpGAN + R1 (campagne finale de Noé)."""
+    """Même bruit, 100 époques avec EMA : perte BCE contre RpGAN + R1 (campagne finale de Noé)."""
     fig, axes = plt.subplots(1, 2, figsize=(8.2, 4.1))
-    for ax, name, title in zip(axes, ('noe_ema100_baseline_s0.pth', 'noe_ema100_rpgan_r1_s1.pth'), ('Baseline', 'RpGAN + R1')):
+    for ax, name, title in zip(axes, ('noe_ema100_baseline_s0.pth', 'noe_ema100_rpgan_r1_s1.pth'), ('BCE loss', 'RpGAN + R1')):
         G = load_model(Generator(784), os.path.join(weights, name), 'cpu').eval()
         image_grid(ax, G(fixed_noise()), title)
     fig.tight_layout()
@@ -225,8 +225,8 @@ def plot_training_results():
     """Campagne finale de Noé (results.csv) : moyenne sur 3 seeds, sans la seed effondrée de la baseline (FID 2770)."""
     with open('results.csv', newline='', encoding='utf8') as f:
         rows = list(csv.DictReader(f))
-    variants = (('Baseline (2 of 3 seeds)', 'ema100_baseline_s', MUTED), ('RpGAN + R1, gamma 1', 'ema100_rpgan_r1_s', ORANGE),
-                ('R3GAN, gamma 1', 'ema100_r3gan_s', AQUA), ('RpGAN + R1, gamma 10', 'ema100_rpgan_r1_g10_s', MUTED))
+    variants = (('BCE loss (2 of 3 seeds)', 'ema100_baseline_s', MUTED), ('RpGAN + R1, γ = 1', 'ema100_rpgan_r1_s', ORANGE),
+                ('R3GAN, γ = 1', 'ema100_r3gan_s', AQUA), ('RpGAN + R1, γ = 10', 'ema100_rpgan_r1_g10_s', MUTED))
     configs = []
     for label, prefix, color in variants:
         group = [r for r in rows if prefix in r['run'] and float(r['fid']) < 500]
