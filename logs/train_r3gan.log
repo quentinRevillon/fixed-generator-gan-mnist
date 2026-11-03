@@ -1,0 +1,56 @@
+fatal : ni ceci ni aucun de ses répertoires parents n'est un dépôt git : .git
+Run runs/train_r3gan | device mps | 60000 images | époques 1->50 | loss rpgan (R1=1.0, R2=1.0)
+[001/50] D=0.227 G=2.513 D(x)=0.81 D(G(z))=0.48 | 64.9s/ep | écoulé 1m04s | restant ~52m58s
+[002/50] D=0.261 G=2.265 D(x)=0.79 D(G(z))=0.39 | 48.6s/ep | écoulé 1m53s | restant ~45m23s
+[003/50] D=0.326 G=1.931 D(x)=0.77 D(G(z))=0.42 | 46.6s/ep | écoulé 2m40s | restant ~41m47s
+[004/50] D=0.382 G=1.669 D(x)=0.69 D(G(z))=0.38 | 47.2s/ep | écoulé 3m27s | restant ~39m43s
+[005/50] D=0.413 G=1.547 D(x)=0.69 D(G(z))=0.41 | 50.3s/ep | écoulé 4m17s | restant ~38m37s
+[006/50] D=0.440 G=1.445 D(x)=0.66 D(G(z))=0.41 | 48.4s/ep | écoulé 5m05s | restant ~37m23s
+[007/50] D=0.471 G=1.344 D(x)=0.61 D(G(z))=0.40 | 47.5s/ep | écoulé 5m53s | restant ~36m11s
+[008/50] D=0.481 G=1.308 D(x)=0.63 D(G(z))=0.43 | 48.8s/ep | écoulé 6m42s | restant ~35m12s
+[009/50] D=0.503 G=1.242 D(x)=0.63 D(G(z))=0.45 | 55.9s/ep | écoulé 7m38s | restant ~34m47s
+[010/50] D=0.517 G=1.191 D(x)=0.64 D(G(z))=0.48 | FID=170.23 P=0.574 R=0.123 | 53.7s/ep | écoulé 8m31s | restant ~34m07s
+[011/50] D=0.529 G=1.155 D(x)=0.61 D(G(z))=0.46 | 46.9s/ep | écoulé 9m18s | restant ~33m01s
+[012/50] D=0.541 G=1.126 D(x)=0.56 D(G(z))=0.42 | 47.3s/ep | écoulé 10m06s | restant ~31m59s
+[013/50] D=0.542 G=1.114 D(x)=0.59 D(G(z))=0.44 | 47.1s/ep | écoulé 10m53s | restant ~30m59s
+[014/50] D=0.552 G=1.089 D(x)=0.55 D(G(z))=0.41 | 46.6s/ep | écoulé 11m39s | restant ~29m59s
+[015/50] D=0.560 G=1.064 D(x)=0.56 D(G(z))=0.44 | 47.1s/ep | écoulé 12m26s | restant ~29m02s
+[016/50] D=0.569 G=1.042 D(x)=0.55 D(G(z))=0.43 | 50.5s/ep | écoulé 13m17s | restant ~28m14s
+[017/50] D=0.577 G=1.010 D(x)=0.55 D(G(z))=0.44 | 48.3s/ep | écoulé 14m05s | restant ~27m21s
+[018/50] D=0.575 G=1.020 D(x)=0.55 D(G(z))=0.44 | 46.2s/ep | écoulé 14m51s | restant ~26m25s
+[019/50] D=0.583 G=0.998 D(x)=0.55 D(G(z))=0.45 | 47.7s/ep | écoulé 15m39s | restant ~25m33s
+[020/50] D=0.587 G=0.984 D(x)=0.59 D(G(z))=0.48 | FID=132.44 P=0.614 R=0.283 | 48.4s/ep | écoulé 16m28s | restant ~24m42s
+[021/50] D=0.592 G=0.972 D(x)=0.56 D(G(z))=0.46 | 46.6s/ep | écoulé 17m14s | restant ~23m48s
+[022/50] D=0.599 G=0.954 D(x)=0.57 D(G(z))=0.48 | 48.4s/ep | écoulé 18m03s | restant ~22m58s
+[023/50] D=0.603 G=0.944 D(x)=0.55 D(G(z))=0.46 | 48.1s/ep | écoulé 18m51s | restant ~22m07s
+[024/50] D=0.605 G=0.936 D(x)=0.55 D(G(z))=0.47 | 48.7s/ep | écoulé 19m39s | restant ~21m18s
+[025/50] D=0.607 G=0.932 D(x)=0.56 D(G(z))=0.47 | 52.2s/ep | écoulé 20m31s | restant ~20m31s
+[026/50] D=0.612 G=0.916 D(x)=0.56 D(G(z))=0.48 | 50.9s/ep | écoulé 21m22s | restant ~19m44s
+[027/50] D=0.618 G=0.900 D(x)=0.55 D(G(z))=0.48 | 50.3s/ep | écoulé 22m13s | restant ~18m55s
+[028/50] D=0.614 G=0.914 D(x)=0.54 D(G(z))=0.46 | 51.1s/ep | écoulé 23m04s | restant ~18m07s
+[029/50] D=0.619 G=0.901 D(x)=0.54 D(G(z))=0.47 | 51.1s/ep | écoulé 23m55s | restant ~17m19s
+[030/50] D=0.623 G=0.889 D(x)=0.54 D(G(z))=0.47 | FID=72.54 P=0.613 R=0.451 | 2805.3s/ep | écoulé 1h10m40s | restant ~47m07s
+[031/50] D=0.625 G=0.887 D(x)=0.55 D(G(z))=0.48 | 204.8s/ep | écoulé 1h14m05s | restant ~45m24s
+[032/50] D=0.625 G=0.882 D(x)=0.54 D(G(z))=0.47 | 53.3s/ep | écoulé 1h14m58s | restant ~42m10s
+[033/50] D=0.629 G=0.877 D(x)=0.55 D(G(z))=0.48 | 42.6s/ep | écoulé 1h15m41s | restant ~38m59s
+[034/50] D=0.634 G=0.860 D(x)=0.56 D(G(z))=0.50 | 44.6s/ep | écoulé 1h16m25s | restant ~35m58s
+[035/50] D=0.634 G=0.861 D(x)=0.57 D(G(z))=0.51 | 41.8s/ep | écoulé 1h17m07s | restant ~33m03s
+[036/50] D=0.640 G=0.846 D(x)=0.57 D(G(z))=0.51 | 43.5s/ep | écoulé 1h17m51s | restant ~30m16s
+[037/50] D=0.642 G=0.843 D(x)=0.58 D(G(z))=0.52 | 41.0s/ep | écoulé 1h18m32s | restant ~27m35s
+[038/50] D=0.643 G=0.837 D(x)=0.58 D(G(z))=0.53 | 42.3s/ep | écoulé 1h19m14s | restant ~25m01s
+[039/50] D=0.650 G=0.826 D(x)=0.59 D(G(z))=0.54 | 46.1s/ep | écoulé 1h20m00s | restant ~22m34s
+[040/50] D=0.650 G=0.823 D(x)=0.59 D(G(z))=0.54 | FID=49.15 P=0.617 R=0.502 | 55.4s/ep | écoulé 1h20m56s | restant ~20m14s
+[041/50] D=0.653 G=0.814 D(x)=0.61 D(G(z))=0.57 | 54.2s/ep | écoulé 1h21m50s | restant ~17m57s
+[042/50] D=0.655 G=0.811 D(x)=0.62 D(G(z))=0.58 | 51.4s/ep | écoulé 1h22m41s | restant ~15m45s
+[043/50] D=0.656 G=0.805 D(x)=0.62 D(G(z))=0.58 | 54.2s/ep | écoulé 1h23m35s | restant ~13m36s
+[044/50] D=0.655 G=0.809 D(x)=0.62 D(G(z))=0.58 | 55.5s/ep | écoulé 1h24m31s | restant ~11m31s
+[045/50] D=0.658 G=0.802 D(x)=0.63 D(G(z))=0.60 | 50.5s/ep | écoulé 1h25m21s | restant ~9m29s
+[046/50] D=0.661 G=0.794 D(x)=0.62 D(G(z))=0.59 | 42.9s/ep | écoulé 1h26m04s | restant ~7m29s
+[047/50] D=0.659 G=0.800 D(x)=0.63 D(G(z))=0.59 | 41.8s/ep | écoulé 1h26m46s | restant ~5m32s
+[048/50] D=0.661 G=0.796 D(x)=0.62 D(G(z))=0.59 | 33.6s/ep | écoulé 1h27m20s | restant ~3m38s
+[049/50] D=0.661 G=0.793 D(x)=0.63 D(G(z))=0.60 | 27.8s/ep | écoulé 1h27m47s | restant ~1m47s
+[050/50] D=0.661 G=0.795 D(x)=0.63 D(G(z))=0.59 | FID=48.94 P=0.646 R=0.583 | 28.7s/ep | écoulé 1h28m16s | restant ~0m00s
+train_r3gan : FID=48.938 precision=0.646 recall=0.583
+Classes 0-9 (%) : 9.3 13.0 11.1 12.8 8.5 7.5 9.4 13.0 9.2 6.2
+Grille : runs/train_r3gan/grid.png
+Entraînement terminé en 1h28m16s. Générateur : runs/train_r3gan/G.pth

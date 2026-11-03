@@ -1,0 +1,16 @@
+fatal : ni ceci ni aucun de ses répertoires parents n'est un dépôt git : .git
+Run runs/train_rpgan | device mps | 60000 images | époques 1->10 | loss rpgan (R1=0.0, R2=0.0)
+[001/10] D=0.055 G=36.372 D(x)=0.55 D(G(z))=0.37 | 51.6s/ep | écoulé 0m51s | restant ~7m44s
+[002/10] D=0.000 G=55.544 D(x)=0.00 D(G(z))=0.00 | 45.2s/ep | écoulé 1m36s | restant ~6m27s
+[003/10] D=0.000 G=54.265 D(x)=0.00 D(G(z))=0.00 | 43.2s/ep | écoulé 2m19s | restant ~5m26s
+[004/10] D=0.000 G=53.880 D(x)=0.00 D(G(z))=0.00 | 44.0s/ep | écoulé 3m03s | restant ~4m35s
+[005/10] D=0.000 G=53.883 D(x)=0.00 D(G(z))=0.00 | 44.5s/ep | écoulé 3m48s | restant ~3m48s
+[006/10] D=0.002 G=54.610 D(x)=0.05 D(G(z))=0.01 | 47.9s/ep | écoulé 4m36s | restant ~3m04s
+[007/10] D=0.000 G=27.429 D(x)=1.00 D(G(z))=1.00 | 46.0s/ep | écoulé 5m22s | restant ~2m18s
+[008/10] D=0.000 G=28.215 D(x)=1.00 D(G(z))=1.00 | 44.8s/ep | écoulé 6m07s | restant ~1m31s
+[009/10] D=0.000 G=28.355 D(x)=1.00 D(G(z))=1.00 | 46.2s/ep | écoulé 6m53s | restant ~0m45s
+[010/10] D=0.000 G=28.989 D(x)=1.00 D(G(z))=1.00 | FID=2618.82 P=0.000 R=0.000 | 57.0s/ep | écoulé 7m50s | restant ~0m00s
+train_rpgan : FID=2618.820 precision=0.000 recall=0.000
+Classes 0-9 (%) : 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 100.0 0.0
+Grille : runs/train_rpgan/grid.png
+Entraînement terminé en 7m50s. Générateur : runs/train_rpgan/G.pth
