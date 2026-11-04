@@ -221,10 +221,33 @@ Chaque sous-ensemble (10 000 images tirées au hasard) est ensuite comparé au M
 
 **Lecture :**
 - **Ce n'est pas un mode collapse sur un chiffre.** Le générateur sort la même tache de bruit pour tous les z, et les 19 runs ratés ont tous cet aspect. Le classifieur les range ensuite le plus souvent dans « 8 » (11 des 15 premiers runs ratés) : c'est ce qui donnait l'illusion d'un effondrement « sur un chiffre ».
-- **Tout se joue au tout début.** D reconnaît les vraies images avec certitude (D(x) = 1) dès l'époque 2 à 7. G ne reçoit alors plus de gradient utile, et le FID ne bouge plus. Les runs sains, eux, oscillent entre 0,7 et 0,85.
+- **Tout se joue au tout début.** D reconnaît les vraies images avec certitude (D(x) = 1) dès l'époque 2 à 7. Les runs sains, eux, oscillent entre 0,7 et 0,85.
+
+**Pourquoi G ne repart jamais.** On a mesuré, sur le G final de chacun des 52 runs, ce que D en pense et le gradient que G reçoit (500 tirages de z) :
+
+| | Runs sains (33) | Runs ratés (19) |
+|---|---|---|
+| D(G(z)) | 0,18 à 0,38 | < 10⁻¹² pour 17 runs ; = 1 pour 2 runs |
+| Gradient reçu par G (norme) | 3 à 11 | < 10⁻¹¹, souvent exactement 0 |
+| Variation de l'image selon z | 0,28 à 0,37 | 0 à 0,17 |
+| Sortie de G saturée (valeur moyenne qui entre dans la `tanh`) | 4 à 5 | > 10 pour 16 runs |
+
+1. **D gagne dès la 1re ou la 2e époque.** Il est plus gros que G, apprend au même pas, et au début les fausses images sont faciles à repérer.
+2. **Sa sortie sigmoïde sature.** Son logit devient très négatif sur les fausses images. Dans 2 runs, il sature dans l'autre sens : D donne 1 à une image toute noire, et G s'y est fixé.
+3. **Le gradient disparaît à cause du calcul numérique, pas de la théorie.**
+   - La perte de G utilisée (`BCELoss` avec la cible 1) est la version « non saturante » : en théorie, le gradient par rapport au logit vaut 1 − D(G(z)), donc à peu près 1, même quand D gagne.
+   - Mais `model.py` applique la sigmoïde dans D, puis `train.py` calcule la perte avec `nn.BCELoss`, qui borne D(G(z)) à 10⁻¹² en interne.
+   - Dès que le logit descend sous −28 environ, le gradient s'effondre : 0,69 à −28, 4·10⁻⁶ à −40, 2·10⁻²³ à −80. Avec `BCEWithLogitsLoss`, il resterait égal à 1.
+4. **G se fige.** Sans gradient, G ne bouge plus. Le plus souvent, sa `tanh` de sortie est en plus saturée, ce qui donne des pixels à ±1 : c'est la tache noir et blanc, la même pour tous les z. D ne reçoit plus d'information nouvelle, et rien ne peut relancer l'entraînement.
+
+**Est-ce normal ?** En partie. Que D gagne au début est l'échec classique du GAN de base (Goodfellow et al., 2014 ; Arjovsky & Bottou, 2017). La perte non saturante est justement conçue pour garder un gradient dans ce cas. Ici, c'est la combinaison sigmoïde + `BCELoss` du code fourni qui le perd. Un taux d'échec de 37 % est élevé.
 - **Ni la sélection ni le bruit n'y changent quoi que ce soit.** On compte 3 runs ratés sur 8 pour la référence, 4 sur 8 pour `sel_50` comme pour `noise_01`, et 2 sur 5 pour `sel_95` comme pour `sel_90` (test exact de Fisher, p = 1 à chaque fois). Le 0 sur 3 de `noise_03` et de `sel_75` ne prouve rien : avec un taux de base de 3/8, il arrive une fois sur quatre par hasard. Sur les 3 premières seeds, `sel_50` semblait rater plus souvent que la référence (2 sur 3 contre 0 sur 3) ; l'effet a disparu avec 8 seeds.
 - **Pourquoi le bruit n'aide pas :** on pouvait en attendre mieux, puisqu'il est censé rendre la tâche de D plus difficile. Il est peut-être trop faible (σ = 0,1 pour des pixels dans [−1, 1]) pour empêcher D de gagner dès l'époque 2. Avec σ = 0,3, aucun des 3 runs n'a raté, mais 3 seeds ne suffisent pas pour conclure.
-- **Conséquence pratique :** ce problème se règle côté entraînement. On peut surveiller D(x) et relancer le run s'il dépasse 0,98 avant l'époque 10, ou changer de perte, ce que teste le volet Entraînement.
+- **Conséquence pratique :** ce problème se règle côté entraînement, sans toucher à l'architecture. Pistes non testées ici :
+  - **calculer la perte depuis le logit de D** plutôt qu'avec `BCELoss` sur la sortie sigmoïde ;
+  - **freiner D au début :** un pas d'apprentissage plus petit pour D, ou des étiquettes 0,9 au lieu de 1 pour les vraies images ;
+  - **une autre perte ou une pénalité R1**, ce que teste le volet Entraînement ;
+  - **à défaut, relancer le run** si D(x) dépasse 0,98 avant l'époque 10.
 
 ## 9. Ce que D a appris
 
@@ -300,6 +323,7 @@ scripts/data_runs.sh                            # 9 variantes × seeds 0 à 2, s
 python figures/make_data_figures.py --real      # vraies images : sous-ensembles, extrêmes, écarts entre chiffres
 python figures/make_data_figures.py             # bilan des runs : summary.csv, runs.csv
 python figures/make_data_figures.py --per-class # FID par chiffre (long)
+python figures/make_data_figures.py --saturation # runs ratés : saturation de D et de G, gradient de G
 python figures/make_report_figures.py           # figures de ce rapport
 python -m pytest tests/test_preprocessing.py
 ```
@@ -312,5 +336,6 @@ python -m pytest tests/test_preprocessing.py
 
 - T. DeVries, M. Drozdzal, T. Taylor, [*Instance Selection for GANs*](https://arxiv.org/abs/2007.15255), NeurIPS 2020.
 - C. Sønderby, J. Caballero, L. Theis, W. Shi, F. Huszár, [*Amortised MAP Inference for Image Super-resolution*](https://arxiv.org/abs/1610.04490), ICLR 2017.
+- I. Goodfellow et al., [*Generative Adversarial Nets*](https://arxiv.org/abs/1406.2661), NeurIPS 2014.
 - M. Arjovsky, L. Bottou, [*Towards Principled Methods for Training GANs*](https://arxiv.org/abs/1701.04862), ICLR 2017.
 - L. Mescheder, A. Geiger, S. Nowozin, [*Which Training Methods for GANs do actually Converge?*](https://proceedings.mlr.press/v80/mescheder18a.html), ICML 2018.

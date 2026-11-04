@@ -214,6 +214,30 @@ def by_budget(runs):
                             best * RUNS[name][0] // 100, int(r['collapsed'])])
 
 
+def saturation(runs):
+    """G final de chaque run : saturation de la tanh de sortie et gradient que G reçoit de D."""
+    from model import Discriminator
+    rows = []
+    for name in RUNS:
+        for run, r in zip(sorted(glob.glob(f'runs/{name}_s[0-9]')), runs[name]):
+            G, D = Generator(784), Discriminator(784)
+            G.load_state_dict(torch.load(f'{run}/G.pth', map_location='cpu'))
+            D.load_state_dict(torch.load(f'{run}/D.pth', map_location='cpu'))
+            pre = []
+            G.fc4.register_forward_hook(lambda m, i, o: pre.append(o))
+            x = G(torch.randn(500, 100, generator=torch.Generator().manual_seed(0)))
+            d = D(x)
+            torch.nn.functional.binary_cross_entropy(d, torch.ones_like(d)).backward()  # perte de G
+            grad = torch.sqrt(sum(p.grad.norm() ** 2 for p in G.parameters())).item()
+            rows.append([run[5:], int(r['collapsed']), f'{pre[0].abs().mean():.1f}', f'{(x.abs() > 0.99).float().mean():.2f}',
+                         f'{x.std(0).mean():.3f}', f'{d.mean():.2e}', f'{grad:.2e}'])
+    with open(f'{OUT}/saturation.csv', 'w', newline='') as f:
+        csv.writer(f).writerows([['run', 'collapsed', 'preact_abs', 'saturated_pixels', 'std_over_z', 'D_G_z', 'grad_G']] + rows)
+    for c in (0, 1):
+        v = np.array([[float(x) for x in row[2:]] for row in rows if row[1] == c])
+        print('raté' if c else 'sain', len(v), 'min', v.min(0).round(3), 'max', v.max(0).round(3))
+
+
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True)
     if '--real' in sys.argv:
@@ -223,6 +247,8 @@ if __name__ == '__main__':
         per_class_real()
     elif '--per-class' in sys.argv:
         per_class()
+    elif '--saturation' in sys.argv:
+        saturation(load_runs())
     else:
         runs = load_runs()
         write_summary(runs)
