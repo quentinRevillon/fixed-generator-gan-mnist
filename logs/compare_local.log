@@ -1,0 +1,71 @@
+[22:29:58] Entraînement : 9 runs, 5 en parallèle
+[22:29:58] cmploc_baseline_s1 : démarrage 
+[22:29:58] cmploc_baseline_s0 : démarrage 
+[22:29:58] cmploc_rpgan_r1_ema_s0 : démarrage 
+[22:29:58] cmploc_rpgan_r1_ema_s1 : démarrage 
+[22:29:58] cmploc_rpgan_r1_ema_noise_03_s0 : démarrage 
+[00:32:23] cmploc_baseline_s1 : terminé (code 0)
+[00:32:23] cmploc_rpgan_r1_ema_noise_03_s1 : démarrage 
+[00:32:26] cmploc_baseline_s0 : terminé (code 0)
+[00:32:26] cmploc_baseline_s2 : démarrage 
+[00:53:39] cmploc_rpgan_r1_ema_s0 : terminé (code 0)
+[00:53:39] cmploc_rpgan_r1_ema_s2 : démarrage 
+[00:53:46] cmploc_rpgan_r1_ema_s1 : terminé (code 0)
+[00:53:46] cmploc_rpgan_r1_ema_noise_03_s2 : démarrage 
+[00:55:40] cmploc_rpgan_r1_ema_noise_03_s0 : terminé (code 0)
+--- relance 02:19 depuis le disque interne ---
+[02:19:47] Entraînement : 9 runs, 4 en parallèle
+[02:19:47] cmploc_baseline_s1 : déjà terminé
+[02:19:47] cmploc_baseline_s0 : déjà terminé
+[02:19:47] cmploc_rpgan_r1_ema_noise_03_s0 : déjà terminé
+[02:19:47] cmploc_rpgan_r1_ema_s0 : déjà terminé
+[02:19:47] cmploc_rpgan_r1_ema_s1 : déjà terminé
+[02:19:47] cmploc_rpgan_r1_ema_noise_03_s1 : démarrage (reprise)
+[02:19:47] cmploc_baseline_s2 : démarrage (reprise)
+[02:19:47] cmploc_rpgan_r1_ema_s2 : démarrage (reprise)
+[02:19:47] cmploc_rpgan_r1_ema_noise_03_s2 : démarrage (reprise)
+[02:44:56] cmploc_baseline_s2 : terminé (code 0)
+[02:58:22] cmploc_rpgan_r1_ema_noise_03_s1 : terminé (code 0)
+[03:06:57] cmploc_rpgan_r1_ema_s2 : terminé (code 0)
+[03:07:51] cmploc_rpgan_r1_ema_noise_03_s2 : terminé (code 0)
+[03:07:51] Mesure contre MNIST test -> results/comparison_local.csv
+['Baseline commune', 'runs/cmploc_baseline_s0/G.pth', 0, 39.887568090057364, 0.4579326808452606, 0.5098156929016113, 162.3094018340743, 0.8314999938011169, 0.7562000155448914, 1.0]
+['Baseline commune + DRS', 'runs/cmploc_baseline_s0/G.pth', 0, 33.85446119986345, 0.4967948794364929, 0.4967948794364929, 158.11523911111794, 0.8621000051498413, 0.7628999948501587, 0.301275]
+['RpGAN + R1 + EMA', 'runs/cmploc_rpgan_r1_ema_s0/G.pth', 0, 23.56082115618386, 0.5865384340286255, 0.5700120329856873, 12.516776657872525, 0.7329000234603882, 0.8113999962806702, 1.0]
+['RpGAN + R1 + EMA + DRS', 'runs/cmploc_rpgan_r1_ema_s0/G.pth', 0, 23.210827853913273, 0.5913461446762085, 0.5618990659713745, 16.77331558097177, 0.7312999963760376, 0.8120999932289124, 0.42163333333333336]
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Volumes-Untitled-IASD/98c41884-0596-478a-8f70-c4f8339f598c/scratchpad/work/repo/scripts/measure_runs.py", line 49, in <module>
+    G, D = load_models(g_path, d_path, device)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Volumes-Untitled-IASD/98c41884-0596-478a-8f70-c4f8339f598c/scratchpad/work/repo/scripts/measure_runs.py", line 25, in load_models
+    G = load_model(Generator(784).to(device), g_path, device).eval()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Volumes-Untitled-IASD/98c41884-0596-478a-8f70-c4f8339f598c/scratchpad/work/repo/utils.py", line 216, in load_model
+    state = torch.load(path, map_location=device)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/torch/serialization.py", line 1425, in load
+    with _open_file_like(f, "rb") as opened_file:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/torch/serialization.py", line 751, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/torch/serialization.py", line 732, in __init__
+    super().__init__(open(name, mode))
+                     ^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '3/G.pth'
+[03:36:07] Campagne terminée (mesure : code 1)
+[09:37:16] Mesure des 14 lignes restantes -> results/comparison_local_rest.csv
+['RpGAN + R1 + EMA + bruit 0,3', 'runs/cmploc_rpgan_r1_ema_noise_03_s0/G.pth', 0, 22.116623084232057, 0.5992588400840759, 0.6057692170143127, 8.379182630914357, 0.7361000180244446, 0.8241000175476074, 1.0]
+['RpGAN + R1 + EMA + bruit 0,3 + DRS', 'runs/cmploc_rpgan_r1_ema_noise_03_s0/G.pth', 0, 22.485901502690275, 0.5975561141967773, 0.5973557829856873, 20.365353549791045, 0.7554000020027161, 0.8192999958992004, 0.4085]
+['Baseline commune', 'runs/cmploc_baseline_s1/G.pth', 0, 37.42632205021514, 0.48798078298568726, 0.5023036599159241, 201.0447315336448, 0.8474000096321106, 0.7282999753952026, 1.0]
+['Baseline commune + DRS', 'runs/cmploc_baseline_s1/G.pth', 0, 35.20234630670636, 0.5338541865348816, 0.4854767620563507, 182.51121972374074, 0.8797000050544739, 0.6952999830245972, 0.3112]
+['RpGAN + R1 + EMA', 'runs/cmploc_rpgan_r1_ema_s1/G.pth', 0, 21.153894702588715, 0.5951522588729858, 0.5961538553237915, 7.597243043773417, 0.7372000217437744, 0.8306999802589417, 1.0]
+['RpGAN + R1 + EMA + DRS', 'runs/cmploc_rpgan_r1_ema_s1/G.pth', 0, 21.867545361716722, 0.5798277258872986, 0.5869390964508057, 13.192745796029595, 0.746999979019165, 0.835099995136261, 0.43266666666666664]
+['RpGAN + R1 + EMA + bruit 0,3', 'runs/cmploc_rpgan_r1_ema_noise_03_s1/G.pth', 0, 21.07279232847087, 0.59375, 0.6165865659713745, 10.20939117928886, 0.7343999743461609, 0.8219000101089478, 1.0]
+['RpGAN + R1 + EMA + bruit 0,3 + DRS', 'runs/cmploc_rpgan_r1_ema_noise_03_s1/G.pth', 0, 22.6874556929002, 0.5903445482254028, 0.6019631624221802, 12.273907662106375, 0.7360000014305115, 0.8205000162124634, 0.4283]
+['Baseline commune', 'runs/cmploc_baseline_s2/G.pth', 0, 38.674597330215235, 0.4525240361690521, 0.5112179517745972, 182.14464931207274, 0.8216999769210815, 0.7562999725341797, 1.0]
+['Baseline commune + DRS', 'runs/cmploc_baseline_s2/G.pth', 0, 34.025571830433805, 0.49008414149284363, 0.4993990361690521, 121.23983430216776, 0.8603000044822693, 0.7555999755859375, 0.30035]
+['RpGAN + R1 + EMA', 'runs/cmploc_rpgan_r1_ema_s2/G.pth', 0, 21.694658882241935, 0.5860376358032227, 0.5954527258872986, 9.68536523801918, 0.7452999949455261, 0.8409000039100647, 1.0]
+['RpGAN + R1 + EMA + DRS', 'runs/cmploc_rpgan_r1_ema_s2/G.pth', 0, 21.0377310874824, 0.5857371687889099, 0.5955528616905212, 12.541539509439154, 0.7494000196456909, 0.82669997215271, 0.4239]
+['RpGAN + R1 + EMA + bruit 0,3', 'runs/cmploc_rpgan_r1_ema_noise_03_s2/G.pth', 0, 21.143215428188014, 0.6001602411270142, 0.5936498641967773, 8.452552343544252, 0.7427999973297119, 0.8288999795913696, 1.0]
+['RpGAN + R1 + EMA + bruit 0,3 + DRS', 'runs/cmploc_rpgan_r1_ema_noise_03_s2/G.pth', 0, 20.604856268329627, 0.6095753312110901, 0.6108773946762085, 9.066377431643868, 0.7444000244140625, 0.8205999732017517, 0.4158]

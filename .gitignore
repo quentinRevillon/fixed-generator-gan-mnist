@@ -35,6 +35,8 @@ runs/**
 !runs/**/D.pth
 !runs/**/G_best.pth
 !runs/**/D_best.pth
+!runs/**/G_raw.pth
+!runs/**/G_best_raw.pth
 !runs/**/grid.png
 runs/**/ckpt/**
 runs/**/trial_*/**

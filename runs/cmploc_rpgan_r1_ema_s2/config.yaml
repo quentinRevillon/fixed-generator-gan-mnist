@@ -1,0 +1,30 @@
+name: cmploc_rpgan_r1_ema_s2
+seed: 2
+loss:
+  name: rpgan
+  r1_gamma: 1.0
+  r2_gamma: 0.0
+ema:
+  decay: 0.999
+train:
+  epochs: 200
+  batch_size: 100
+optimizer:
+  name: adam
+  lr: 0.0002
+  betas:
+  - 0.9
+  - 0.999
+output:
+  dir: runs
+  save_every: 200
+eval:
+  every: 10
+  n_samples: 10000
+  k: 3
+  prof: false
+git_commit: 44ad088
+environment:
+  python: 3.12.6
+  torch: 2.6.0
+  device: 'mps: arm'

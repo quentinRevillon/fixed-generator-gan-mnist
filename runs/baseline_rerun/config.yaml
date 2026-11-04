@@ -1,0 +1,22 @@
+name: baseline_rerun
+seed: 0
+data:
+  path: data
+train:
+  epochs: 50
+  batch_size: 100
+  num_workers: 4
+optimizer:
+  name: adam
+  lr: 0.0002
+  betas:
+  - 0.9
+  - 0.999
+output:
+  dir: runs
+  save_every: 10
+eval:
+  every: 10
+  n_samples: 10000
+  k: 3
+git_commit: unknown

@@ -104,6 +104,33 @@ Les runs de la baseline :
 - Chaque run enregistre sa config, son commit git et son environnement (Python, torch, matériel).
 - Un Mac et un GPU ne donnent pas les mêmes poids : la baseline de référence est entraînée sur Juliet.
 
+## Pipeline combiné : Données + Entraînement + Inférence
+
+Les trois volets enchaînés sur le split commun : 200 époques sur `train`, poids de l'époque 200, mesure du classement (FID Inception, précision et rappel VGG) contre `test`, **3 seeds** par configuration. DRS : percentile 80 avec le D du même run.
+
+| Configuration | FID ↓ | Précision ↑ | Rappel ↑ | Images gardées |
+|---|---:|---:|---:|---:|
+| Baseline commune | 38,7 ± 1,2 | 0,47 | 0,51 | 100 % |
+| Baseline + DRS | 34,4 ± 0,7 | 0,51 | 0,49 | 30 % |
+| RpGAN + R1 + EMA | 22,1 ± 1,3 | 0,59 | 0,59 | 100 % |
+| RpGAN + R1 + EMA + DRS | 22,0 ± 1,1 | 0,59 | 0,58 | 43 % |
+| **RpGAN + R1 + EMA + bruit 0,3** | **21,4 ± 0,6** | **0,60** | **0,61** | 100 % |
+| RpGAN + R1 + EMA + bruit 0,3 + DRS | 21,9 ± 1,2 | 0,60 | 0,60 | 42 % |
+
+- **L'entraînement est le levier principal :** FID −43 %, précision et rappel +0,1. Les chiffres générés sont équilibrés (8 à 12 % chacun, contre 1 à 2 % de « 2 » et 24 à 27 % de « 1 » pour la baseline).
+- **Le DRS aide la baseline (−4,3), mais plus rien après RpGAN + R1 + EMA** (−0,1, dans le bruit des seeds) ; il dégrade même le FID du petit CNN (9,9 → 14,2). Hypothèse non vérifiée : il corrigeait surtout le déséquilibre des chiffres, déjà réglé par la perte.
+- **Le bruit d'instance apporte un petit gain** (FID −0,7, rappel 0,61 contre 0,59, écart entre seeds divisé par 2) : une tendance sur 3 seeds, pas un résultat établi.
+- **Candidat pour le rendu :** RpGAN + R1 + EMA + bruit 0,3, sans DRS (G seul à livrer).
+
+**Limites :** entraîné sur Mac (MPS), donc pas identique au bit près à Juliet ; l'époque n'est pas choisie (époque 200 pour tous) ; le choix entre configurations est fait sur `test`.
+
+```bash
+nohup caffeinate -i python3 scripts/compare_local.py > logs/compare_local.log 2>&1 &   # Mac : configs/compare_local/
+bash scripts/compare.sh                                                               # Juliet : configs/compare/
+```
+
+Fichiers : `results/comparison_local.csv` (une ligne par run et par tri, avec le FID, la précision et le rappel du petit CNN et la répartition des chiffres), `runs/cmploc_*`, `logs/cmploc_*.log`.
+
 ## Volet Entraînement : perte R3GAN
 
 **Méthode :** on remplace la perte GAN d'origine par celle de **R3GAN**, une perte relativiste (RpGAN) avec les pénalités de gradient R1 et R2, tirée de Huang et al., *The GAN is dead; long live the GAN! A Modern GAN Baseline*, NeurIPS 2024 ([arXiv:2501.05441](https://arxiv.org/abs/2501.05441)). **Le générateur et `model.py` ne sont pas modifiés :** seule la façon de l'entraîner change.

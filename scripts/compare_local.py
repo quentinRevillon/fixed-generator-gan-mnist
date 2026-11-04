@@ -14,6 +14,7 @@
 C'est l'équivalent local de scripts/compare.sh (Slurm, Juliet), réduit aux configurations du pipeline combiné.
 Sur Juliet, utiliser configs/compare/ (mêmes réglages, Inception et VGG mesurés pendant l'entraînement).
 """
+import csv
 import os
 import subprocess
 import sys
@@ -70,14 +71,15 @@ if __name__ == '__main__':
 
     manifest = 'outputs/comparison_local_manifest.csv'
     os.makedirs('outputs', exist_ok=True)
-    with open(manifest, 'w') as f:
+    with open(manifest, 'w', newline='') as f:
+        rows = csv.writer(f, lineterminator='\n')   # les noms peuvent contenir des virgules (« bruit 0,3 »)
         for seed in SEEDS:
             for label, config in CONFIGS.items():
                 run = run_name(config, seed)
                 if codes.get(run) != 0:
                     continue
-                f.write(f'{label},runs/{run}/G.pth\n')
-                f.write(f'{label} + DRS,runs/{run}/G.pth,runs/{run}/D.pth\n')
+                rows.writerow([label, f'runs/{run}/G.pth'])
+                rows.writerow([f'{label} + DRS', f'runs/{run}/G.pth', f'runs/{run}/D.pth'])
     log(f'Mesure contre MNIST test -> {OUT}')
     code = subprocess.run([sys.executable, 'scripts/measure_runs.py', manifest, OUT],
                           env={**os.environ, 'PYTHONPATH': '.'}).returncode
