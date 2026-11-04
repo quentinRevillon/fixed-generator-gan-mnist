@@ -113,26 +113,8 @@
 \end{frame}
 
 \begin{frame}{Training: the paper}
-  \vspace{0.3em}
-  {\small Huang et al.: the loss alone fixes mode dropping and instability}\\[0.6em]
-  \begin{columns}[T]
-    \column{0.55\textwidth}\centering
-    \includegraphics[width=\linewidth]{r3gan_paper_mnist_loss.pdf}\\[0.2em]
-    {\scriptsize\color{muted}Generator loss during training}
-    \column{0.43\textwidth}\centering
-    {\footnotesize\begin{tabular}{@{}lr@{}}
-      \toprule
-      Loss & Modes found \\
-      \midrule
-      \textbf{RpGAN + R1 + R2} & \textbf{1000} \\
-      GAN + R1 + R2 & 693 \\
-      RpGAN + R1 & diverges \\
-      GAN + R1 & diverges \\
-      \bottomrule
-    \end{tabular}}\\[0.8em]
-    {\footnotesize Relativistic loss: no missing modes.\\ R1 + R2: stable training.}
-  \end{columns}
-  \source{StackedMNIST: 3 stacked digits, 1000 modes, small ResNet. Figure and table from Huang et al., \emph{The GAN is dead; long live the GAN!}, NeurIPS 2024.}
+  \centering\vspace{0.2em}
+  \includegraphics[height=0.8\textheight]{r3gan_paper.png}
 \end{frame}
 
 \begin{frame}{Training: method}
