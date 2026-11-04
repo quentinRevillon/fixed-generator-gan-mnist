@@ -196,25 +196,6 @@
   \source{Same $z$ except for DRS, which keeps part of the proposals. One run per method.}
 \end{frame}
 
-\begin{frame}{Compared with the papers}
-  \vspace{0.6em}
-  {\small\begin{tabular}{@{}lll@{}}
-    \toprule
-    & Paper & Us \\
-    \midrule
-    DRS & better FID, modes kept & \textbf{same} \\
-    & closer to the real distribution & {\color{warm}\textbf{barely closer}} \\
-    KeepTraining & helps (2D Gaussians) & {\color{warm}\textbf{worse FID}} \\
-    Selection & more precision, less recall & \textbf{same} \\
-    & better FID & {\color{warm}\textbf{worse FID}} \\
-    Noise & stabilises training & {\color{warm}\textbf{no clear effect}} \\
-    RpGAN + R1 & diverges & {\color{warm}\textbf{stable}} \\
-    Relativistic loss & no missing modes & \textbf{same} \\
-    \bottomrule
-  \end{tabular}}
-  \source{Papers: large networks, other data. Us: MNIST, small MLP.}
-\end{frame}
-
 \begin{frame}{Conclusion}
   \vspace{0.4em}
   {\Large\textbf{The loss gives the largest gain.}}\\[0.9em]
