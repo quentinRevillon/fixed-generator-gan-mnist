@@ -122,7 +122,25 @@
   D compares a real and a fake image
   \[ \mathcal{L}_D = \mathrm{softplus}\big(D(\text{fake}) - D(\text{real})\big) + \tfrac{\gamma}{2}\,\|\nabla D(\text{real})\|^2 \]
   \[ \mathcal{L}_G = \mathrm{softplus}\big(D(\text{real}) - D(\text{fake})\big) \]
-  {\small\textbf{Settings:} $\gamma = 1$ ($0.1$ diverges, $10$ is worse), EMA 0.999, 100 epochs}
+  {\small\textbf{Settings:} $\gamma = 1$, EMA 0.999, 100 epochs}
+\end{frame}
+
+\begin{frame}{Training: choosing $\gamma$, checking seeds}
+  \vspace{1.2em}
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \textbf{\boldmath$\gamma$}\\[0.8em]
+    0.1: diverges\\[0.3em]
+    \textbf{1: FID 14.0}\\[0.3em]
+    10: FID 17.7
+    \column{0.48\textwidth}
+    \textbf{Seeds}\\[0.8em]
+    Each setting run 3 times\\[0.3em]
+    We report the mean\\[0.3em]
+    BCE: 1 run collapses\\[0.3em]
+    RpGAN: none
+  \end{columns}
+  \source{RpGAN + R1, small CNN FID, means over 3 seeds. Spread between seeds: $\pm$ 0.9.}
 \end{frame}
 
 \begin{frame}{Training: what the loss changes}
@@ -137,33 +155,6 @@
   \includegraphics[width=\linewidth]{cmp_training_results.png}\\[0.6em]
   One BCE seed collapses (FID 2770)
   \source{60k images, 100 epochs, EMA for all, against MNIST test, 3 seeds.}
-\end{frame}
-
-\begin{frame}{Training: testing $\gamma$ and seeds}
-  \vspace{0.2em}
-  \begin{columns}[T]
-    \column{0.5\textwidth}
-    \textbf{$\gamma$ = 0.1, 1 or 10}\\[0.2em]
-    {\footnotesize\color{muted}RpGAN + R1, everything else fixed}\\[0.6em]
-    {\footnotesize\begin{tabular}{@{}lccc@{}}
-      \toprule
-      $\gamma$ & CNN FID & Prec. & Stable \\
-      \midrule
-      0.1 & $> 2000$ & -- & 0 / 3 \\
-      \textbf{1} & \textbf{14.0 $\pm$ 0.9} & \textbf{0.72} & \textbf{3 / 3} \\
-      10 & 17.7 $\pm$ 0.9 & 0.67 & 3 / 3 \\
-      \bottomrule
-    \end{tabular}}\\[0.6em]
-    {\footnotesize Too weak: D wins, G diverges.\\ Too strong: D too smooth, worse FID.}
-    \column{0.46\textwidth}
-    \textbf{Seeds 0, 1, 2}\\[0.2em]
-    {\footnotesize\color{muted}for every setting. A seed fixes the initial weights, the batch order and the $z$ drawn}\\[0.6em]
-    {\footnotesize We report mean $\pm$ std and count collapsed runs.\\[0.6em]
-    BCE: seed 2 collapses (FID 2770)\\
-    RpGAN + R1: 3 seeds out of 3 converge\\[0.6em]
-    Spread between seeds ($\pm$ 0.9) $\ll$ gap between losses (59 vs 14)}
-  \end{columns}
-  \source{100 epochs, EMA 0.999, batch 100, Adam $2\cdot10^{-4}$, against MNIST test. $\gamma = 0.1$: runs stopped at epoch 27.}
 \end{frame}
 
 \begin{frame}{Sampling: method}
