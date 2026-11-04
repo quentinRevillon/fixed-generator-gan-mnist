@@ -189,20 +189,20 @@
 \begin{frame}{Conclusion}
   \vspace{0.4em}
   {\Large\textbf{The loss gives the largest gain.}}\\[0.9em]
-  {\small\begin{tabular}{@{}lccc@{}}
+  {\small\begin{tabular}{@{}lcc@{}}
     \toprule
-    & Inception FID & CNN FID & Digit gap \\
+    & Inception FID & CNN FID \\
     \midrule
-    Baseline & 38.7 & 182 & 24\% \\
-    Baseline + DRS & 34.4 & 154 & 21\% \\
-    \textbf{RpGAN + R1 + EMA} & \textbf{22.1} & \textbf{9.9} & \textbf{4\%} \\
-    \phantom{R}+ DRS & 22.0 & 14.2 & 4\% \\
-    \phantom{R}+ noise 0.3 & 21.4 & 9.0 & 4\% \\
+    Baseline & 38.7 & 182 \\
+    Baseline + DRS & 34.4 & 154 \\
+    \textbf{RpGAN + R1 + EMA} & \textbf{22.1} & \textbf{9.9} \\
+    \phantom{R}+ DRS & 22.0 & 14.2 \\
+    \phantom{R}+ noise 0.3 & 21.4 & 9.0 \\
     \bottomrule
   \end{tabular}}\\[0.9em]
   Selection never beats the reference. Noise has no clear effect.\\[0.4em]
   \textbf{Proposed final model:} RpGAN + R1 + EMA.
-  \source{Table: common protocol, against MNIST test, 3 seeds. Digit gap: share of images off the real digit proportions.}
+  \source{Table: common protocol, against MNIST test, 3 seeds.}
 \end{frame}
 
 \end{document}
