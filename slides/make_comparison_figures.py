@@ -5,7 +5,7 @@ results/comparison_test.csv (produit par scripts/compare.sh).
 
 Utilisation, depuis la racine du repo :
     python slides/make_comparison_figures.py --weights <dossier>
-Le dossier contient G_ep50.pth, G_ep120.pth, G_ep200.pth, noe_baseline_rerun.pth et noe_train_r3gan.pth.
+Le dossier contient G_ep50.pth, G_ep120.pth, G_ep200.pth, les noe_*.pth et les nico_*.pth (poids de leurs branches).
 """
 import argparse
 import csv
@@ -35,6 +35,7 @@ RESULTS = 'results/comparison_test.csv'
 RUN = 'runs/baseline_200ep_prof'
 EPOCHS = (50, 120, 200)
 SURFACE, INK, MUTED, GRID, BLUE, ORANGE, AQUA = '#fcfcfb', '#0b0b0b', '#52514e', '#e6e5e0', '#2a78d6', '#eb6834', '#1baf7a'
+LIGHT_BLUE = '#a9cbef'
 # Nom dans le CSV -> (étiquette de la slide, couleur du levier).
 CONFIGS = {'Baseline commune': ('Common baseline', INK),
            'Bruit': ('Data: noise', AQUA),
@@ -120,7 +121,7 @@ def plot_selection():
     image = plt.imread('figures/data/kept_vs_rejected.png')
     middle = image.shape[1] // 2
     fig, axes = plt.subplots(1, 2, figsize=(10.5, 5.3))
-    for ax, part, title in zip(axes, (image[:, :middle], image[:, middle:]), ('Kept: most typical', 'Removed: least typical')):
+    for ax, part, title in zip(axes, (image[:, :middle], image[:, middle:]), ('Kept: highest s(x)', 'Removed: lowest s(x)')):
         ax.imshow(part, interpolation='nearest')
         ax.set_title(title, fontsize=16, color=INK)
         ax.axis('off')
@@ -129,10 +130,23 @@ def plot_selection():
 
 
 @torch.no_grad()
+def plot_data_samples(weights):
+    """Même bruit : images générées par les modèles finaux de Nicodème, référence, bruit et sélection."""
+    runs = (('Reference', 'nico_data_ref_s0.pth'), ('Noise 0.1', 'nico_noise_01_s1.pth'),
+            ('Selection 75%', 'nico_sel_75_s0.pth'), ('Selection 50%', 'nico_sel_50_s0.pth'))
+    fig, axes = plt.subplots(1, len(runs), figsize=(12, 3.5))
+    for ax, (title, name) in zip(axes, runs):
+        G = load_model(Generator(784), os.path.join(weights, name), 'cpu').eval()
+        image_grid(ax, G(fixed_noise()), title)
+    fig.tight_layout()
+    fig.savefig(f'{OUT}/cmp_data_samples.png', dpi=200)
+
+
+@torch.no_grad()
 def plot_loss_effect(weights):
-    """Même bruit, 50 époques : perte de base contre R3GAN (générateurs de Noé)."""
+    """Même bruit, 100 époques avec EMA : perte BCE contre RpGAN + R1 (campagne finale de Noé)."""
     fig, axes = plt.subplots(1, 2, figsize=(8.2, 4.1))
-    for ax, name, title in zip(axes, ('noe_baseline_rerun.pth', 'noe_train_r3gan.pth'), ('Original loss', 'R3GAN loss')):
+    for ax, name, title in zip(axes, ('noe_ema100_baseline_s0.pth', 'noe_ema100_rpgan_r1_s1.pth'), ('BCE loss', 'RpGAN + R1')):
         G = load_model(Generator(784), os.path.join(weights, name), 'cpu').eval()
         image_grid(ax, G(fixed_noise()), title)
     fig.tight_layout()
@@ -207,40 +221,19 @@ def plot_data_results():
                f'{OUT}/cmp_data_results.png')
 
 
-def read_log(name):
-    """{époques, fid, precision, recall} d'un log d'entraînement de Noé (logs/<nom>.log)."""
-    with open(f'logs/{name}.log', encoding='utf8', errors='replace') as f:
-        found = re.findall(r'\[(\d+)/\d+\].*?FID=([\d.]+) P=([\d.]+) R=([\d.]+)', f.read())
-    return {'epochs': [int(m[0]) for m in found], 'fid': [float(m[1]) for m in found],
-            'precision': [float(m[2]) for m in found], 'recall': [float(m[3]) for m in found]}
-
-
 def plot_training_results():
-    """FID, précision et rappel du petit CNN pour les runs de Noé, au cours des 50 époques."""
-    runs = (('baseline_rerun', 'Original loss', MUTED, {'fid': 0, 'precision': -11, 'recall': 0}),
-            ('train_rpgan_r1', 'RpGAN + R1', ORANGE, {'fid': -9, 'precision': 11, 'recall': 8}),
-            ('train_r3gan', 'R3GAN', AQUA, {'fid': 9, 'precision': 0, 'recall': -8}))
-    panels = (('fid', 'CNN FID', '{:.0f}'), ('precision', 'CNN precision', '{:.2f}'), ('recall', 'CNN recall', '{:.2f}'))
-    ticks = (50, 100, 200, 500, 1000, 2000)
-    fig, axes = plt.subplots(1, 3, figsize=(12, 3.9))
-    for name, label, color, shifts in runs:
-        log = read_log(name)
-        for ax, (key, _, fmt) in zip(axes, panels):
-            ax.plot(log['epochs'], log[key], color=color, linewidth=2.5, marker='o', markersize=5, label=label)
-            ax.annotate(fmt.format(log[key][-1]), (log['epochs'][-1], log[key][-1]), xytext=(8, shifts[key]), textcoords='offset points',
-                        va='center', color=INK, fontsize=12)
-    for ax, (_, title, _) in zip(axes, panels):
-        ax.set(xlabel='Epoch', xlim=(8, 60))
-        ax.set_title(title, loc='left', fontsize=14, color=INK)
-        ax.grid(axis='y', color=GRID)
-    axes[0].set(yscale='log')
-    axes[0].set_yticks(ticks, [str(t) for t in ticks])
-    axes[0].minorticks_off()
-    axes[0].legend(frameon=False, fontsize=11, labelcolor=MUTED)
-    axes[1].set(ylim=(0, 1))
-    axes[2].set(ylim=(0, 1))
-    fig.tight_layout()
-    fig.savefig(f'{OUT}/cmp_training_results.png', dpi=200)
+    """Campagne finale de Noé (results.csv) : moyenne sur 3 seeds, sans la seed effondrée de la baseline (FID 2770)."""
+    with open('results.csv', newline='', encoding='utf8') as f:
+        rows = list(csv.DictReader(f))
+    variants = (('BCE loss (2 of 3 seeds)', 'ema100_baseline_s', MUTED), ('RpGAN + R1, γ = 1', 'ema100_rpgan_r1_s', ORANGE),
+                ('R3GAN, γ = 1', 'ema100_r3gan_s', AQUA), ('RpGAN + R1, γ = 10', 'ema100_rpgan_r1_g10_s', MUTED))
+    configs = []
+    for label, prefix, color in variants:
+        group = [r for r in rows if prefix in r['run'] and float(r['fid']) < 500]
+        configs.append((label, color, {k: np.mean([float(r[k]) for r in group]) for k in ('fid', 'precision', 'recall')}))
+        print(label, len(group), {k: round(v, 3) for k, v in configs[-1][2].items()})
+    bar_panels(configs, (('fid', 'CNN FID', '{:.1f}'), ('precision', 'CNN precision', '{:.2f}'), ('recall', 'CNN recall', '{:.2f}')),
+               f'{OUT}/cmp_training_results.png')
 
 
 def plot_sampling_results():
@@ -250,11 +243,11 @@ def plot_sampling_results():
     keys = ('fid', 'precision', 'recall', 'acceptance_rate')
     picked = [('No rejection', MUTED, [r for r in rows if r['method'] == 'plain'])]
     for percentile in (50, 80, 95, 99):
-        picked.append((percentile, BLUE, [r for r in rows if r['method'] == 'drs_azadi' and json.loads(r['params'])['percentile'] == percentile]))
+        picked.append((percentile, BLUE if percentile == 80 else LIGHT_BLUE, [r for r in rows if r['method'] == 'drs_azadi' and json.loads(r['params'])['percentile'] == percentile]))
     configs = []
     for name, color, group in picked:
         values = {k: np.mean([float(r[k]) for r in group]) for k in keys}
-        label = name if name == 'No rejection' else f"DRS, {100 * values['acceptance_rate']:.0f}% kept"
+        label = name if name == 'No rejection' else f"Percentile {name}: {100 * values['acceptance_rate']:.0f}% kept"
         configs.append((label, color, values))
         print(label, {k: round(v, 3) for k, v in values.items()})
     bar_panels(configs, (('fid', 'CNN FID', '{:.0f}'), ('precision', 'CNN precision', '{:.3f}'), ('recall', 'CNN recall', '{:.3f}')),
@@ -364,6 +357,7 @@ if __name__ == '__main__':
     plot_epochs(evaluations, args.weights)
     plot_digits(evaluations)
     plot_selection()
+    plot_data_samples(args.weights)
     plot_loss_effect(args.weights)
     plot_kept_rejected()
     plot_two_measures(evaluations)

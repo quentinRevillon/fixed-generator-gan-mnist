@@ -2,7 +2,7 @@
 %
 % Figures :   python slides/make_comparison_figures.py --weights <dossier> (depuis la racine du repo)
 % Compiler :  pdflatex comparaison.tex (deux fois, depuis ce dossier)
-\documentclass[aspectratio=169,14pt]{beamer}
+\documentclass[aspectratio=169,14pt,t]{beamer}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
@@ -24,8 +24,6 @@
 \setbeamertemplate{navigation symbols}{}
 \setbeamertemplate{footline}{\hfill{\scriptsize\color{muted}\insertframenumber}\hspace{1em}\vspace{0.5em}}
 
-% Figure du fichier #1, ou mention d'attente tant que les résultats ne sont pas arrivés.
-\newcommand{\mesure}[2]{\IfFileExists{figures/#1}{\includegraphics[#2]{#1}}{\vspace{3em}{\color{warm}\textbf{Results pending}}}}
 % Petite précision en bas de slide.
 \newcommand{\source}[1]{\vfill{\scriptsize\color{muted}#1\par}}
 
@@ -40,169 +38,155 @@
 \end{frame}
 
 \begin{frame}{Three levers}
-  \vspace{1.2em}
-  \begin{tabular}{lll}
-    \textbf{Data} & What does it learn from? & {\color{muted}selection, noise} \\[1em]
-    \textbf{Training} & How does it learn? & {\color{muted}R3GAN loss} \\[1em]
-    \textbf{Sampling} & Which images do we keep? & {\color{muted}rejection (DRS)} \\
-  \end{tabular}
-
-  \vspace{1.8em}
-  Does each one improve \textbf{quality} or \textbf{diversity}?
+  \vspace{1.6em}
+  {\small\begin{tabular}{lll}
+    \textbf{Data} & Instance selection & {\color{muted}DeVries et al. 2020} \\[0.4em]
+    & Instance noise & {\color{muted}Sønderby et al. 2017} \\[1.2em]
+    \textbf{Training} & Relativistic loss (RpGAN + R1) & {\color{muted}Huang et al. 2024} \\[1.2em]
+    \textbf{Sampling} & Discriminator Rejection Sampling & {\color{muted}Azadi et al. 2019} \\
+  \end{tabular}}
 \end{frame}
 
 \begin{frame}{Protocol}
   \vspace{0.3em}
-  {\footnotesize\begin{tabular}{llll}
+  {\footnotesize\begin{tabular}{@{}lllll@{}}
     \toprule
-    & Images & Training & Measured with \\
+    & Images & Training & FID with & Against \\
     \midrule
-    \textbf{Baseline} & 50k + 10k validation & 200 epochs & Inception, VGG, small CNN \\
-    \textbf{Sampling} & same generator & 200 epochs & small CNN \\
-    \textbf{Data} & 60k or fewer & 60k updates, 3 to 8 seeds & small CNN \\
-    \textbf{Training} & 60k & 50 epochs, 1 seed & small CNN \\
+    \textbf{Baseline} & 50k & 200 epochs, 1 seed & Inception, CNN & validation \\
+    \textbf{Sampling} & baseline generator & none & Inception, CNN & validation \\
+    \textbf{Data} & 60k or fewer & 120k updates, 3 to 8 seeds & CNN & test \\
+    \textbf{Training} & 60k & 100 epochs, 3 seeds & CNN & test \\
     \bottomrule
   \end{tabular}}
 
   \vspace{1em}
-  {\small
-  \textbf{FID} (Inception or small CNN): distance to real images, lower is better\\[0.4em]
-  \textbf{Precision} (VGG or small CNN): do generated images look real?\\[0.4em]
-  \textbf{Recall} (VGG or small CNN): do they cover all real images?}
+  \textbf{Metrics:} FID, precision, recall
 \end{frame}
 
 \begin{frame}{Baseline}
-  \centering\vspace{0.6em}
+  \centering\vspace{0.4em}
   \includegraphics[width=\linewidth]{cmp_epochs.png}
+  \source{Same $z$ in all grids. Provided code, batch 100. Epoch 200 kept: best Inception FID on validation.}
 \end{frame}
 
 \begin{frame}{Two FIDs}
-  \vspace{0.1em}
-  \includegraphics[width=\linewidth]{cmp_two_measures.png}\\[0.3em]
-  {\small $\mathrm{FID} = \|\mu_r-\mu_g\|^2 + \mathrm{Tr}\big(\Sigma_r+\Sigma_g-2(\Sigma_r\Sigma_g)^{1/2}\big)$ on the features of each network.}\\[0.2em]
-  {\small Same generator, same images: only the network changes.}
+  \centering\vspace{0.4em}
+  \includegraphics[width=\linewidth]{cmp_two_measures.png}\\[0.6em]
+  {\small $\mathrm{FID} = \|\mu_r-\mu_g\|^2 + \mathrm{Tr}\big(\Sigma_r+\Sigma_g-2(\Sigma_r\Sigma_g)^{1/2}\big)$}
 \end{frame}
 
 \begin{frame}{Digit proportions}
   \centering\vspace{0.4em}
-  \includegraphics[width=\linewidth]{cmp_digits.png}\\[0.6em]
-  {\small Digits recognised by our small CNN (98.7\% accuracy on MNIST test)}
-\end{frame}
-
-\begin{frame}{Test: correct the proportions}
-  \vspace{0.6em}
-  \begin{columns}[T,onlytextwidth]
-    \column{0.5\textwidth}
-    \small
-    1. Generate 100,000 images\\[0.2em]
-    {\color{muted}same generator, epoch 120}\\[0.8em]
-    2. Keep 10,000 of them\\[0.2em]
-    {\color{muted}with the digit proportions of real MNIST}\\[0.8em]
-    3. Compute the FID again
-    \column{0.46\textwidth}\centering
-    \begin{tabular}{lcc}
-      \toprule
-      FID & Before & After \\
-      \midrule
-      Small CNN & 75 & \textbf{30} \\
-      Inception & 56 & \textbf{61} \\
-      \bottomrule
-    \end{tabular}
-  \end{columns}
-
-  \vspace{1.5em}
-  The digits are drawn the same way: only their proportions change.\\[0.5em]
-  The small CNN's FID drops. Inception's barely moves.
+  \includegraphics[width=\linewidth]{cmp_digits.png}
+  \source{Generated digits recognised by the small CNN (98.7\% accuracy on MNIST test).}
 \end{frame}
 
 \begin{frame}{Data: method}
-  \vspace{0.6em}
-  \textbf{Selection:} keep the most typical images of each digit.
+  \vspace{0.8em}
+  \textbf{Selection:} score each image, keep the highest scores of each digit
   \[ s(x) = -\big(f(x)-\mu_c\big)^\top \Sigma_c^{-1} \big(f(x)-\mu_c\big) \]
-  {\small\color{muted}$f$: features of the small CNN. $\mu_c, \Sigma_c$: mean and covariance of digit $c$.}\\[1.2em]
-  \textbf{Noise:} add noise to D's inputs, fading to 0 during training.
+  {\small $s(x)$ is high when $x$ looks like the average image of its digit $c$}\\[0.3em]
+  {\small\textbf{Settings:} keep 75\% or 50\%. $f$: CNN features}\\[1.3em]
+  \textbf{Noise:} add noise to D's inputs
   \[ D(x + \sigma_t\,\varepsilon), \quad \varepsilon \sim \mathcal{N}(0, I) \]
-  \source{DeVries et al. 2020; Sønderby et al. 2017.}
+  {\small\textbf{Settings:} $\sigma_0 = 0.1$ or $0.3$, fading to 0 over 100 epochs}
 \end{frame}
 
-\begin{frame}{Data: images}
-  \centering\vspace{0.2em}
-  \includegraphics[width=0.84\linewidth]{cmp_selection.png}
+\begin{frame}{Data: training images}
+  \centering\vspace{0.4em}
+  \includegraphics[width=0.8\linewidth]{cmp_selection.png}
+\end{frame}
+
+\begin{frame}{Data: generated images}
+  \centering\vspace{1.4em}
+  \includegraphics[width=\linewidth]{cmp_data_samples.png}
+  \source{Same $z$ in all grids. One run per method, end of training (120k updates).}
 \end{frame}
 
 \begin{frame}{Data: results}
   \centering\vspace{0.4em}
-  \includegraphics[width=\linewidth]{cmp_data_results.png}\\[0.5em]
-  {\small Selection 50\%: only 0.4\% of 0s are generated.}
-  \source{Nicodème: 60,000 images, 60,000 updates, against MNIST test, 3 to 8 seeds, collapsed runs excluded.}
+  \includegraphics[width=\linewidth]{cmp_data_results.png}\\[0.6em]
+  Selection 50\%: only 0.4\% of 0s are generated
+  \source{Read at 60k updates. Against MNIST test, 3 to 8 seeds, collapsed runs excluded.}
 \end{frame}
 
 \begin{frame}{Training: method}
-  \vspace{0.4em}
-  D no longer judges one image: it compares a real and a fake one.
-  \[ \mathcal{L}_D = \mathrm{softplus}\big(D(\text{fake}) - D(\text{real})\big) + \tfrac{\gamma}{2}\big(R_1 + R_2\big) \]
+  \vspace{0.8em}
+  D compares a real and a fake image
+  \[ \mathcal{L}_D = \mathrm{softplus}\big(D(\text{fake}) - D(\text{real})\big) + \tfrac{\gamma}{2}\,\|\nabla D(\text{real})\|^2 \]
   \[ \mathcal{L}_G = \mathrm{softplus}\big(D(\text{real}) - D(\text{fake})\big) \]
-  $R_1$ and $R_2$ penalise the gradients of D:
-  \[ R_1 = \|\nabla D(\text{real})\|^2 \qquad R_2 = \|\nabla D(\text{fake})\|^2 \]
-  {\small\color{muted}$D$: score before the sigmoid. The generator does not change.}
-  \source{R3GAN, Huang et al. 2024.}
+  {\small\textbf{Settings:} $\gamma = 1$ ($0.1$ diverges, $10$ is worse), EMA 0.999, 100 epochs}
 \end{frame}
 
 \begin{frame}{Training: images}
-  \centering\vspace{0.3em}
-  \includegraphics[width=0.84\linewidth]{cmp_loss_effect.png}
-  \source{Same noise, 50 epochs. Noé's first runs.}
+  \centering\vspace{0.4em}
+  \includegraphics[width=0.8\linewidth]{cmp_loss_effect.png}
+  \source{Same $z$ in both grids. One run per loss, 100 epochs.}
 \end{frame}
 
 \begin{frame}{Training: results}
   \centering\vspace{0.4em}
-  \includegraphics[width=\linewidth]{cmp_training_results.png}\\[0.5em]
-  {\small RpGAN alone diverges. R3GAN with the paper's Adam betas collapses.}
-  \source{Noé: 60,000 images, 50 epochs, against MNIST test, one seed.}
+  \includegraphics[width=\linewidth]{cmp_training_results.png}\\[0.6em]
+  One BCE seed collapses (FID 2770)
+  \source{60k images, 100 epochs, EMA for all, against MNIST test, 3 seeds.}
 \end{frame}
 
 \begin{frame}{Sampling: method}
-  \vspace{0.5em}
-  G does not change.
-  \begin{enumerate}
-    \setlength\itemsep{0.5em}
-    \item G proposes an image $x$.
-    \item D gives it a score $d(x)$.
-    \item We keep $x$ with probability $\sigma\big(\hat F(x)\big)$, then start again.
-  \end{enumerate}
+  \vspace{0.8em}
+  D scores each image, we keep it with probability $\sigma\big(\hat F(x)\big)$
   \[ \hat F(x) = d(x) - d_M - \log\big(1 - e^{\,d(x) - d_M - \epsilon}\big) - \gamma \]
-  {\small\color{muted}$d_M$: best score seen. $\gamma$: sets how strict we are (percentile of $\hat F$ in each batch).}
-  \source{Discriminator Rejection Sampling, Azadi et al. 2019.}
+  {\small $d$: score given by D. $d_M$: best score seen.}\\[0.5em]
+  {\small\textbf{Settings:} $\gamma$ = 80th percentile of $\hat F$ in each batch ($\gamma \approx -6.4$), $d_M$ from 10,000 images, $\epsilon = 10^{-6}$, D as trained}
 \end{frame}
 
 \begin{frame}{Sampling: images}
-  \centering\vspace{0.3em}
-  \includegraphics[width=0.84\linewidth]{cmp_kept_rejected.png}
-  \source{Same generator, epoch 200. Percentile 80.}
+  \centering\vspace{0.4em}
+  \includegraphics[width=0.8\linewidth]{cmp_kept_rejected.png}
+  \source{Generator at epoch 200, percentile 80.}
 \end{frame}
 
 \begin{frame}{Sampling: results}
   \centering\vspace{0.4em}
-  \includegraphics[width=\linewidth]{cmp_sampling_results.png}\\[0.5em]
-  {\small Keeping 30\% of the images costs 1.6 s on CPU for 10,000 images.}
-  \source{Baseline at epoch 200. Against validation, 3 draws.}
+  \includegraphics[width=\linewidth]{cmp_sampling_results.png}\\[0.6em]
+  Higher percentile: fewer images kept
+  \source{Generator at epoch 200, against validation, 3 draws. 1.6 s on CPU for 10,000 images at percentile 80.}
 \end{frame}
 
-
-
+\begin{frame}{Compared with the papers}
+  \vspace{0.6em}
+  {\small\begin{tabular}{@{}lll@{}}
+    \toprule
+    & Paper & Us \\
+    \midrule
+    DRS & better FID, modes kept & \textbf{same} \\
+    & closer to the real distribution & {\color{warm}\textbf{barely closer}} \\
+    KeepTraining & helps (2D Gaussians) & {\color{warm}\textbf{worse FID}} \\
+    Selection & more precision, less recall & \textbf{same} \\
+    & better FID & {\color{warm}\textbf{worse FID}} \\
+    Noise & stabilises training & {\color{warm}\textbf{no clear effect}} \\
+    RpGAN + R1 & diverges & {\color{warm}\textbf{stable}} \\
+    Relativistic loss & no missing modes & \textbf{same} \\
+    \bottomrule
+  \end{tabular}}
+  \source{Papers: large networks, other data. Us: MNIST, small MLP.}
+\end{frame}
 
 \begin{frame}{Conclusion}
   \vspace{0.6em}
-  \begin{itemize}
-    \setlength\itemsep{0.7em}
-    \item \textbf{Longer training:} Inception FID 156 $\to$ 37, but digit proportions drift
-    \item \textbf{Data:} selection raises CNN precision (0.75 $\to$ 0.84) and lowers CNN recall (0.72 $\to$ 0.38); noise has no clear effect
-    \item \textbf{Training:} at 50 epochs, CNN FID 188 $\to$ 49, CNN recall 0.32 $\to$ 0.58, same CNN precision
-    \item \textbf{Sampling:} with 30\% kept, CNN FID 169 $\to$ 146, CNN precision 0.86 $\to$ 0.89, same CNN recall
-    \item \textbf{Metrics:} the two FIDs do not see the same thing
-  \end{itemize}
+  {\Large\textbf{The loss gives the largest gain.}}\\[1.2em]
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    & Small CNN FID & Effect \\
+    \midrule
+    Data: selection 50\% & 76 $\to$ 331 & worse \\
+    Data: noise 0.1 & 76 $\to$ 65 & not significant \\
+    \textbf{Training: RpGAN + R1} & \textbf{59 $\to$ 14} & \textbf{best, no collapse} \\
+    Sampling: DRS & 169 $\to$ 146 & modest, cheap \\
+    \bottomrule
+  \end{tabular}\\[1.2em]
+  \textbf{Next:} same split and budget for all, then RpGAN + R1 with DRS.
+  \source{Each row has its own protocol.}
 \end{frame}
-
-
 
 \end{document}
