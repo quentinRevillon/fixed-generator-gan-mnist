@@ -112,6 +112,11 @@
   \source{Read at 60k updates. Against MNIST test, 3 to 8 seeds, collapsed runs excluded.}
 \end{frame}
 
+\begin{frame}{Training: the paper}
+  \centering\vspace{0.2em}
+  \includegraphics[height=0.8\textheight]{r3gan_paper.png}
+\end{frame}
+
 \begin{frame}{Training: method}
   \vspace{0.8em}
   D compares a real and a fake image
@@ -120,10 +125,11 @@
   {\small\textbf{Settings:} $\gamma = 1$ ($0.1$ diverges, $10$ is worse), EMA 0.999, 100 epochs}
 \end{frame}
 
-\begin{frame}{Training: images}
+\begin{frame}{Training: what the loss changes}
   \centering\vspace{0.4em}
-  \includegraphics[width=0.8\linewidth]{cmp_loss_effect.png}
-  \source{Same $z$ in both grids. One run per loss, 100 epochs.}
+  \includegraphics[width=0.94\linewidth]{cmp_loss_effect.png}\\[0.4em]
+  Right proportions, no collapsed seed. Single images are not sharper
+  \source{100 epochs, EMA. Shares: digits recognised by the small CNN, 10,000 images, mean over the stable seeds (BCE 2, RpGAN + R1 3). Same $z$ in both grids.}
 \end{frame}
 
 \begin{frame}{Training: results}
