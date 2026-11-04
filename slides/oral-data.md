@@ -1,17 +1,14 @@
 # Partie Data : texte oral (environ 1 min 30)
 
-## Data: papers (10 s)
-- Deux leviers sur ce que voit le GAN, sans toucher au modèle.
-- **Instance selection** (DeVries et al., NeurIPS 2020) : retirer les images atypiques *avant* l'entraînement.
-- **Instance noise** (Sønderby et al., ICLR 2017) : bruiter les entrées de D pendant l'entraînement.
-
-## Data: selection (25 s)
+## Data: selection (30 s)
+- Deux leviers sur ce que voit le GAN, sans toucher au modèle. D'abord l'**instance selection** (DeVries et al., NeurIPS 2020) : retirer les images atypiques *avant* l'entraînement.
 - On score chaque image avec une **gaussienne par chiffre** dans les **features** du CNN : $\mu_c$ et $\Sigma_c$ sont la moyenne et la covariance des features du chiffre $c$.
 - $s(x)$ élevé = image **typique**. On garde 95, 90 ou 50 % de chaque chiffre.
 - À gauche les plus typiques, à droite les moins typiques : des **styles rares** (7 barré, 4 fermé), **pas des erreurs**.
 - **Différence avec le papier :** sur ImageNet, on retire de vrais déchets ; MNIST est déjà propre, donc on retire de la **diversité**.
 
-## Data: noise (10 s)
+## Data: noise (15 s)
+- Puis l'**instance noise** (Sønderby et al., ICLR 2017) : bruiter les entrées de D pendant l'entraînement.
 - On ajoute $\sigma_t\,\varepsilon$ aux vraies et aux fausses images avant D, avec σ qui décroît de 0,1 ou 0,3 vers 0 en 100 époques (**annealing**).
 - L'image : ce que voit D au fil des époques, de plus en plus net.
 

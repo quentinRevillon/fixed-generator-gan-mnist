@@ -24,7 +24,7 @@
 \setbeamerfont{frametitle}{size=\Large,series=\bfseries}
 \setbeamerfont{title}{size=\LARGE,series=\bfseries}
 \setbeamertemplate{navigation symbols}{}
-\setbeamertemplate{footline}{\hfill{\scriptsize\color{muted}\insertframenumber}\hspace{1em}\vspace{0.5em}}
+\setbeamertemplate{footline}{\hfill\raisebox{0.5em}[0pt][0pt]{\scriptsize\color{muted}\insertframenumber\,/\,\inserttotalframenumber}\hspace{2em}\vspace{0.5em}}
 
 % Petite précision en bas de slide.
 \newcommand{\legend}[1]{{\scriptsize\color{muted}#1}}
@@ -84,13 +84,6 @@
   \centering\vspace{0.4em}
   \includegraphics[width=\linewidth]{cmp_digits.png}
   \source{Generated digits recognised by the small CNN (98.7\% accuracy on MNIST test).}
-\end{frame}
-
-\begin{frame}{Data: papers}
-  \centering\vspace{0.2em}
-  \includegraphics[width=0.48\linewidth,height=0.72\textheight,keepaspectratio]{devries_paper.png}\hfill
-  \includegraphics[width=0.48\linewidth,height=0.72\textheight,keepaspectratio]{sonderby_paper.png}
-  \source{DeVries et al., NeurIPS 2020 (selection). Sønderby et al., ICLR 2017 (noise, Section 3.2.1).}
 \end{frame}
 
 \begin{frame}{Data: selection}
