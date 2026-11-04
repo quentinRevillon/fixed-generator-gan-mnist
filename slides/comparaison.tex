@@ -175,6 +175,11 @@
   \source{60k images, 100 epochs, EMA for all, against MNIST test, 3 seeds.}
 \end{frame}
 
+\begin{frame}{Sampling: the paper}
+  \centering\vspace{0.2em}
+  \includegraphics[height=0.8\textheight]{drs_paper.png}
+\end{frame}
+
 \begin{frame}{Sampling: method}
   \vspace{0.8em}
   D scores each image, we keep it with probability $\sigma\big(\hat F(x)\big)$
@@ -207,26 +212,6 @@
   \centering\vspace{1.4em}
   \includegraphics[width=\linewidth]{cmp_combined_samples.png}
   \source{Same $z$ except for DRS, which keeps part of the proposals. One run per method.}
-\end{frame}
-
-\begin{frame}{Compared with the papers}
-  \vspace{0.6em}
-  {\small\begin{tabular}{@{}lll@{}}
-    \toprule
-    & Paper & Us \\
-    \midrule
-    DRS & better FID, modes kept & \textbf{same} \\
-    & closer to the real distribution & {\color{warm}\textbf{barely closer}} \\
-    KeepTraining & helps (2D Gaussians) & {\color{warm}\textbf{worse FID}} \\
-    Selection & more precision, less recall & \textbf{same} \\
-    & better FID & {\color{warm}\textbf{worse FID}} \\
-    Noise & stabilises training & \textbf{fewer collapses} ($\sigma_0 = 0.3$) \\
-    & & {\color{warm}\textbf{same FID}} \\
-    RpGAN + R1 & diverges & {\color{warm}\textbf{stable}} \\
-    Relativistic loss & no missing modes & \textbf{same} \\
-    \bottomrule
-  \end{tabular}}
-  \source{Papers: large networks, other data. Us: MNIST, small MLP.}
 \end{frame}
 
 \begin{frame}{Conclusion}
