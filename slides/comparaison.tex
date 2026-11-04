@@ -1,0 +1,208 @@
+% Présentation de 5 minutes, en anglais : une idée et une image par slide.
+%
+% Figures :   dans slides/figures/ ; le script qui les trace est slides/make_comparison_figures.py, sur la branche quentin/comparaison
+% Compiler :  pdflatex comparaison.tex (deux fois, depuis ce dossier)
+\documentclass[aspectratio=169,14pt,t]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[english]{babel}
+\usepackage{amsmath,booktabs}
+\graphicspath{{figures/}}
+
+\definecolor{ink}{HTML}{0B0B0B}
+\definecolor{muted}{HTML}{52514E}
+\definecolor{warm}{HTML}{EB6834}
+\definecolor{surface}{HTML}{FCFCFB}
+\setbeamercolor{background canvas}{bg=surface}
+\setbeamercolor{normal text}{fg=ink}
+\setbeamercolor{frametitle}{fg=ink}
+\setbeamercolor{title}{fg=ink}
+\setbeamercolor{author}{fg=muted}
+\setbeamerfont{frametitle}{size=\Large,series=\bfseries}
+\setbeamerfont{title}{size=\LARGE,series=\bfseries}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}{\hfill{\scriptsize\color{muted}\insertframenumber}\hspace{1em}\vspace{0.5em}}
+
+% Petite précision en bas de slide.
+\newcommand{\source}[1]{\vfill{\scriptsize\color{muted}#1\par}}
+
+\title{GAN on MNIST with a fixed generator}
+\author{Quentin Revillon, Noé Mosca, Nicodème Gorge}
+\date{}
+
+\begin{document}
+
+\begin{frame}[plain,noframenumbering]
+  \titlepage
+\end{frame}
+
+\begin{frame}{Three levers}
+  \vspace{1.6em}
+  {\small\begin{tabular}{lll}
+    \textbf{Data} & Instance selection & {\color{muted}DeVries et al. 2020} \\[0.4em]
+    & Instance noise & {\color{muted}Sønderby et al. 2017} \\[1.2em]
+    \textbf{Training} & Relativistic loss (RpGAN + R1) & {\color{muted}Huang et al. 2024} \\[1.2em]
+    \textbf{Sampling} & Discriminator Rejection Sampling & {\color{muted}Azadi et al. 2019} \\
+  \end{tabular}}
+\end{frame}
+
+\begin{frame}{Protocol}
+  \vspace{0.3em}
+  {\footnotesize\begin{tabular}{@{}lllll@{}}
+    \toprule
+    & Images & Training & FID with & Against \\
+    \midrule
+    \textbf{Baseline} & 50k & 200 epochs, 1 seed & Inception, CNN & validation \\
+    \textbf{Sampling} & baseline G & none & Inception, CNN & validation \\
+    \textbf{Data} & 60k or fewer & 120k updates, 3 to 8 seeds & CNN & test \\
+    \textbf{Training} & 60k & 100 epochs, 3 seeds & CNN & test \\
+    \textbf{Common} & 50k & 200 epochs, 3 seeds & Inception, CNN & test \\
+    \bottomrule
+  \end{tabular}}
+
+  \vspace{1em}
+  \textbf{Metrics:} FID, precision, recall
+\end{frame}
+
+\begin{frame}{Baseline}
+  \centering\vspace{0.4em}
+  \includegraphics[width=\linewidth]{cmp_epochs.png}
+  \source{Same $z$ in all grids. Provided code, batch 100. Epoch 200 kept: best Inception FID on validation.}
+\end{frame}
+
+\begin{frame}{Two FIDs}
+  \centering\vspace{0.4em}
+  \includegraphics[width=\linewidth]{cmp_two_measures.png}\\[0.6em]
+  {\small $\mathrm{FID} = \|\mu_r-\mu_g\|^2 + \mathrm{Tr}\big(\Sigma_r+\Sigma_g-2(\Sigma_r\Sigma_g)^{1/2}\big)$}
+\end{frame}
+
+\begin{frame}{Digit proportions}
+  \centering\vspace{0.4em}
+  \includegraphics[width=\linewidth]{cmp_digits.png}
+  \source{Generated digits recognised by the small CNN (98.7\% accuracy on MNIST test).}
+\end{frame}
+
+\begin{frame}{Data: method}
+  \vspace{0.8em}
+  \textbf{Selection:} score each image, keep the highest scores of each digit
+  \[ s(x) = -\big(f(x)-\mu_c\big)^\top \Sigma_c^{-1} \big(f(x)-\mu_c\big) \]
+  {\small $s(x)$ is high when $x$ looks like the average image of its digit $c$}\\[0.3em]
+  {\small\textbf{Settings:} keep 95\%, 90\%, 75\% or 50\%. $f$: CNN features}\\[1.3em]
+  \textbf{Noise:} add noise to D's inputs
+  \[ D(x + \sigma_t\,\varepsilon), \quad \varepsilon \sim \mathcal{N}(0, I) \]
+  {\small\textbf{Settings:} $\sigma_0 = 0.1$ or $0.3$, fading to 0 over 100 epochs}
+\end{frame}
+
+\begin{frame}{Data: training images}
+  \centering\vspace{0.4em}
+  \includegraphics[width=0.8\linewidth]{cmp_selection.png}
+\end{frame}
+
+\begin{frame}{Data: generated images}
+  \centering\vspace{1.4em}
+  \includegraphics[width=\linewidth]{cmp_data_samples.png}
+  \source{Same $z$ in all grids. One run per method, end of training (120k updates).}
+\end{frame}
+
+\begin{frame}{Data: results}
+  \centering\vspace{0.4em}
+  \includegraphics[width=\linewidth]{cmp_data_results.png}\\[0.6em]
+  No retention beats the reference. 19 of 52 runs fail.
+  \source{Read at 60k updates. Against MNIST test, 3 to 8 seeds, collapsed runs excluded.}
+\end{frame}
+
+\begin{frame}{Training: method}
+  \vspace{0.8em}
+  D compares a real and a fake image
+  \[ \mathcal{L}_D = \mathrm{softplus}\big(D(\text{fake}) - D(\text{real})\big) + \tfrac{\gamma}{2}\,\|\nabla D(\text{real})\|^2 \]
+  \[ \mathcal{L}_G = \mathrm{softplus}\big(D(\text{real}) - D(\text{fake})\big) \]
+  {\small\textbf{Settings:} $\gamma = 1$ ($0.1$ diverges, $10$ is worse), EMA 0.999, 100 epochs}
+\end{frame}
+
+\begin{frame}{Training: images}
+  \centering\vspace{0.4em}
+  \includegraphics[width=0.8\linewidth]{cmp_loss_effect.png}
+  \source{Same $z$ in both grids. One run per loss, 100 epochs.}
+\end{frame}
+
+\begin{frame}{Training: results}
+  \centering\vspace{0.4em}
+  \includegraphics[width=\linewidth]{cmp_training_results.png}\\[0.6em]
+  One BCE seed collapses (FID 2770)
+  \source{60k images, 100 epochs, EMA for all, against MNIST test, 3 seeds.}
+\end{frame}
+
+\begin{frame}{Sampling: method}
+  \vspace{0.8em}
+  D scores each image, we keep it with probability $\sigma\big(\hat F(x)\big)$
+  \[ \hat F(x) = d(x) - d_M - \log\big(1 - e^{\,d(x) - d_M - \epsilon}\big) - \gamma \]
+  {\small $d$: score given by D. $d_M$: best score seen.}\\[0.5em]
+  {\small\textbf{Settings:} $\gamma$ = 80th percentile of $\hat F$ in each batch ($\gamma \approx -6.4$), $d_M$ from 10,000 images, $\epsilon = 10^{-6}$, D as trained}
+\end{frame}
+
+\begin{frame}{Sampling: images}
+  \centering\vspace{0.4em}
+  \includegraphics[width=0.8\linewidth]{cmp_kept_rejected.png}
+  \source{Generator at epoch 200, percentile 80.}
+\end{frame}
+
+\begin{frame}{Sampling: results}
+  \centering\vspace{0.4em}
+  \includegraphics[width=\linewidth]{cmp_sampling_results.png}\\[0.6em]
+  Higher percentile: fewer images kept
+  \source{Generator at epoch 200, against validation, 3 draws. 1.6 s on CPU for 10,000 images at percentile 80.}
+\end{frame}
+
+\begin{frame}{Common protocol: results}
+  \centering\vspace{0.4em}
+  \includegraphics[width=\linewidth]{cmp_combined_results.png}\\[0.6em]
+  The loss improves both FIDs. DRS only helps the baseline.
+  \source{Same split, 200 epochs, against MNIST test, means over 3 seeds.}
+\end{frame}
+
+\begin{frame}{Common protocol: images}
+  \centering\vspace{1.4em}
+  \includegraphics[width=\linewidth]{cmp_combined_samples.png}
+  \source{Same $z$ except for DRS, which keeps part of the proposals. One run per method.}
+\end{frame}
+
+\begin{frame}{Compared with the papers}
+  \vspace{0.6em}
+  {\small\begin{tabular}{@{}lll@{}}
+    \toprule
+    & Paper & Us \\
+    \midrule
+    DRS & better FID, modes kept & \textbf{same} \\
+    & closer to the real distribution & {\color{warm}\textbf{barely closer}} \\
+    KeepTraining & helps (2D Gaussians) & {\color{warm}\textbf{worse FID}} \\
+    Selection & more precision, less recall & \textbf{same} \\
+    & better FID & {\color{warm}\textbf{worse FID}} \\
+    Noise & stabilises training & {\color{warm}\textbf{no clear effect}} \\
+    RpGAN + R1 & diverges & {\color{warm}\textbf{stable}} \\
+    Relativistic loss & no missing modes & \textbf{same} \\
+    \bottomrule
+  \end{tabular}}
+  \source{Papers: large networks, other data. Us: MNIST, small MLP.}
+\end{frame}
+
+\begin{frame}{Conclusion}
+  \vspace{0.4em}
+  {\Large\textbf{The loss gives the largest gain.}}\\[0.9em]
+  {\small\begin{tabular}{@{}lccc@{}}
+    \toprule
+    & Inception FID & CNN FID & Digit gap \\
+    \midrule
+    Baseline & 38.7 & 182 & 24\% \\
+    Baseline + DRS & 34.4 & 154 & 21\% \\
+    \textbf{RpGAN + R1 + EMA} & \textbf{22.1} & \textbf{9.9} & \textbf{4\%} \\
+    \phantom{R}+ DRS & 22.0 & 14.2 & 4\% \\
+    \phantom{R}+ noise 0.3 & 21.4 & 9.0 & 4\% \\
+    \bottomrule
+  \end{tabular}}\\[0.9em]
+  Selection never beats the reference. Noise has no clear effect.\\[0.4em]
+  \textbf{Proposed final model:} RpGAN + R1 + EMA.
+  \source{Table: common protocol, against MNIST test, 3 seeds. Digit gap: share of images off the real digit proportions.}
+\end{frame}
+
+\end{document}
