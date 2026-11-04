@@ -32,7 +32,7 @@ SUBSETS = {'sel_95': (0.95, True, 'classifier'), 'sel_90': (0.9, True, 'classifi
            'sel_50_global': (0.5, False, 'classifier'), 'sel_50_pixels': (0.5, True, 'pixels')}
 RUNS = {'data_ref': (60000, '#333333'), 'sel_95': (57000, '#bcbd22'), 'sel_90': (54000, '#7f7f7f'), 'sel_75': (45000, '#1f77b4'), 'sel_50': (30000, '#ff7f0e'),
         'sel_50_global': (30000, '#d62728'), 'sel_50_pixels': (30000, '#9467bd'), 'noise_01': (60000, '#2ca02c'),
-        'noise_03': (60000, '#17becf'), 'noise_01_const': (60000, '#8c564b'), 'sel_50_noise_01': (30000, '#e377c2')}
+        'noise_03': (60000, '#17becf'), 'noise_03_e100': (60000, '#9edae5'), 'noise_01_const': (60000, '#8c564b'), 'sel_50_noise_01': (30000, '#e377c2')}
 
 
 def real_subsets():
