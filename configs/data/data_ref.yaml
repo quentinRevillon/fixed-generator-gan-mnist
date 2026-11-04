@@ -1,4 +1,4 @@
-# Volet Données : budget commun de 120 000 mises à jour. Voir rapport-donnée.md.
+# Volet Données : budget commun de 120 000 mises à jour. Voir rapport-donnée-illustré.md.
 name: data_ref            # dossier de sortie : <output.dir>/<name>/
 seed: 0
 

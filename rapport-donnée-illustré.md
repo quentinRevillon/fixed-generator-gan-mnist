@@ -1,6 +1,6 @@
-# Volet Données, version illustrée
+# Volet Données : Instance Selection et Instance Noise
 
-**Responsable :** Nicodème. **Branche :** `nico/preprocessing`. **Rapport détaillé** (protocole, tests, différences avec les papiers) : [`rapport-donnée.md`](rapport-donnée.md). Ce document-ci part des figures et des exemples.
+**Responsable :** Nicodème. **Branche :** `nico/preprocessing`. **Code :** [`preprocessing.py`](preprocessing.py).
 
 **Question (slide 76) :** si on change ce que voit le GAN, est-ce que la distribution qu'il apprend change, et en mieux ?
 
@@ -10,11 +10,52 @@
 2. **Instance Noise** (bruiter les entrées de D) **ne change rien de mesurable.** Le FID passe de 76 à 65, un écart du même ordre que celui qu'on obtient en changeant de seed. Il n'empêche pas les échecs d'entraînement. **Facultatif, sans effet démontré.**
 3. **Le vrai problème est ailleurs, côté entraînement :** 15 runs sur 42 échouent dès les premières époques, avec ou sans option. Le FID remonte aussi après 60 000 mises à jour. Ces deux points concernent le volet Entraînement.
 
-Toutes les comparaisons sont faites à **60 000 mises à jour** (c'est-à-dire 60 000 pas d'optimisation), un point fixé à l'avance pour tous les runs. Les moyennes excluent les runs ratés (§ 5).
+## 1. Ce qui a été implémenté
 
-## 1. Ce que fait la sélection
+Les deux options sont indépendantes et se règlent dans la section `data` du YAML. Avec `enabled: false`, ou sans la section, l'entraînement est exactement celui de la baseline.
 
-On ajuste une gaussienne sur les features de chaque chiffre. Les images les plus « denses », c'est-à-dire les plus proches du centre, sont gardées. Le GAN ne s'entraîne que sur elles.
+```yaml
+data:
+  selection:
+    enabled: true
+    keep: 0.5             # fraction gardée
+    per_class: true       # true : dans chaque chiffre ; false : sur tout le dataset
+    space: classifier     # classifier (features) ou pixels (ACP à 50 dim)
+  instance_noise:
+    enabled: true
+    sigma: 0.1            # écart-type initial, images dans [-1, 1]
+    anneal_epochs: 100    # décroissance linéaire vers 0 ; 0 = sigma constant
+```
+
+**Instance Selection** (DeVries et al., 2020) :
+- **Principe :** on ajuste une gaussienne sur les représentations de chaque chiffre, puis on garde les images dont la log-vraisemblance est la plus haute. Le GAN ne voit plus que ce sous-ensemble.
+- **Évaluation :** elle reste faite sur le MNIST test complet.
+
+**Instance Noise** (Sønderby et al., 2017) :
+- **Principe :** on ajoute un bruit gaussien aux images réelles et générées avant de les donner à D, avec un écart-type qui décroît linéairement.
+- **Mise en œuvre :** le code enveloppe D dans `InstanceNoise`, sans toucher à `model.py` ni à `D_train` / `G_train`.
+- **Ce qui n'est pas bruité :** le générateur et les images enregistrées.
+
+**Pourquoi ces deux méthodes :** elles agissent différemment sur ce que voit le GAN.
+- **La sélection** retire de la masse aux données.
+- **Le bruit** élargit les deux distributions pour qu'elles se recouvrent. C'est la raison théorique avancée par Arjovsky & Bottou (2017), et Mescheder et al. (2018) démontrent sa convergence locale sur le Dirac-GAN, avec σ > 0.
+
+## 2. Protocole et tests
+
+- **Budget commun :** 120 000 mises à jour pour chaque run, soit 200 époques sur 60 000 images, 267 sur 45 000 et 400 sur 30 000.
+- **Point de comparaison :** 60 000 mises à jour, le creux du FID de la référence. Ce point est fixé une fois pour tous les runs, ce qui évite de choisir le meilleur moment de chacun sur le test. Les valeurs finales sont aussi données.
+- **Une seule variable à la fois** par rapport à `data_ref`, sauf `sel_50_noise_01`, qui vérifie que les deux options se combinent.
+- **Répétitions :** 8 seeds pour `data_ref`, `sel_50` et `noise_01`, 3 seeds pour les autres variantes. Au total, 42 runs sur Juliet (GPU), avec le commit `0bf18f5` inscrit dans chaque `config.yaml`.
+- **Métriques :** FID, precision et recall k-NN (k = 3), calculés dans les features du classifieur partagé, sur 10 000 images, contre le MNIST test.
+- **Runs ratés :** un run est dit raté si son recall final est inférieur à 0,01 (§ 6). Les moyennes les excluent, et leur nombre est indiqué.
+
+| Test | Résultat |
+|---|---|
+| 7 tests unitaires ([`tests/test_preprocessing.py`](tests/test_preprocessing.py)) : score, taille et mélange des classes, planning de σ, aucun tirage aléatoire à σ = 0 | 7 réussis |
+| Options désactivées contre `main` : 2 époques sur CPU, même seed | Poids de G identiques au bit près |
+| Essai court de chaque option, avec reprise par `--resume` | Fonctionne |
+
+## 3. Ce que fait la sélection, sur les vraies images
 
 ![Images gardées et rejetées](figures/data/kept_vs_rejected.png)
 
@@ -25,27 +66,44 @@ On ajuste une gaussienne sur les features de chaque chiffre. Les images les plus
 - **À droite**, on trouve des styles réels mais minoritaires : 7 barré, 4 fermé, 1 avec empattement, 2 bouclé, traits épais ou très penchés.
 - **Sur MNIST, les images rejetées sont donc surtout de la diversité, pas des erreurs.** C'est la différence de fond avec ImageNet, où le papier retire des photos ratées ou hors sujet.
 
-## 2. Les scores
+Chaque sous-ensemble (10 000 images tirées au hasard) est ensuite comparé au MNIST test, comme s'il avait été généré. Cela donne **le mieux qu'un GAN parfait pourrait atteindre** en imitant ce sous-ensemble :
+
+| Sous-ensemble | Images | FID | Precision | Recall | FID moyen par chiffre |
+|---|---:|---:|---:|---:|---:|
+| Tout le train | 60 000 | 2,9 | 0,864 | 0,892 | 9,2 |
+| `sel_75` | 44 999 | 9,8 | 0,917 | 0,765 | 30,4 |
+| `sel_50` | 30 000 | 25,3 | 0,942 | 0,630 | 67,1 |
+| `sel_50_pixels` (ACP des pixels) | 30 000 | 21,8 | 0,933 | 0,640 | 64,7 |
+| `sel_50_global` (sans séparer les chiffres) | 30 000 | **180,0** | 0,923 | 0,654 | |
+
+**Lecture :**
+- **La sélection rend les données plus « propres »** (precision de 0,86 à 0,94), mais **plus étroites** (recall de 0,89 à 0,63). Elle retire aussi la diversité qu'il faudrait reproduire.
+- **Sélectionner sans séparer les chiffres déséquilibre les classes :** il reste 1,4 % de 2 et 21,7 % de 1, d'où un FID de 180 avant même tout entraînement. C'est pour cela que le papier sélectionne par classe.
+- **Les pixels donnent presque le même sous-ensemble que les features** (FID 21,8 contre 25,3). La sélection ne dépend donc pas beaucoup du classifieur.
+
+## 4. Les scores des GAN
 
 ![FID, precision et recall à 60k mises à jour](figures/report/scores.png)
 
-*Barre : moyenne des runs réussis. Points : chaque run. Losange blanc : le même score calculé sur les vraies images que voit la variante, c'est-à-dire ce qu'un GAN parfait obtiendrait.*
+*Barre : moyenne des runs réussis. Points : chaque run. Losange blanc : le même score sur les vraies images que voit la variante (§ 3).*
 
-| Variante | FID ↓ | Precision ↑ | Recall ↑ | Runs ratés |
-|---|---:|---:|---:|---:|
-| `data_ref` (aucune option) | **75,7 ± 10,0** | 0,753 | **0,718** | 3 / 8 |
-| `sel_75` (garde 75 %) | 215,9 ± 39,4 | 0,837 | 0,563 | 0 / 3 |
-| `sel_50` (garde 50 %) | 331,4 ± 13,3 | 0,843 | 0,382 | 4 / 8 |
-| `sel_50_global` (50 %, sans séparer les chiffres) | 439,8 ± 12,7 | 0,801 | 0,356 | 0 / 3 |
-| `noise_01` (σ = 0,1 → 0) | **64,6 ± 4,6** | 0,764 | **0,718** | 4 / 8 |
-| `noise_03` (σ = 0,3 → 0) | 67,7 ± 4,8 | 0,763 | 0,719 | 0 / 3 |
-| `sel_50_noise_01` (les deux) | 336,4 ± 20,1 | **0,859** | 0,392 | 0 / 3 |
+| Variante | Runs ratés | FID à 60k ↓ | Precision à 60k ↑ | Recall à 60k ↑ | FID final | Precision finale | Recall final |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `data_ref` (aucune option) | 3 / 8 | **75,7 ± 10,0** | 0,753 | **0,718** | 226,6 | 0,851 | 0,745 |
+| `sel_75` | 0 / 3 | 215,9 ± 39,4 | 0,837 | 0,563 | 443,2 | 0,893 | 0,581 |
+| `sel_50` | 4 / 8 | 331,4 ± 13,3 | 0,843 | 0,382 | 729,0 | 0,932 | 0,362 |
+| `sel_50_global` | 0 / 3 | 439,8 ± 12,7 | 0,801 | 0,356 | 515,0 | 0,881 | 0,455 |
+| `sel_50_pixels` | 2 / 3 | 509,5 (1 run) | 0,882 | 0,331 | 836,2 | 0,931 | 0,318 |
+| `noise_01` (σ = 0,1 → 0) | 4 / 8 | **64,6 ± 4,6** | 0,764 | **0,718** | 230,9 | 0,853 | 0,746 |
+| `noise_03` (σ = 0,3 → 0) | 0 / 3 | 67,7 ± 4,8 | 0,763 | 0,719 | 222,9 | 0,848 | 0,772 |
+| `noise_01_const` (σ = 0,1 fixe) | 2 / 3 | 72,7 (1 run) | 0,799 | 0,700 | 196,2 | 0,841 | 0,770 |
+| `sel_50_noise_01` (les deux) | 0 / 3 | 336,4 ± 20,1 | **0,859** | 0,392 | 721,1 | 0,925 | 0,377 |
 
 **Lecture :**
 - **La sélection fait monter la precision** (0,75 → 0,84) et **chuter le recall** (0,72 → 0,38). Plus on sélectionne, plus l'effet est fort.
-- **Le losange limite ce que le GAN peut atteindre.** Avec 50 % des images, même un GAN parfait aurait un recall de 0,63 et un FID de 25 : on s'est fixé un plafond plus bas avant même d'entraîner.
-- **Le bruit ne déplace aucune barre** au-delà de l'écart entre seeds (Welch : p = 0,10 pour σ = 0,1, p = 0,23 pour σ = 0,3).
-- **Combiner les deux** donne le comportement de la sélection seule : le bruit n'y ajoute rien.
+- **Le losange limite ce que le GAN peut atteindre.** Avec 50 % des images, même un GAN parfait aurait un recall de 0,63 et un FID de 25 : on s'impose un plafond plus bas avant même d'entraîner.
+- **Le bruit ne déplace aucune barre** au-delà de l'écart entre seeds (test de Welch : p = 0,10 pour σ = 0,1, p = 0,23 pour σ = 0,3). L'écart s'annule à la fin.
+- **Combiner les deux options** donne le comportement de la sélection seule : le bruit n'y ajoute rien.
 
 ![Precision contre recall](figures/report/precision_recall.png)
 
@@ -56,7 +114,7 @@ On ajuste une gaussienne sur les features de chaque chiffre. Les images les plus
 - **Le bruit ne crée pas de troisième nuage** : ses points se mélangent à ceux de la référence.
 - **Aucun GAN n'atteint son étoile.** L'écart restant vient du modèle, pas des données.
 
-## 3. Ce que ça donne en images
+## 5. Ce que ça donne en images
 
 ![Exemples à 60k mises à jour](figures/report/examples_60k.png)
 
@@ -65,7 +123,7 @@ On ajuste une gaussienne sur les features de chaque chiffre. Les images les plus
 **Lecture :**
 - **`data_ref`** : les 10 chiffres sont présents, avec des styles variés. On voit quelques artefacts, comme une tache en ligne 5.
 - **`sel_75` et `sel_50`** : les traits sont plus nets et plus réguliers, mais les grilles sont dominées par des 1, des 7 et des 9. Le 0 est absent de la grille `sel_50`. C'est exactement « precision ↑, recall ↓ ».
-- **`sel_50_global`** : en plus, les chiffres rares dans le sous-ensemble (2, 5) se raréfient encore.
+- **`sel_50_global`** : les chiffres déjà rares dans son sous-ensemble (2, 5) se raréfient encore.
 - **`noise_01` et `noise_03`** : visuellement indiscernables de la référence.
 
 ![Mélange des chiffres générés](figures/report/class_bars.png)
@@ -73,12 +131,28 @@ On ajuste une gaussienne sur les features de chaque chiffre. Les images les plus
 *Gris : les données d'entraînement, équilibrées dans les deux cas. Couleur : les images générées, à 60k et en fin d'entraînement.*
 
 **Lecture :**
-- **La sélection est faite chiffre par chiffre.** Les données vues par `sel_50` restent donc équilibrées, à 10 % par chiffre.
+- **La sélection est faite chiffre par chiffre**, donc les données vues par `sel_50` restent équilibrées, à 10 % par chiffre.
 - **Le GAN ne reproduit pourtant pas cet équilibre :** il génère 0,4 % de 0, 2,4 % de 2, et 16 à 17 % de 1, de 7 et de 9.
-- **La raison :** notre générateur n'est pas conditionnel, et rien ne l'oblige à couvrir chaque chiffre. Dans le papier, le modèle reçoit la classe en entrée, et ce problème n'existe pas.
-- **Hypothèse :** en retirant les images « frontières » entre chiffres, la sélection éloigne les chiffres les uns des autres. Mesuré dans les features, le rapport entre la distance à l'autre chiffre le plus proche et la distance au même chiffre passe de 3,6 à 5,2. Un générateur qui part d'un z continu a plus de mal à atteindre des modes isolés. Cette mesure montre l'écart, pas qu'il est la cause.
+- **La raison :** notre générateur n'est pas conditionnel, et rien ne l'oblige à couvrir chaque chiffre. Dans le papier, le modèle reçoit la classe en entrée, et ce problème ne se pose pas.
+- **Une piste (hypothèse) :** en retirant les images « frontières » entre chiffres, la sélection éloigne les chiffres les uns des autres. On compare la distance à l'image d'un autre chiffre la plus proche et la distance à l'image du même chiffre la plus proche. Leur rapport passe de 3,6 à 5,2 dans les features, et de 3,2 à 3,7 en pixels. Un générateur qui part d'un z continu atteint plus difficilement des modes isolés. La mesure montre que l'écart existe, pas qu'il est la cause : pour le savoir, il faudrait réinjecter les images frontières.
 
-## 4. Au fil de l'entraînement
+**Qualité à chiffre fixé.** Pour séparer la qualité des traits du mélange des chiffres, on calcule le FID de chaque chiffre généré contre le même chiffre réel. Le chiffre est celui prédit par le classifieur, sur 50 000 images du générateur final. On ne garde que les chiffres d'au moins 500 images, puis on fait la moyenne.
+
+| Variante | FID moyen par chiffre | Plancher (vraies images) | Excès | Chiffres pris en compte |
+|---|---:|---:|---:|---:|
+| `data_ref` | 71,7 | 9,2 | 63 | 10 |
+| `sel_75` | 79,6 | 30,4 | 49 | 8,3 |
+| `sel_50` | 130,5 | 67,1 | 63 | 8 |
+| `noise_01` | 64,1 | 9,2 | 55 | 9,8 |
+| `noise_03` | 55,5 | 9,2 | 46 | 9,3 |
+
+**Lecture :**
+- **Le FID global de la sélection vient surtout du mélange des chiffres.** En fin d'entraînement, `sel_50` vaut 729 au global, mais 131 à chiffre fixé.
+- **Au-dessus du plancher, `sel_50` et `data_ref` ont le même excès (63).** Le GAN n'apprend pas mieux la distribution réduite : il apprend seulement une cible plus étroite.
+- **`noise_03` fait mieux que la référence à chiffre fixé** (55,5 contre 71,7 ; p = 0,04). Mais ce test ne porte que sur 3 runs et n'est pas corrigé pour le nombre de comparaisons : c'est un indice à revérifier, pas un résultat.
+- **Le nombre de chiffres pris en compte varie d'une ligne à l'autre** (`sel_50` exclut notamment le 0 et le 2) : les excès se comparent donc avec prudence.
+
+## 6. Au fil de l'entraînement
 
 ![FID selon le nombre de mises à jour](figures/report/fid_curves.png)
 
@@ -88,23 +162,26 @@ On ajuste une gaussienne sur les features de chaque chiffre. Les images les plus
 
 **Lecture :**
 - **Toutes les courbes sont en U.** Le meilleur FID se situe vers 48 000-72 000 mises à jour pour la référence, et vers 36 000-48 000 pour la sélection, qui atteint son optimum plus tôt.
-- **À droite des courbes, les images ne se dégradent pas, elles se spécialisent.** À 120 000 mises à jour, les chiffres de `data_ref` sont aussi nets qu'à 60 000, et la precision passe même de 0,75 à 0,85. Mais les 1 envahissent la grille : ils passent de 16 % à 28 % des images, et les 2 tombent à 1,3 %. Le FID, sensible au mélange des chiffres, remonte de 76 à 227.
+- **À droite des courbes, les images ne se dégradent pas, elles se spécialisent.** À 120 000 mises à jour, les chiffres de `data_ref` sont aussi nets qu'à 60 000, et la precision passe même de 0,75 à 0,85. Mais les 1 envahissent la grille : ils passent de 16 % à 28 % des images, tandis que les 2 tombent de 4,8 % à 1,3 %. Le FID, sensible au mélange des chiffres, remonte de 76 à 227.
+- **Le mélange final ressemble à celui d'une sélection globale à 50 %** : la corrélation passe de 0,78 à 60k à 0,95 à la fin, sur 10 classes. Le GAN semble concentrer sa masse sur les chiffres les plus denses, sans qu'on puisse en conclure la cause.
 - **Le bruit ne retarde pas cette dérive** : à droite, les quatre courbes restent superposées jusqu'au bout.
-- **Conséquence pratique** pour le volet Entraînement : il faut arrêter l'entraînement vers 60 000 mises à jour, ou garder le checkpoint au meilleur FID sur une validation. 200 époques font pire que 100.
+- **Cela explique un écart constaté au début du projet :** la baseline à 50 époques (30 000 mises à jour) était encore en pleine descente.
+- **Conséquence pratique** pour le volet Entraînement : arrêter vers 60 000 mises à jour, ou garder le checkpoint au meilleur FID sur une validation. 200 époques font pire que 100.
 
-## 5. Les runs ratés
+## 7. Les runs ratés
 
 ![Effondrement de l'entraînement](figures/report/collapse.png)
 
 *À gauche : score moyen que D donne aux vraies images, pour les 8 seeds de `data_ref`. À droite : ce que produit un run raté.*
 
 **Lecture :**
-- **Ce n'est pas un mode collapse sur un chiffre.** Le générateur sort la même tache de bruit pour tous les z. Les 15 runs ratés ont tous cet aspect, et le classifieur les range ensuite le plus souvent dans « 8 » (11 runs sur 15). Le rapport détaillé parle d'effondrement « sur 1 à 3 chiffres » : c'est la lecture du classifieur, pas de l'image.
-- **Tout se joue au tout début.** D reconnaît les vraies images avec certitude (D(x) = 1) dès l'époque 2 à 7, et G ne reçoit plus de gradient utile. Les runs sains, eux, oscillent entre 0,7 et 0,85.
-- **Ni la sélection ni le bruit n'y changent quoi que ce soit :** 3 runs ratés sur 8 pour la référence, 4 sur 8 pour `sel_50` et pour `noise_01` (test exact de Fisher, p = 1). On aurait pu attendre mieux du bruit, qui est censé rendre la tâche de D plus difficile. Il est sans doute trop faible (σ = 0,1 pour des pixels dans [−1, 1]) pour empêcher D de gagner dès l'époque 2 ; nous ne l'avons pas vérifié avec un σ plus grand au départ.
+- **Ce n'est pas un mode collapse sur un chiffre.** Le générateur sort la même tache de bruit pour tous les z, et les 15 runs ratés ont tous cet aspect. Le classifieur les range ensuite le plus souvent dans « 8 » (11 runs sur 15) : c'est ce qui donnait l'illusion d'un effondrement « sur un chiffre ».
+- **Tout se joue au tout début.** D reconnaît les vraies images avec certitude (D(x) = 1) dès l'époque 2 à 7. G ne reçoit alors plus de gradient utile, et le FID ne bouge plus. Les runs sains, eux, oscillent entre 0,7 et 0,85.
+- **Ni la sélection ni le bruit n'y changent quoi que ce soit.** On compte 3 runs ratés sur 8 pour la référence, et 4 sur 8 pour `sel_50` comme pour `noise_01` (test exact de Fisher, p = 1). Le 0 sur 3 de `noise_03` et de `sel_75` ne prouve rien : avec un taux de base de 3/8, il arrive une fois sur quatre par hasard. Sur les 3 premières seeds, `sel_50` semblait rater plus souvent que la référence (2 sur 3 contre 0 sur 3) ; l'effet a disparu avec 8 seeds.
+- **Pourquoi le bruit n'aide pas :** on pouvait en attendre mieux, puisqu'il est censé rendre la tâche de D plus difficile. Il est sans doute trop faible (σ = 0,1 pour des pixels dans [−1, 1]) pour empêcher D de gagner dès l'époque 2. Nous ne l'avons pas vérifié avec un σ initial plus grand.
 - **Conséquence pratique :** ce problème se règle côté entraînement. On peut surveiller D(x) et relancer le run s'il dépasse 0,98 avant l'époque 10, ou changer de perte, ce que teste le volet Entraînement.
 
-## 6. Ce que D a appris
+## 8. Ce que D a appris
 
 ![Score de D sur images vues, rejetées et test](figures/report/d_scores.png)
 
@@ -112,37 +189,82 @@ On ajuste une gaussienne sur les features de chaque chiffre. Les images les plus
 
 **Lecture :**
 - **D reconnaît les images qu'il a vues :** score moyen de 0,78, contre 0,58 sur le MNIST test.
-- **Les images rejetées par la sélection, qu'il n'a jamais vues, reçoivent le même score que le test** (0,59). D a donc mémorisé ses images, il n'a pas appris un critère de « typicité ».
-- **Il rejette pourtant plus souvent les images atypiques :** près de 1 000 images rejetées tombent dans la tranche D(x) < 0,02, contre 600 pour le test.
-- **La référence montre le même écart** (0,68-0,76 sur les images vues, 0,51-0,60 sur le test, mesure ponctuelle hors script). Ce sur-apprentissage de D est une explication plausible de la dérive du § 4 : G est poussé vers ce que D a mémorisé.
+- **Les images rejetées par la sélection, qu'il n'a jamais vues, reçoivent le même score que le test** (0,59). D a donc mémorisé ses images ; il n'a pas appris un critère de « typicité ».
+- **Il rejette tout de même plus souvent les images atypiques :** près de 1 000 images rejetées tombent dans la tranche D(x) < 0,02, contre 600 pour le test.
+- **La référence montre le même écart :** 0,68 à 0,76 sur les images vues, 0,51 à 0,60 sur le test. Cette mesure a été faite une seule fois, hors script.
+- **Lien possible avec le § 6 :** ce sur-apprentissage de D expliquerait plausiblement la dérive, G étant poussé vers ce que D a mémorisé.
 
-## 7. Recommandations pour le modèle final
+## 9. Différences avec les papiers
+
+### Instance Selection
+
+| | Papier | Nous | Conséquence probable |
+|---|---|---|---|
+| **Générateur** | SAGAN, BigGAN : **conditionnels** | MLP **sans condition** | Le mélange des classes n'est pas imposé : 0 et 2 peuvent disparaître (§ 5) |
+| **Données** | ImageNet 64 à 256 px, 1 000 classes, images atypiques nombreuses | MNIST 28 px, 10 classes, déjà centré et propre | Moins de déchets à retirer : on enlève de la diversité utile (§ 3) |
+| **Représentation** | Inception pré-entraîné sur ImageNet | Petit CNN entraîné sur MNIST | Même logique ; `sel_50_pixels` teste une représentation indépendante de la métrique |
+| **Score** | Gaussienne, légèrement devant PPCA et KNN | Gaussienne, par chiffre | Identique |
+| **Rétention** | 10 à 90 %, meilleur FID à 40 % en 64×64 | 75 % et 50 % | Nos deux points ne couvrent pas les taux élevés, proches de 100 % |
+| **Capacité** | Réduite, ce que le papier présente comme un argument : moins de données à couvrir | G imposé (slides 74-75), D non modifié | Le gain n'est pas réinvesti dans un modèle mieux adapté |
+| **Référence** | Distribution d'entraînement complète | MNIST test complet | Même principe : on mesure contre les données non filtrées |
+| **Résultat** | FID de 17,2 à 9,1 (64×64), de 11,5 à 9,6 (128×128) ; recall de 0,66 à 0,50 | FID de 76 à 331 ; recall de 0,72 à 0,38 | Recall : même sens. FID : sens opposé |
+
+### Instance Noise
+
+| | Sønderby et al. (2017) | Nous |
+|---|---|---|
+| **Tâche** | Super-résolution, ImageNet | Génération sans condition, MNIST |
+| **Motivation** | Supports disjoints ; entraînement instable sans le bruit | Même hypothèse testée |
+| **Bruit** | Gaussien, linéairement de 0,1 à 0 | Identique pour `noise_01` ; on teste aussi σ = 0,3 et σ constant. Leur échelle d'images peut différer |
+| **Portée** | Les auteurs ne l'ont pas testé en génération | C'est ce qu'on teste ici |
+
+**Réponse à la question de départ.**
+- **Oui, filtrer les images change la distribution apprise**, dans le sens prévu par le papier pour la precision et le recall.
+- **Mais le gain du papier repose sur des hypothèses absentes ici :** un modèle conditionnel, des données qui contiennent de vrais déchets, et une capacité libérée puis réutilisée.
+- **Sur MNIST, avec un MLP sans condition,** la queue de la distribution est de la diversité utile, et la retirer coûte plus qu'elle ne rapporte.
+
+## 10. Recommandations pour le modèle final
 
 | Option | Recommandation | Raison |
 |---|---|---|
 | Instance Selection | **Désactivée** | FID ×4, recall ÷2, chiffres manquants |
 | Instance Noise | Désactivé, ou σ = 0,1 si l'on veut | Pas d'effet mesurable, pas de coût |
 | Durée d'entraînement | ≈ 60 000 mises à jour, ou meilleur checkpoint sur validation | Le FID remonte ensuite |
-| Runs ratés | Détecter D(x) > 0,98 tôt et relancer | 1 run sur 3 échoue, toutes options confondues |
+| Runs ratés | Détecter D(x) > 0,98 tôt et relancer | Plus d'un run sur trois échoue, toutes options confondues |
 
-**Ce qui pourrait faire marcher la sélection, non testé :**
+**Ce qui pourrait faire marcher la sélection (non testé) :**
 - **une rétention élevée** (90-95 %), pour ne retirer que les vraies anomalies ;
 - **un générateur conditionnel**, mais l'architecture est imposée ;
 - **une sélection par chiffre suivie d'un rééquilibrage** du mélange généré.
 
 ## Limites
 
-- **Peu de seeds** pour certaines variantes : 3, et un seul run réussi pour `sel_50_pixels` et `noise_01_const`.
-- **Le MNIST test sert de référence partout**, y compris pour choisir le point des 60 000 mises à jour. Il faudra refaire les chiffres retenus avec le split train / val de la branche de Quentin.
-- **Le FID utilise notre classifieur MNIST**, et non Inception : il n'est pas comparable à celui de l'évaluation officielle.
+- **Peu de seeds** pour certaines variantes : 3, et un seul run réussi pour `sel_50_pixels` et `noise_01_const`. Les variantes à 3 seeds ne permettent pas de conclure sur les runs ratés.
+- **Exclure les runs ratés** améliore les moyennes de toutes les variantes : les chiffres décrivent donc les runs qui ont réussi, pas toutes les tentatives.
+- **La métrique et la sélection partagent le même classifieur.** Ce biais est signalé pour le papier aussi. `sel_50_pixels` donne un sous-ensemble équivalent sur les vraies images, mais ne lève pas le biais pour l'évaluation.
+- **Le MNIST test sert de référence partout**, y compris pour choisir le point des 60 000 mises à jour. Nos runs utilisent les 60 000 images d'entraînement, car le split train / val de la branche `quentin/inference` n'est pas sur `main`. Avant le rapport final, il faudra refaire les chiffres retenus avec ce split.
+- **Le FID n'est pas comparable** à celui de l'évaluation officielle, qui utilise un autre extracteur, ni à celui des runs MPS : avec une même seed, la baseline y donne 161 puis 188 selon le run.
+- **Le FID par chiffre** utilise le chiffre prédit par le classifieur et le générateur final, et non celui à 60 000 mises à jour.
 - **Les exemples d'images** viennent d'une seule seed par variante. Les tableaux, eux, portent sur tous les runs réussis.
 
 ## Reproduire
 
 ```bash
-python figures/make_data_figures.py --real
-python figures/make_data_figures.py
-python figures/make_report_figures.py
+scripts/data_runs.sh                            # 9 variantes × seeds 0 à 2, sur Juliet
+python figures/make_data_figures.py --real      # vraies images : sous-ensembles, extrêmes, écarts entre chiffres
+python figures/make_data_figures.py             # bilan des runs : summary.csv, runs.csv
+python figures/make_data_figures.py --per-class # FID par chiffre (long)
+python figures/make_report_figures.py           # figures de ce rapport
+python -m pytest tests/test_preprocessing.py
 ```
 
-Les runs sont dans `runs/` : il faut les fichiers TensorBoard, ainsi que `D.pth` pour la figure du § 6. Les figures de ce rapport sont dans [`figures/report/`](figures/report/).
+- **Seeds 3 à 7** de `data_ref`, `noise_01` et `sel_50` : `python train.py --config configs/data/<variante>.yaml --seed <n>`.
+- **Données nécessaires :** les runs dans `runs/`, avec leurs fichiers TensorBoard, et `D.pth` pour la figure du § 8.
+- **Où sont les résultats :** les mesures brutes dans [`figures/data/`](figures/data/), les figures dans [`figures/report/`](figures/report/).
+
+## Sources
+
+- T. DeVries, M. Drozdzal, T. Taylor, [*Instance Selection for GANs*](https://arxiv.org/abs/2007.15255), NeurIPS 2020.
+- C. Sønderby, J. Caballero, L. Theis, W. Shi, F. Huszár, [*Amortised MAP Inference for Image Super-resolution*](https://arxiv.org/abs/1610.04490), ICLR 2017.
+- M. Arjovsky, L. Bottou, [*Towards Principled Methods for Training GANs*](https://arxiv.org/abs/1701.04862), ICLR 2017.
+- L. Mescheder, A. Geiger, S. Nowozin, [*Which Training Methods for GANs do actually Converge?*](https://proceedings.mlr.press/v80/mescheder18a.html), ICML 2018.
