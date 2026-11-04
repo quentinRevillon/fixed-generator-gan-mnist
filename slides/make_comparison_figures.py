@@ -142,15 +142,38 @@ def plot_data_samples(weights):
     fig.savefig(f'{OUT}/cmp_data_samples.png', dpi=200)
 
 
+def digit_shares(prefix, seeds):
+    """Part de chaque chiffre (en %), moyennée sur les seeds, d'après results.csv (classes reconnues par le petit CNN)."""
+    with open('results.csv', newline='', encoding='utf8') as f:
+        rows = {r['run']: r for r in csv.DictReader(f)}
+    counts = np.array([[int(c) for c in rows[f'{prefix}{s}']['classes'].split('-')] for s in seeds], dtype=float)
+    return 100 * (counts / counts.sum(axis=1, keepdims=True)).mean(axis=0)
+
+
 @torch.no_grad()
-def plot_loss_effect(weights):
-    """Même bruit, 100 époques avec EMA : perte BCE contre RpGAN + R1 (campagne finale de Noé)."""
-    fig, axes = plt.subplots(1, 2, figsize=(8.2, 4.1))
-    for ax, name, title in zip(axes, ('noe_ema100_baseline_s0.pth', 'noe_ema100_rpgan_r1_s1.pth'), ('BCE loss', 'RpGAN + R1')):
-        G = load_model(Generator(784), os.path.join(weights, name), 'cpu').eval()
-        image_grid(ax, G(fixed_noise()), title)
-    fig.tight_layout()
-    fig.savefig(f'{OUT}/cmp_loss_effect.png', dpi=200)
+def plot_loss_effect(weights=None):
+    """Ce que la perte change : la part de chaque chiffre, et la seed 2 (effondrée en BCE, stable en RpGAN + R1).
+
+    Campagne finale de Noé (100 époques, EMA) : poids versionnés dans runs/ema100_*/G.pth.
+    """
+    fig = plt.figure(figsize=(12.5, 4.3))
+    gs = fig.add_gridspec(1, 3, width_ratios=(1.55, 1, 1), wspace=0.12)
+    ax = fig.add_subplot(gs[0])
+    bce, rp = digit_shares('ema100_baseline_s', (0, 1)), digit_shares('ema100_rpgan_r1_s', (0, 1, 2))
+    x = np.arange(10)
+    ax.bar(x - 0.2, bce, 0.4, color=MUTED, label='BCE loss')
+    ax.bar(x + 0.2, rp, 0.4, color=ORANGE, label='RpGAN + R1')
+    ax.axhline(10, color=INK, linestyle='--', linewidth=1)
+    ax.text(10.45, 10, '10%', ha='right', va='bottom', fontsize=12, color=INK)
+    ax.set(xticks=x, xlabel='Generated digit', xlim=(-0.6, 10.5), ylim=(0, 17.5))
+    ax.set_yticks((0, 5, 10, 15), ['0%', '5%', '10%', '15%'])
+    ax.set_title('Share of each digit', loc='left', fontsize=15, color=INK)
+    ax.legend(frameon=False, fontsize=12, loc='upper left', ncol=2)
+    for i, (name, title) in enumerate((('ema100_baseline_s2', 'BCE, seed 2: collapsed'), ('ema100_rpgan_r1_s2', 'RpGAN + R1, seed 2'))):
+        G = load_model(Generator(784), f'runs/{name}/G.pth', 'cpu').eval()
+        image_grid(fig.add_subplot(gs[i + 1]), G(fixed_noise()), title)
+    fig.savefig(f'{OUT}/cmp_loss_effect.png', dpi=200, bbox_inches='tight')
+    print('BCE (seeds 0, 1)', bce.round(1), '| RpGAN + R1 (3 seeds)', rp.round(1))
 
 
 @torch.no_grad()

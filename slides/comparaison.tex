@@ -120,10 +120,11 @@
   {\small\textbf{Settings:} $\gamma = 1$ ($0.1$ diverges, $10$ is worse), EMA 0.999, 100 epochs}
 \end{frame}
 
-\begin{frame}{Training: images}
+\begin{frame}{Training: what the loss changes}
   \centering\vspace{0.4em}
-  \includegraphics[width=0.8\linewidth]{cmp_loss_effect.png}
-  \source{Same $z$ in both grids. One run per loss, 100 epochs.}
+  \includegraphics[width=0.94\linewidth]{cmp_loss_effect.png}\\[0.4em]
+  Right proportions, no collapsed seed. Single images are not sharper
+  \source{100 epochs, EMA. Shares: digits recognised by the small CNN, 10,000 images, mean over the stable seeds (BCE 2, RpGAN + R1 3). Same $z$ in both grids.}
 \end{frame}
 
 \begin{frame}{Training: results}
