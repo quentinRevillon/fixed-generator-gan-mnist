@@ -139,6 +139,33 @@
   \source{60k images, 100 epochs, EMA for all, against MNIST test, 3 seeds.}
 \end{frame}
 
+\begin{frame}{Training: testing $\gamma$ and seeds}
+  \vspace{0.2em}
+  \begin{columns}[T]
+    \column{0.5\textwidth}
+    \textbf{$\gamma$ = 0.1, 1 or 10}\\[0.2em]
+    {\footnotesize\color{muted}RpGAN + R1, everything else fixed}\\[0.6em]
+    {\footnotesize\begin{tabular}{@{}lccc@{}}
+      \toprule
+      $\gamma$ & CNN FID & Prec. & Stable \\
+      \midrule
+      0.1 & $> 2000$ & -- & 0 / 3 \\
+      \textbf{1} & \textbf{14.0 $\pm$ 0.9} & \textbf{0.72} & \textbf{3 / 3} \\
+      10 & 17.7 $\pm$ 0.9 & 0.67 & 3 / 3 \\
+      \bottomrule
+    \end{tabular}}\\[0.6em]
+    {\footnotesize Too weak: D wins, G diverges.\\ Too strong: D too smooth, worse FID.}
+    \column{0.46\textwidth}
+    \textbf{Seeds 0, 1, 2}\\[0.2em]
+    {\footnotesize\color{muted}for every setting. A seed fixes the initial weights, the batch order and the $z$ drawn}\\[0.6em]
+    {\footnotesize We report mean $\pm$ std and count collapsed runs.\\[0.6em]
+    BCE: seed 2 collapses (FID 2770)\\
+    RpGAN + R1: 3 seeds out of 3 converge\\[0.6em]
+    Spread between seeds ($\pm$ 0.9) $\ll$ gap between losses (59 vs 14)}
+  \end{columns}
+  \source{100 epochs, EMA 0.999, batch 100, Adam $2\cdot10^{-4}$, against MNIST test. $\gamma = 0.1$: runs stopped at epoch 27.}
+\end{frame}
+
 \begin{frame}{Sampling: method}
   \vspace{0.8em}
   D scores each image, we keep it with probability $\sigma\big(\hat F(x)\big)$
