@@ -54,9 +54,10 @@
     & Images & Training & FID with & Against \\
     \midrule
     \textbf{Baseline} & 50k & 200 epochs, 1 seed & Inception, CNN & validation \\
-    \textbf{Sampling} & baseline generator & none & Inception, CNN & validation \\
+    \textbf{Sampling} & baseline G & none & Inception, CNN & validation \\
     \textbf{Data} & 60k or fewer & 120k updates, 3 to 8 seeds & CNN & test \\
     \textbf{Training} & 60k & 100 epochs, 3 seeds & CNN & test \\
+    \textbf{Common} & 50k & 200 epochs, 3 seeds & Inception, CNN & test \\
     \bottomrule
   \end{tabular}}
 
@@ -87,7 +88,7 @@
   \textbf{Selection:} score each image, keep the highest scores of each digit
   \[ s(x) = -\big(f(x)-\mu_c\big)^\top \Sigma_c^{-1} \big(f(x)-\mu_c\big) \]
   {\small $s(x)$ is high when $x$ looks like the average image of its digit $c$}\\[0.3em]
-  {\small\textbf{Settings:} keep 75\% or 50\%. $f$: CNN features}\\[1.3em]
+  {\small\textbf{Settings:} keep 95\%, 90\%, 75\% or 50\%. $f$: CNN features}\\[1.3em]
   \textbf{Noise:} add noise to D's inputs
   \[ D(x + \sigma_t\,\varepsilon), \quad \varepsilon \sim \mathcal{N}(0, I) \]
   {\small\textbf{Settings:} $\sigma_0 = 0.1$ or $0.3$, fading to 0 over 100 epochs}
@@ -107,7 +108,7 @@
 \begin{frame}{Data: results}
   \centering\vspace{0.4em}
   \includegraphics[width=\linewidth]{cmp_data_results.png}\\[0.6em]
-  Selection 50\%: only 0.4\% of 0s are generated
+  No retention beats the reference. 19 of 52 runs fail.
   \source{Read at 60k updates. Against MNIST test, 3 to 8 seeds, collapsed runs excluded.}
 \end{frame}
 
@@ -153,6 +154,19 @@
   \source{Generator at epoch 200, against validation, 3 draws. 1.6 s on CPU for 10,000 images at percentile 80.}
 \end{frame}
 
+\begin{frame}{Common protocol: results}
+  \centering\vspace{0.4em}
+  \includegraphics[width=\linewidth]{cmp_combined_results.png}\\[0.6em]
+  The loss improves both FIDs. DRS only helps the baseline.
+  \source{Same split, 200 epochs, against MNIST test, means over 3 seeds.}
+\end{frame}
+
+\begin{frame}{Common protocol: images}
+  \centering\vspace{1.4em}
+  \includegraphics[width=\linewidth]{cmp_combined_samples.png}
+  \source{Same $z$ except for DRS, which keeps part of the proposals. One run per method.}
+\end{frame}
+
 \begin{frame}{Compared with the papers}
   \vspace{0.6em}
   {\small\begin{tabular}{@{}lll@{}}
@@ -173,20 +187,22 @@
 \end{frame}
 
 \begin{frame}{Conclusion}
-  \vspace{0.6em}
-  {\Large\textbf{The loss gives the largest gain.}}\\[1.2em]
-  \begin{tabular}{@{}lcc@{}}
+  \vspace{0.4em}
+  {\Large\textbf{The loss gives the largest gain.}}\\[0.9em]
+  {\small\begin{tabular}{@{}lccc@{}}
     \toprule
-    & Small CNN FID & Effect \\
+    & Inception FID & CNN FID & Digit gap \\
     \midrule
-    Data: selection 50\% & 76 $\to$ 331 & worse \\
-    Data: noise 0.1 & 76 $\to$ 65 & not significant \\
-    \textbf{Training: RpGAN + R1} & \textbf{59 $\to$ 14} & \textbf{best, no collapse} \\
-    Sampling: DRS & 169 $\to$ 146 & modest, cheap \\
+    Baseline & 38.7 & 182 & 24\% \\
+    Baseline + DRS & 34.4 & 154 & 21\% \\
+    \textbf{RpGAN + R1 + EMA} & \textbf{22.1} & \textbf{9.9} & \textbf{4\%} \\
+    \phantom{R}+ DRS & 22.0 & 14.2 & 4\% \\
+    \phantom{R}+ noise 0.3 & 21.4 & 9.0 & 4\% \\
     \bottomrule
-  \end{tabular}\\[1.2em]
-  \textbf{Next:} same split and budget for all, then RpGAN + R1 with DRS.
-  \source{Each row has its own protocol.}
+  \end{tabular}}\\[0.9em]
+  Selection never beats the reference. Noise has no clear effect.\\[0.4em]
+  \textbf{Proposed final model:} RpGAN + R1 + EMA.
+  \source{Table: common protocol, against MNIST test, 3 seeds. Digit gap: share of images off the real digit proportions.}
 \end{frame}
 
 \end{document}

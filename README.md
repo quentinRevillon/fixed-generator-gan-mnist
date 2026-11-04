@@ -13,10 +13,11 @@ On mesure leur effet sur la qualité et la diversité : FID, précision, rappel 
 |---|---|---|
 | La baseline : réglages, résultats, vérifications | `baseline.md` | `quentin/baseline` |
 | Le volet Inférence : DRS, OBRS, troncature | `inference-drs.md` | `quentin/inference` |
-| Le volet Données | `rapport-donnée.md` | `nico/preprocessing` |
+| Le volet Données | `rapport-donnée-illustré.md` | `nico/preprocessing` |
 | Le volet Entraînement | `training-r3gan.md` | `noe/training` |
 | Les choix d'organisation et leurs sources | [architecture-choix.md](architecture-choix.md) | toutes |
-| Les slides | `slides/presentation.tex` | `quentin/inference` |
+| Les slides | `slides/comparaison.tex`, `slides/slides.pdf` | `quentin/comparaison` |
+| La comparaison sur protocole commun | `results/comparison_local.csv` | `quentin/comparaison` |
 
 ## Les branches
 

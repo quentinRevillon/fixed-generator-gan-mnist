@@ -1,11 +1,11 @@
 """Figures de slides/comparaison.tex (dans slides/figures/), avec des textes en anglais.
 
 Lit runs/baseline_200ep_prof/, figures/data/kept_vs_rejected.png (Nicodème), les générateurs de Noé et, s'il existe,
-results/comparison_test.csv (produit par scripts/compare.sh).
+results/comparison_local.csv (campagne commune de Noé, scripts/compare_local.py).
 
 Utilisation, depuis la racine du repo :
     python slides/make_comparison_figures.py --weights <dossier>
-Le dossier contient G_ep50.pth, G_ep120.pth, G_ep200.pth, les noe_*.pth et les nico_*.pth (poids de leurs branches).
+Le dossier contient G_ep50.pth, G_ep120.pth, G_ep200.pth, les noe_*.pth, nico_*.pth et cmploc_*.pth (poids de leurs branches).
 """
 import argparse
 import csv
@@ -31,19 +31,11 @@ from sampling import calibration_pool, drs_f_hat, propose, sample
 from utils import load_model
 
 OUT = 'slides/figures'
-RESULTS = 'results/comparison_test.csv'
+RESULTS = 'results/comparison_local.csv'
 RUN = 'runs/baseline_200ep_prof'
 EPOCHS = (50, 120, 200)
 SURFACE, INK, MUTED, GRID, BLUE, ORANGE, AQUA = '#fcfcfb', '#0b0b0b', '#52514e', '#e6e5e0', '#2a78d6', '#eb6834', '#1baf7a'
 LIGHT_BLUE = '#a9cbef'
-# Nom dans le CSV -> (étiquette de la slide, couleur du levier).
-CONFIGS = {'Baseline commune': ('Common baseline', INK),
-           'Bruit': ('Data: noise', AQUA),
-           'Selection': ('Data: selection', AQUA),
-           'RpGAN + R1': ('Training: RpGAN + R1', ORANGE),
-           'R3GAN': ('Training: R3GAN', ORANGE),
-           'DRS': ('Sampling: DRS', BLUE),
-           'R3GAN + DRS': ('R3GAN + DRS', MUTED)}
 plt.rcParams.update({'font.size': 15, 'axes.edgecolor': MUTED, 'axes.labelcolor': MUTED, 'xtick.color': MUTED,
                      'ytick.color': MUTED, 'axes.spines.top': False, 'axes.spines.right': False,
                      'figure.facecolor': SURFACE, 'axes.facecolor': SURFACE, 'savefig.facecolor': SURFACE})
@@ -195,7 +187,7 @@ def bar_panels(configs, panels, path):
 
     configs : (étiquette, couleur, {colonne : valeur}) ; panels : (colonne, titre, format).
     """
-    fig, axes = plt.subplots(1, len(panels), figsize=(10.5, 3.9), sharey=True)
+    fig, axes = plt.subplots(1, len(panels), figsize=(3.5 * len(panels), 3.9), sharey=True)
     for ax, (key, title, fmt) in zip(axes, panels):
         values = [c[2][key] for c in configs]
         ax.barh([c[0] for c in configs], values, color=[c[1] for c in configs], height=0.68)
@@ -215,7 +207,8 @@ def plot_data_results():
     with open('figures/data/summary.csv', newline='') as f:
         rows = {r['variant']: r for r in csv.DictReader(f)}
     variants = (('Reference', 'data_ref', MUTED), ('Noise 0.1', 'noise_01', AQUA), ('Noise 0.3', 'noise_03', AQUA),
-                ('Selection 75%', 'sel_75', BLUE), ('Selection 50%', 'sel_50', BLUE))
+                ('Selection 95%', 'sel_95', BLUE), ('Selection 90%', 'sel_90', BLUE), ('Selection 75%', 'sel_75', BLUE),
+                ('Selection 50%', 'sel_50', BLUE))
     configs = [(label, color, {k: float(rows[v][k]) for k in ('fid_60k', 'precision_60k', 'recall_60k')}) for label, v, color in variants]
     bar_panels(configs, (('fid_60k', 'CNN FID', '{:.0f}'), ('precision_60k', 'CNN precision', '{:.2f}'), ('recall_60k', 'CNN recall', '{:.2f}')),
                f'{OUT}/cmp_data_results.png')
@@ -254,98 +247,37 @@ def plot_sampling_results():
                f'{OUT}/cmp_sampling_results.png')
 
 
-def load_comparison():
-    """{nom : colonnes} : une valeur par seed d'entraînement pour FID, précision, rappel ; parts de chiffres cumulées."""
-    groups = defaultdict(list)
+def plot_combined_results():
+    """Protocole commun (results/comparison_local.csv, campagne de Noé) : moyennes sur 3 seeds, contre MNIST test."""
     with open(RESULTS, newline='') as f:
-        for row in csv.DictReader(f):
-            groups[row['name']].append(row)
-    out = {}
-    for name, rows in groups.items():
-        counts = np.array([[int(c) for c in r['classes'].split('-')] for r in rows]).sum(0)
-        shares = 100 * counts / counts.sum()
-        out[name] = {k: np.array([float(r[k]) for r in rows]) for k in ('fid', 'precision', 'recall', 'fid_cnn', 'precision_cnn', 'recall_cnn', 'acceptance_rate')}
-        out[name].update(shares=shares, imbalance=float(np.abs(shares - 10).sum() / 2))
-    return out
-
-
-def plot_fid(results):
-    """Les deux FID par configuration : un point par seed d'entraînement, moyenne écrite, baseline en pointillés."""
-    names = [n for n in CONFIGS if n in results]
-    fig, axes = plt.subplots(1, 2, figsize=(10.5, 4.6), sharey=True)
-    for ax, (key, title) in zip(axes, (('fid', 'Inception FID'), ('fid_cnn', 'Small CNN FID'))):
-        ax.axvline(results['Baseline commune'][key].mean(), color=INK, linestyle=':', linewidth=1.5)
-        for y, name in enumerate(names):
-            values = results[name][key]
-            ax.scatter(values, [y] * len(values), color=CONFIGS[name][1], s=80, alpha=0.85, zorder=3)
-            ax.annotate(f'{values.mean():.0f}', (values.max(), y), xytext=(10, 0), textcoords='offset points', va='center', color=INK)
-        ax.set(xscale='log', xlabel='Lower is better')
-        ax.set_title(title, loc='left', fontsize=16, color=INK)
-        ax.grid(axis='x', color=GRID)
-        ax.set_axisbelow(True)
-    axes[0].set_yticks(range(len(names)), [CONFIGS[n][0] for n in names])
-    axes[0].invert_yaxis()
-    fig.tight_layout()
-    fig.savefig(f'{OUT}/cmp_fid.png', dpi=200)
-
-
-def plot_precision_recall(results):
-    """Précision et rappel moyens selon les deux réseaux : une marque par configuration, avec son nom."""
-    fig, axes = plt.subplots(1, 2, figsize=(10.5, 4.6))
-    panels = (('precision', 'recall', 'VGG'), ('precision_cnn', 'recall_cnn', 'Small CNN'))
-    for ax, (precision, recall, title) in zip(axes, panels):
-        for name, (label, color) in CONFIGS.items():
-            if name in results:
-                r, p = results[name][recall].mean(), results[name][precision].mean()
-                ax.scatter([r], [p], color=color, s=100, zorder=3)
-                ax.annotate(label.split(': ')[-1], (r, p), xytext=(7, 5), textcoords='offset points', fontsize=11, color=INK)
-        ax.set(xlabel='Recall', ylabel='Precision')
-        ax.set_title(title, loc='left', fontsize=16, color=INK)
-        ax.grid(color=GRID)
-        ax.set_axisbelow(True)
-    fig.tight_layout()
-    fig.savefig(f'{OUT}/cmp_pr.png', dpi=200)
-
-
-def plot_balance(results):
-    """Annexe : part des images à changer de chiffre pour atteindre 10 % partout, axe partant de 0."""
-    names = [n for n in CONFIGS if n in results]
-    values = [results[n]['imbalance'] for n in names]
-    fig, ax = plt.subplots(figsize=(10.5, 4.6))
-    ax.barh([CONFIGS[n][0] for n in names], values, color=[CONFIGS[n][1] for n in names], height=0.68)
-    for y, value in enumerate(values):
-        ax.annotate(f'{value:.0f}%', (value, y), xytext=(6, 0), textcoords='offset points', va='center', color=INK)
-    ax.invert_yaxis()
-    ax.set(xlabel='% of images to change for a perfect 10% of each digit', xlim=(0, max(values) * 1.15))
-    ax.grid(axis='x', color=GRID)
-    ax.set_axisbelow(True)
-    fig.tight_layout()
-    fig.savefig(f'{OUT}/cmp_balance.png', dpi=200)
+        rows = list(csv.DictReader(f))
+    variants = (('Baseline', 'Baseline commune', MUTED), ('Baseline + DRS', 'Baseline commune + DRS', BLUE),
+                ('RpGAN + R1 + EMA', 'RpGAN + R1 + EMA', ORANGE), ('+ DRS', 'RpGAN + R1 + EMA + DRS', BLUE),
+                ('+ noise 0.3', 'RpGAN + R1 + EMA + bruit 0,3', AQUA), ('+ noise 0.3 + DRS', 'RpGAN + R1 + EMA + bruit 0,3 + DRS', BLUE))
+    keys = ('fid', 'fid_cnn', 'precision_cnn', 'recall_cnn')
+    configs = []
+    for label, name, color in variants:
+        group = [r for r in rows if r['name'] == name]
+        configs.append((label, color, {k: np.mean([float(r[k]) for r in group]) for k in keys}))
+        print(label, len(group), {k: round(v, 3) for k, v in configs[-1][2].items()})
+    bar_panels(configs, (('fid', 'Inception FID', '{:.1f}'), ('fid_cnn', 'CNN FID', '{:.1f}'), ('precision_cnn', 'CNN precision', '{:.2f}'),
+                         ('recall_cnn', 'CNN recall', '{:.2f}')), f'{OUT}/cmp_combined_results.png')
 
 
 @torch.no_grad()
-def plot_samples():
-    """Une grille par approche, seed d'entraînement 0 : mêmes z, sauf pour le DRS qui garde une partie des propositions."""
+def plot_combined_samples(weights):
+    """Protocole commun, seed 0 : mêmes z, sauf pour le DRS qui garde une partie des propositions."""
     z = fixed_noise()
-    runs = (('Baseline', 'cmp_baseline_s0'), ('Noise', 'cmp_noise_01_s0'), ('Selection', 'cmp_sel_50_s0'), ('R3GAN', 'cmp_r3gan_s0'))
-    fig, axes = plt.subplots(1, len(runs) + 1, figsize=(13, 3.1))
-    for ax, (title, run) in zip(axes, runs):
-        G = load_model(Generator(784), f'runs/{run}/G_best.pth', 'cpu').eval()
-        image_grid(ax, G(z), title)
-    G = load_model(Generator(784), 'runs/cmp_baseline_s0/G_best.pth', 'cpu').eval()
-    D = load_model(Discriminator(784), 'runs/cmp_baseline_s0/D_best.pth', 'cpu').eval()
-    image_grid(axes[-1], sample(G, D, len(z), {'method': 'drs_azadi', 'percentile': 80}, seed=0, batch_size=1000)[0], 'DRS')
+    G = load_model(Generator(784), os.path.join(weights, 'cmploc_baseline_G.pth'), 'cpu').eval()
+    D = load_model(Discriminator(784), os.path.join(weights, 'cmploc_baseline_D.pth'), 'cpu').eval()
+    grids = [('Baseline', G(z)), ('Baseline + DRS', sample(G, D, len(z), {'method': 'drs_azadi', 'percentile': 80}, seed=0, batch_size=1000)[0])]
+    for title, name in (('RpGAN + R1 + EMA', 'cmploc_rpgan_r1_ema_G.pth'), ('+ noise 0.3', 'cmploc_rpgan_r1_ema_noise_03_G.pth')):
+        grids.append((title, load_model(Generator(784), os.path.join(weights, name), 'cpu').eval()(z)))
+    fig, axes = plt.subplots(1, len(grids), figsize=(12, 3.5))
+    for ax, (title, images) in zip(axes, grids):
+        image_grid(ax, images, title)
     fig.tight_layout()
-    fig.savefig(f'{OUT}/cmp_samples.png', dpi=200)
-
-
-def print_table(results):
-    """Chiffres à reporter dans les slides."""
-    for name in CONFIGS:
-        if name in results:
-            a = results[name]
-            print(f"{name}: FID {a['fid'].mean():.1f} ({np.round(a['fid'], 1).tolist()}) P {a['precision'].mean():.3f} R {a['recall'].mean():.3f} "
-                  f"acc {a['acceptance_rate'].mean():.3f} ecart {a['imbalance']:.1f} parts {np.round(a['shares'], 1).tolist()}")
+    fig.savefig(f'{OUT}/cmp_combined_samples.png', dpi=200)
 
 
 if __name__ == '__main__':
@@ -364,10 +296,5 @@ if __name__ == '__main__':
     plot_data_results()
     plot_training_results()
     plot_sampling_results()
-    if os.path.exists(RESULTS):
-        results = load_comparison()
-        plot_fid(results)
-        plot_precision_recall(results)
-        plot_balance(results)
-        plot_samples()
-        print_table(results)
+    plot_combined_results()
+    plot_combined_samples(args.weights)

@@ -1,5 +1,7 @@
 subset,mean_fid_per_digit
 all,9.2
+sel_95,10.8
+sel_90,14.3
 sel_75,30.4
 sel_50,67.1
 sel_50_pixels,64.7
