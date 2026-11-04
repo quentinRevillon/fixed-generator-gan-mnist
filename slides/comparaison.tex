@@ -1,6 +1,7 @@
 % Présentation de 5 minutes, en anglais : une idée et une image par slide.
 %
-% Figures :   dans slides/figures/ ; le script qui les trace est slides/make_comparison_figures.py, sur la branche quentin/comparaison
+% Figures :   dans slides/figures/ ; tracées par slides/make_comparison_figures.py (branche quentin/comparaison),
+%             sauf data_*.png : figures/make_slide_figures.py (branche nico/preprocessing)
 % Compiler :  pdflatex comparaison.tex (deux fois, depuis ce dossier)
 \documentclass[aspectratio=169,14pt,t]{beamer}
 \usepackage[utf8]{inputenc}
@@ -83,33 +84,55 @@
   \source{Generated digits recognised by the small CNN (98.7\% accuracy on MNIST test).}
 \end{frame}
 
+\begin{frame}{Data: the papers}
+  \centering\vspace{0.2em}
+  \includegraphics[width=0.48\linewidth,height=0.72\textheight,keepaspectratio]{devries_paper.png}\hfill
+  \pause
+  \includegraphics[width=0.48\linewidth,height=0.72\textheight,keepaspectratio]{sonderby_paper.png}
+  \source{DeVries et al., NeurIPS 2020 (selection). Sønderby et al., ICLR 2017 (noise, Section 3.2.1).}
+\end{frame}
+
 \begin{frame}{Data: method}
   \vspace{0.8em}
   \textbf{Selection:} score each image, keep the highest scores of each digit
   \[ s(x) = -\big(f(x)-\mu_c\big)^\top \Sigma_c^{-1} \big(f(x)-\mu_c\big) \]
-  {\small $s(x)$ is high when $x$ looks like the average image of its digit $c$}\\[0.3em]
-  {\small\textbf{Settings:} keep 95\%, 90\%, 75\% or 50\%. $f$: CNN features}\\[1.3em]
+  {\small $f(x)$: CNN features of $x$. $c$: digit of $x$. $\mu_c$, $\Sigma_c$: mean and covariance of $f$ over the training images of digit $c$}\\[0.3em]
+  {\small\textbf{Settings:} keep 95\%, 90\%, 75\% or 50\% of each digit}\\[0.6em]
+  \pause
   \textbf{Noise:} add noise to D's inputs
   \[ D(x + \sigma_t\,\varepsilon), \quad \varepsilon \sim \mathcal{N}(0, I) \]
   {\small\textbf{Settings:} $\sigma_0 = 0.1$ or $0.3$, fading to 0 over 100 epochs}
 \end{frame}
 
-\begin{frame}{Data: training images}
-  \centering\vspace{0.4em}
-  \includegraphics[width=0.8\linewidth]{cmp_selection.png}
-\end{frame}
-
-\begin{frame}{Data: generated images}
-  \centering\vspace{1.4em}
-  \includegraphics[width=\linewidth]{cmp_data_samples.png}
-  \source{Same $z$ in all grids. One run per method, end of training (120k updates).}
+\begin{frame}{Data: kept and removed images}
+  \centering\vspace{0.2em}
+  {\small\makebox[0.35\linewidth]{\textbf{Kept:} highest $s(x)$}\hspace{0.02\linewidth}\makebox[0.35\linewidth]{\textbf{Removed:} lowest $s(x)$}}\\[0.2em]
+  \includegraphics[width=0.72\linewidth]{data_kept_removed.png}\\[0.5em]
+  \pause
+  Removed images are rare styles, not errors
+  \source{10 most and 10 least typical training images of each digit.}
 \end{frame}
 
 \begin{frame}{Data: results}
   \centering\vspace{0.4em}
-  \includegraphics[width=\linewidth]{cmp_data_results.png}\\[0.6em]
-  No retention beats the reference. 19 of 52 runs fail.
+  \includegraphics[width=\linewidth]{data_results.png}\\[0.6em]
+  \pause
+  Selection: precision $\uparrow$, recall $\downarrow$, never beats the reference\\
+  \pause
+  Noise: same as the reference
   \source{Read at 60k updates. Against MNIST test, 3 to 8 seeds, collapsed runs excluded.}
+\end{frame}
+
+\begin{frame}{Data: collapsed runs}
+  \centering\vspace{0.2em}
+  \includegraphics[height=0.44\textheight]{data_collapse.png}\\[0.1em]
+  \raggedright\small
+  \begin{itemize}
+    \item<2-> \textbf{19 of 52 runs collapse} in the first epochs: D wins, its sigmoid saturates, G gets no gradient
+    \item<3-> Same rate with or without selection
+    \item<4-> {\color{warm}\textbf{Noise 0.3: no collapse}} (0 of 3): D wins less early
+  \end{itemize}
+  \source{Collapsed: final recall below 0.01. G then outputs the same blob for every $z$.}
 \end{frame}
 
 \begin{frame}{Training: the paper}
@@ -202,7 +225,8 @@
     KeepTraining & helps (2D Gaussians) & {\color{warm}\textbf{worse FID}} \\
     Selection & more precision, less recall & \textbf{same} \\
     & better FID & {\color{warm}\textbf{worse FID}} \\
-    Noise & stabilises training & {\color{warm}\textbf{no clear effect}} \\
+    Noise & stabilises training & \textbf{fewer collapses} ($\sigma_0 = 0.3$) \\
+    & & {\color{warm}\textbf{same FID}} \\
     RpGAN + R1 & diverges & {\color{warm}\textbf{stable}} \\
     Relativistic loss & no missing modes & \textbf{same} \\
     \bottomrule
@@ -224,7 +248,7 @@
     \phantom{R}+ noise 0.3 & 21.4 & 9.0 \\
     \bottomrule
   \end{tabular}}\\[0.9em]
-  Selection never beats the reference. Noise has no clear effect.\\[0.4em]
+  Selection never beats the reference. Noise 0.3: fewer collapses.\\[0.4em]
   \textbf{Proposed final model:} RpGAN + R1 + EMA.
   \source{Table: common protocol, against MNIST test, 3 seeds.}
 \end{frame}
