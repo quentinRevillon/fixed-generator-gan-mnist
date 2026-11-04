@@ -129,7 +129,7 @@ Ce choix reste à confirmer avec le groupe. Si l'équilibre des chiffres compte 
 ## 6. Limites et suite
 
 **Limites :**
-- **Un seul entraînement :** les ± ne mesurent que le hasard du tirage. Le risque est réel : Nicodème observe un effondrement du GAN sur 3 runs de référence sur 8, avec d'autres seeds et sur 60 000 images (`rapport-donnée.md`, branche `nico/preprocessing`).
+- **Un seul entraînement :** les ± ne mesurent que le hasard du tirage. Le risque est réel : Nicodème observe un effondrement du GAN sur 3 runs de référence sur 8, avec d'autres seeds et sur 60 000 images (`rapport-donnée-illustré.md`, branche `nico/preprocessing`).
 - **Pas de chiffre final sur test :** `val` a servi à choisir l'époque, donc les chiffres sont légèrement optimistes.
 - **Comparaison avec `checkpoints/G.pth` à nuancer :** ce modèle a probablement vu les images de `val` à l'entraînement, et ses réglages sont inconnus. Il faut demander à Nicodème comment il l'a entraîné.
 - **Pas directement comparable à Noé ni à Nicodème :** ils entraînent sur 60 000 images et mesurent avec le petit CNN contre MNIST test.
