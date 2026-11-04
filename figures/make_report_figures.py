@@ -10,6 +10,7 @@ import sys
 import matplotlib
 import numpy as np
 import torch
+import yaml
 from PIL import Image
 
 matplotlib.use('Agg')
@@ -21,11 +22,11 @@ sys.path.insert(0, 'figures')
 from evaluate import mnist
 from make_data_figures import BUDGET, DEVICE, RUNS, load_runs
 from model import Discriminator
-from preprocessing import embed, select_instances
+from preprocessing import embed, noise_sigma, select_instances
 
 OUT = 'figures/report'
-SHOWN = ['data_ref', 'sel_75', 'sel_50', 'sel_50_global', 'noise_01', 'noise_03']
-REAL = {'data_ref': 'all', 'sel_75': 'sel_75', 'sel_50': 'sel_50', 'sel_50_global': 'sel_50_global',
+SHOWN = ['data_ref', 'sel_95', 'sel_90', 'sel_75', 'sel_50', 'sel_50_global', 'noise_01', 'noise_03']
+REAL = {'data_ref': 'all', 'sel_95': 'sel_95', 'sel_90': 'sel_90', 'sel_75': 'sel_75', 'sel_50': 'sel_50', 'sel_50_global': 'sel_50_global',
         'sel_50_pixels': 'sel_50_pixels', 'sel_50_noise_01': 'sel_50'}
 
 
@@ -84,7 +85,7 @@ def pr_scatter(runs):
 
 def curves(runs):
     """FID moyen ± écart-type selon le nombre de mises à jour, sélection et bruit séparés."""
-    groups = [['data_ref', 'sel_75', 'sel_50', 'sel_50_global'], ['data_ref', 'noise_01', 'noise_03', 'noise_01_const']]
+    groups = [['data_ref', 'sel_95', 'sel_90', 'sel_75', 'sel_50', 'sel_50_global'], ['data_ref', 'noise_01', 'noise_03', 'noise_01_const']]
     fig, axes = plt.subplots(1, 2, figsize=(11, 4), sharey=True)
     for ax, group, title in zip(axes, groups, ('Instance Selection', 'Instance Noise')):
         for name in group:
@@ -103,7 +104,7 @@ def curves(runs):
 
 def examples(runs):
     """Images générées à 60 000 mises à jour, même z pour toutes les variantes."""
-    fig, axes = plt.subplots(2, 3, figsize=(10, 7))
+    fig, axes = plt.subplots(2, 4, figsize=(13, 7))
     for ax, name in zip(axes.flat, SHOWN):
         s = first_ok(runs, name)
         r = runs[name][s]
@@ -160,8 +161,8 @@ def class_bars(runs):
     real = 9.9, 11.2, 9.9, 10.2, 9.7, 9.0, 9.9, 10.4, 9.8, 9.9
     final = {r['run']: [int(c) for c in r['classes'].split('-')]
              for r in csv.DictReader(open('figures/data/results_juliet.csv'))}
-    fig, axes = plt.subplots(1, 2, figsize=(12, 3.6), sharey=True)
-    for ax, name in zip(axes, ('data_ref', 'sel_50')):
+    fig, axes = plt.subplots(1, 3, figsize=(15, 3.6), sharey=True)
+    for ax, name in zip(axes, ('data_ref', 'sel_90', 'sel_50')):
         ok = [(s, r) for s, r in enumerate(runs[name]) if not r['collapsed']]
         mid = np.mean([r['classes'] for _, r in ok], 0)
         end = np.mean([100 * np.array(final[f'{name}_s{s}']) / sum(final[f'{name}_s{s}']) for s, _ in ok], 0)
@@ -174,6 +175,28 @@ def class_bars(runs):
     axes[0].set_ylabel('% des images')
     fig.tight_layout()
     fig.savefig(f'{OUT}/class_bars.png', dpi=140)
+
+
+def timeline():
+    """Ce que voit chaque variante au fil des mises à jour : fraction des images gardées et écart-type du bruit."""
+    fig, (a, b) = plt.subplots(1, 2, figsize=(12, 3.8))
+    names = list(RUNS)
+    for i, name in enumerate(names):
+        cfg = yaml.safe_load(open(f'configs/data/{name}.yaml'))
+        sel = cfg['data']['selection']
+        a.barh(i, sel['keep'] if sel['enabled'] else 1, color=RUNS[name][1])
+        a.text(0.02, i, f"{RUNS[name][0]} images, {cfg['train']['epochs']} époques", va='center', fontsize=7, color='white')
+        per = RUNS[name][0] // cfg['train']['batch_size']
+        if cfg['data']['instance_noise']['enabled']:
+            e = np.arange(1, cfg['train']['epochs'] + 1)
+            b.step(e * per, [noise_sigma(cfg, k) for k in e], where='pre', color=RUNS[name][1], label=name)
+    a.set(yticks=range(len(names)), yticklabels=names, xlim=(0, 1), xlabel='fraction des images d\'entraînement vues')
+    a.invert_yaxis()
+    b.axvline(BUDGET, color='#999999', lw=0.8, ls='--')
+    b.set(xlabel='mises à jour', ylabel='σ du bruit sur les entrées de D', ylim=(0, 0.32))
+    b.legend(fontsize=8)
+    fig.tight_layout()
+    fig.savefig(f'{OUT}/timeline.png', dpi=140)
 
 
 @torch.no_grad()
@@ -208,4 +231,5 @@ if __name__ == '__main__':
     for f in (scores, pr_scatter, curves, examples, evolution, collapse, class_bars):
         f(runs)
         print(f.__name__, flush=True)
+    timeline()
     d_scores()
