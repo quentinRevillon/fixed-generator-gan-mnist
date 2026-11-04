@@ -57,6 +57,7 @@
     \textbf{Sampling} & baseline generator & none & Inception, CNN & validation \\
     \textbf{Data} & 60k or fewer & 120k updates, 3 to 8 seeds & CNN & test \\
     \textbf{Training} & 60k & 100 epochs, 3 seeds & CNN & test \\
+    \textbf{Combined} & 50k & 200 epochs, 3 seeds & Inception, CNN & test \\
     \bottomrule
   \end{tabular}}
 
@@ -172,9 +173,26 @@
   \source{Papers: large networks, other data. Us: MNIST, small MLP.}
 \end{frame}
 
+\begin{frame}{Combined: same protocol for all}
+  \vspace{0.3em}
+  {\small\setlength\tabcolsep{4.5pt}\begin{tabular}{@{}lcccc@{}}
+    \toprule
+    & Inception FID & Precision & Recall & Kept \\
+    \midrule
+    Baseline & 38.7 $\pm$ 1.2 & 0.47 & 0.51 & 100\% \\
+    Baseline + DRS & 34.4 $\pm$ 0.7 & 0.51 & 0.49 & 30\% \\
+    RpGAN + R1 + EMA & 22.1 $\pm$ 1.3 & 0.59 & 0.59 & 100\% \\
+    RpGAN + R1 + EMA + DRS & 22.0 $\pm$ 1.1 & 0.59 & 0.58 & 43\% \\
+    \textbf{RpGAN + R1 + EMA + noise 0.3} & \textbf{21.4 $\pm$ 0.6} & \textbf{0.60} & \textbf{0.61} & 100\% \\
+    \bottomrule
+  \end{tabular}}\\[0.9em]
+  The loss does most of the work. DRS only helps the baseline
+  \source{50k images, 200 epochs, last epoch, against MNIST test, 3 seeds, on a Mac. Precision, recall: VGG. DRS: percentile 80, D of the same run. A relativistic D does not estimate $p/\hat p$.}
+\end{frame}
+
 \begin{frame}{Conclusion}
   \vspace{0.6em}
-  {\Large\textbf{The loss gives the largest gain.}}\\[1.2em]
+  {\Large\textbf{The loss gives the largest gain.}}\\[0.8em]
   \begin{tabular}{@{}lcc@{}}
     \toprule
     & Small CNN FID & Effect \\
@@ -184,9 +202,10 @@
     \textbf{Training: RpGAN + R1} & \textbf{59 $\to$ 14} & \textbf{best, no collapse} \\
     Sampling: DRS & 169 $\to$ 146 & modest, cheap \\
     \bottomrule
-  \end{tabular}\\[1.2em]
-  \textbf{Next:} same split and budget for all, then RpGAN + R1 with DRS.
-  \source{Each row has its own protocol.}
+  \end{tabular}\\[0.8em]
+  {\small\textbf{Same protocol for all:} Inception FID 38.7 $\to$ 21.4, DRS adds nothing on top\\[0.3em]
+  \textbf{Next:} pick the epoch on validation, retrain a BCE D for DRS}
+  \source{Each row of the table has its own protocol. Combined results: previous slide.}
 \end{frame}
 
 \end{document}
