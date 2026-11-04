@@ -157,6 +157,23 @@
   \source{60k images, 100 epochs, EMA for all, against MNIST test, 3 seeds.}
 \end{frame}
 
+\begin{frame}{Training: what the paper expects}
+  \vspace{0.6em}
+  {\small\begin{tabular}{@{}lll@{}}
+    \toprule
+    & Paper & Us \\
+    \midrule
+    Relativistic loss & no missing modes & \textbf{yes} \\
+    No penalty & diverges & \textbf{yes} \\
+    Stable, better FID & yes & \textbf{yes} \\
+    R1 alone & diverges, R2 needed & {\color{warm}\textbf{no: stable}} \\
+    Adam $\beta_1 = 0$ & part of the recipe & {\color{warm}\textbf{no: collapses}} \\
+    \bottomrule
+  \end{tabular}}\\[1em]
+  The main claim holds. The details depend on the network
+  \source{Paper: StackedMNIST, small ResNet, $\gamma$ from 0.1 to 100 with R1 alone. Us: MNIST, imposed MLP.}
+\end{frame}
+
 \begin{frame}{Sampling: the paper}
   \centering\vspace{0.2em}
   \includegraphics[height=0.8\textheight]{drs_paper.png}
