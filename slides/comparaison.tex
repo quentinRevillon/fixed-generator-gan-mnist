@@ -87,7 +87,6 @@
 \begin{frame}{Data: the papers}
   \centering\vspace{0.2em}
   \includegraphics[width=0.48\linewidth,height=0.72\textheight,keepaspectratio]{devries_paper.png}\hfill
-  \pause
   \includegraphics[width=0.48\linewidth,height=0.72\textheight,keepaspectratio]{sonderby_paper.png}
   \source{DeVries et al., NeurIPS 2020 (selection). Sønderby et al., ICLR 2017 (noise, Section 3.2.1).}
 \end{frame}
@@ -98,7 +97,6 @@
   \[ s(x) = -\big(f(x)-\mu_c\big)^\top \Sigma_c^{-1} \big(f(x)-\mu_c\big) \]
   {\small $f(x)$: CNN features of $x$. $c$: digit of $x$. $\mu_c$, $\Sigma_c$: mean and covariance of $f$ over the training images of digit $c$}\\[0.3em]
   {\small\textbf{Settings:} keep 95\%, 90\%, 75\% or 50\% of each digit}\\[0.6em]
-  \pause
   \textbf{Noise:} add noise to D's inputs
   \[ D(x + \sigma_t\,\varepsilon), \quad \varepsilon \sim \mathcal{N}(0, I) \]
   {\small\textbf{Settings:} $\sigma_0 = 0.1$ or $0.3$, fading to 0 over 100 epochs}
@@ -108,7 +106,6 @@
   \centering\vspace{0.2em}
   {\small\makebox[0.35\linewidth]{\textbf{Kept:} highest $s(x)$}\hspace{0.02\linewidth}\makebox[0.35\linewidth]{\textbf{Removed:} lowest $s(x)$}}\\[0.2em]
   \includegraphics[width=0.72\linewidth]{data_kept_removed.png}\\[0.5em]
-  \pause
   Removed images are rare styles, not errors
   \source{10 most and 10 least typical training images of each digit.}
 \end{frame}
@@ -116,9 +113,7 @@
 \begin{frame}{Data: results}
   \centering\vspace{0.4em}
   \includegraphics[width=\linewidth]{data_results.png}\\[0.6em]
-  \pause
   Selection: precision $\uparrow$, recall $\downarrow$, never beats the reference\\
-  \pause
   Noise: same as the reference
   \source{Read at 60k updates. Against MNIST test, 3 to 8 seeds, collapsed runs excluded.}
 \end{frame}
@@ -128,9 +123,9 @@
   \includegraphics[height=0.44\textheight]{data_collapse.png}\\[0.1em]
   \raggedright\small
   \begin{itemize}
-    \item<2-> \textbf{19 of 52 runs collapse} in the first epochs: D wins, its sigmoid saturates, G gets no gradient
-    \item<3-> Same rate with or without selection
-    \item<4-> {\color{warm}\textbf{Noise 0.3: no collapse}} (0 of 3): D wins less early
+    \item \textbf{19 of 52 runs collapse} in the first epochs: D wins, its sigmoid saturates, G gets no gradient
+    \item Same rate with or without selection
+    \item {\color{warm}\textbf{Noise 0.3: no collapse}} (0 of 3): D wins less early
   \end{itemize}
   \source{Collapsed: final recall below 0.01. G then outputs the same blob for every $z$.}
 \end{frame}
