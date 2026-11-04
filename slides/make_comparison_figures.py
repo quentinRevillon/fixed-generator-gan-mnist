@@ -229,21 +229,33 @@ def plot_training_results():
                f'{OUT}/cmp_training_results.png')
 
 
+def load_sampling_rows(path):
+    """Lignes de l'époque 200 contre la validation, dans un fichier de résultats de DRS."""
+    with open(path, newline='') as f:
+        return [r for r in csv.DictReader(f) if r['run'] == RUN and r['reference'] == 'val' and r['weights'] == 'best']
+
+
+def select_sampling(rows, percentile):
+    """Lignes sans tri (percentile None) ou du DRS à ce percentile."""
+    if percentile is None:
+        return [r for r in rows if r['method'] == 'plain']
+    return [r for r in rows if r['method'] == 'drs_azadi' and json.loads(r['params'])['percentile'] == percentile]
+
+
 def plot_sampling_results():
-    """DRS sur l'époque 200 mesuré avec le petit CNN, sans tri puis à chaque percentile (results/results.csv)."""
-    with open('results/results.csv', newline='') as f:
-        rows = [r for r in csv.DictReader(f) if r['run'] == RUN and r['reference'] == 'val' and r['weights'] == 'best']
-    keys = ('fid', 'precision', 'recall', 'acceptance_rate')
-    picked = [('No rejection', MUTED, [r for r in rows if r['method'] == 'plain'])]
-    for percentile in (50, 80, 95, 99):
-        picked.append((percentile, BLUE if percentile == 80 else LIGHT_BLUE, [r for r in rows if r['method'] == 'drs_azadi' and json.loads(r['params'])['percentile'] == percentile]))
+    """DRS sur l'époque 200, sans tri puis à chaque percentile : FID Inception (results_prof.csv), mesures du petit CNN (results.csv)."""
+    cnn, inception = load_sampling_rows('results/results.csv'), load_sampling_rows('results/results_prof.csv')
     configs = []
-    for name, color, group in picked:
-        values = {k: np.mean([float(r[k]) for r in group]) for k in keys}
-        label = name if name == 'No rejection' else f"Percentile {name}: {100 * values['acceptance_rate']:.0f}% kept"
+    for percentile in (None, 50, 80, 95, 99):
+        group = select_sampling(cnn, percentile)
+        values = {k: np.mean([float(r[k]) for r in group]) for k in ('fid', 'precision', 'recall', 'acceptance_rate')}
+        values['fid_inception'] = np.mean([float(r['fid']) for r in select_sampling(inception, percentile)])
+        label = 'No rejection' if percentile is None else f"Percentile {percentile}: {100 * values['acceptance_rate']:.0f}% kept"
+        color = MUTED if percentile is None else BLUE if percentile == 80 else LIGHT_BLUE
         configs.append((label, color, values))
         print(label, {k: round(v, 3) for k, v in values.items()})
-    bar_panels(configs, (('fid', 'CNN FID', '{:.0f}'), ('precision', 'CNN precision', '{:.3f}'), ('recall', 'CNN recall', '{:.3f}')),
+    bar_panels(configs, (('fid_inception', 'Inception FID', '{:.1f}'), ('fid', 'CNN FID', '{:.0f}'),
+                         ('precision', 'CNN precision', '{:.3f}'), ('recall', 'CNN recall', '{:.3f}')),
                f'{OUT}/cmp_sampling_results.png')
 
 
