@@ -76,10 +76,10 @@ Lancées le 8/11 depuis `~/gan-a2-noe` (worktree de **`noe/training`**, la seule
 
 | Prio | # | Expérience | Question tranchée | État |
 |---|---|---|---|---|
-| **P0** | G0 | Rapatrier les 5 runs `noise_03_e100` restés sur Juliet | « 0 of 8 » vrai ou faux | runs sur le compte de Nicodème : **à lui de les rapatrier** |
+| **P0** | G0 | Rapatrier les 5 runs `noise_03_e100` restés sur Juliet | « 0 of 8 » vrai ou faux | **non poussés** sur `nico/preprocessing` (seulement `noise_03_s0-2`) : à demander à Nicodème |
 | **P1** | G1 | DRS avec **D recalibré** + OBRS, mesuré en **Inception**, baseline et RpGAN, 3 seeds × 3 tirages | La recalibration rend-elle le DRS utile au sens de la plateforme ? | **soumis** (job 145828, 6 modèles × 5 variantes × 2 tirages, avec temps de génération) |
 | **P0** | G2 | **Baseline + EMA** au protocole commun, 3 seeds | L'EMA seule suffit-elle ? (dernière case du tableau perte × EMA) | **soumis** (job 145826, seeds 0-2 ; G_raw = baseline sans EMA, même run) |
-| **P1** | G3 | Runs de sélection (`sel_95/90/75/50`) mesurés en **Inception + VGG** | Casser la circularité (sélection et FID CNN utilisent le même CNN) | runs sur le compte de Nicodème |
+| **P1** | G3 | Runs de sélection (`sel_95/90/75/50`) mesurés en **Inception + VGG** | Casser la circularité (sélection et FID CNN utilisent le même CNN) | **soumis** (job 145834) : les 52 `G.pth` poussés par Nicodème (dernier checkpoint, 120k mises à jour), en Inception + VGG + CNN |
 | **P1** | G4 | **BCE + bruit 0,3** au protocole commun, 3 à 8 seeds | Seul cas où le bruit peut agir (RpGAN ne s'effondre jamais) | **soumis** (job 145826, 5 seeds, avec EMA ; G_raw = sans EMA) |
 | P2 | G5 | BCE sur logits ± R1 (≈ 10 lignes dans `utils.py`) | Séparer « relativiste » et « R1 » | à faire (code à ajouter) |
 | P2 | G6 | Contrôle **50 % au hasard** (celui de DeVries) | Moins d'images, ou images choisies ? | à faire (patch de 2 lignes) |
@@ -184,4 +184,4 @@ Avec 3 seeds, un écart de moins de **≈ 3,6 points d'Inception** est indétect
 
 1. **Fusionner le code de `noe/training` dans `main`** avant le 12/11 05h00 (sinon le modèle rendu n'est pas reproductible).
 2. Valider le changement de mesure principale (Inception) et le nouveau rôle du FID CNN.
-3. G1, G2, G4 tournent sur Juliet (compte de Quentin). G0 et G3 sont sur le compte de Nicodème.
+3. G1, G2, G3, G4 tournent sur Juliet (compte de Quentin). G0 : demander à Nicodème de pousser les 5 runs `noise_03_e100`.
