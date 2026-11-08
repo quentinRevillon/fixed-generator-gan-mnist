@@ -54,7 +54,7 @@ Toutes sur MNIST test, 10 000 images sauf mention. Scripts et CSV : `enquete/scr
 | Baseline (BCE) | non | 38,7 ± 1,2 | 182 ± 19 |
 | RpGAN + R1 (G brut) | non | **37,7 ± 1,0** | 19,7 ± 4,2 |
 | RpGAN + R1 + EMA (rendu) | oui | 22,1 ± 1,3 | 9,9 ± 2,5 |
-| Baseline + EMA | oui | *jamais mesuré (G2)* | *jamais mesuré* |
+| Baseline + EMA | oui | *en cours (G2, job 145826)* | *en cours* |
 
 | Effet (Welch, 3 seeds contre 3) | FID Inception | FID CNN |
 |---|---|---|
@@ -65,25 +65,26 @@ Toutes sur MNIST test, 10 000 images sauf mention. Scripts et CSV : `enquete/scr
 - **EMA** : améliore l'**aspect des images**. C'est elle qui fait tout le gain en FID Inception, donc sur la plateforme.
 - **Nouvelle conclusion** : *« Perte + R1 : bons chiffres et stabilité. EMA : images plus propres. Les deux sont nécessaires. »*
 - **Question ouverte, la plus importante** : l'EMA seule suffirait-elle sur la baseline ? À 100 époques, elle ne faisait que −10 % de FID CNN sur la BCE, mais son effet Inception n'a jamais été mesuré → **G2 devient la priorité n° 1**.
-- Scripts et CSV : `enquete/scripts/ema/`, `enquete/results/ema/`.
+- **Réplication indépendante** retrouvée sur Juliet (jobs 143380-143381 du 4/11, jamais rapatriés ; CUDA, meilleur checkpoint, sans EMA) : baseline **36,4 ± 1,0**, RpGAN + R1 **36,1 ± 1,2**, R3GAN 37,7 ± 0,9 (FID Inception, 3 seeds). Même conclusion : sans EMA, la perte ne change rien en Inception. Bruit 0,1 et sélection 50 % : 1 et 2 seeds sur 3 effondrées.
+- Scripts et CSV : `enquete/scripts/ema/`, `enquete/results/ema/`, `enquete/results/juliet/`.
 
 ---
 
-## 3. Expériences à lancer sur Juliet
+## 3. Expériences sur Juliet
 
-Je n'ai pas accès à Juliet depuis cette machine (clé protégée par passphrase). Partir de **`noe/training`** : c'est la seule branche avec l'EMA, et RpGAN + bruit plante sur `quentin/comparaison`. Commandes exactes : `enquete/<volet>.md`, section 6.
+Lancées le 8/11 depuis `~/gan-a2-noe` (worktree de **`noe/training`**, la seule branche avec l'EMA ; RpGAN + bruit plante sur `quentin/comparaison`). Script : `scripts/juliet2.sh`, configs `configs/juliet2/`. Commandes des autres : `enquete/<volet>.md`, section 6.
 
-| Prio | # | Expérience | Question tranchée | Coût GPU |
+| Prio | # | Expérience | Question tranchée | État |
 |---|---|---|---|---|
-| **P0** | G0 | Rapatrier les 5 runs `noise_03_e100` restés sur Juliet | « 0 of 8 » vrai ou faux | 0 |
-| **P1** | G1 | DRS avec **D recalibré** + OBRS, mesuré en **Inception**, baseline et RpGAN, 3 seeds × 3 tirages | La recalibration rend-elle le DRS utile au sens de la plateforme ? | ≈ 40 min |
-| **P0** | G2 | **Baseline + EMA** au protocole commun, 3 seeds | L'EMA seule suffit-elle ? (dernière case du tableau perte × EMA) | 3 runs ≈ 1 h en parallèle |
-| **P1** | G3 | Runs de sélection (`sel_95/90/75/50`) mesurés en **Inception + VGG** | Casser la circularité (sélection et FID CNN utilisent le même CNN) | ≈ 20 min |
-| **P1** | G4 | **BCE + bruit 0,3** au protocole commun, 3 à 8 seeds | Seul cas où le bruit peut agir (RpGAN ne s'effondre jamais) | 3-8 runs |
-| P2 | G5 | BCE sur logits ± R1 (≈ 10 lignes dans `utils.py`) | Séparer « relativiste » et « R1 » | 6 runs |
-| P2 | G6 | Contrôle **50 % au hasard** (celui de DeVries) | Moins d'images, ou images choisies ? | 3 runs |
-| P2 | G7 | Temps total de génération et taux d'acceptation du DRS | Exigé par l'énoncé (p. 82), retiré des slides | minutes |
-| P3 | G8 | γ en Inception, R3GAN + EMA au commun, EMA 0,9999, 400 époques | Approfondissements | plusieurs h |
+| **P0** | G0 | Rapatrier les 5 runs `noise_03_e100` restés sur Juliet | « 0 of 8 » vrai ou faux | runs sur le compte de Nicodème : **à lui de les rapatrier** |
+| **P1** | G1 | DRS avec **D recalibré** + OBRS, mesuré en **Inception**, baseline et RpGAN, 3 seeds × 3 tirages | La recalibration rend-elle le DRS utile au sens de la plateforme ? | **soumis** (job 145828, 6 modèles × 5 variantes × 2 tirages, avec temps de génération) |
+| **P0** | G2 | **Baseline + EMA** au protocole commun, 3 seeds | L'EMA seule suffit-elle ? (dernière case du tableau perte × EMA) | **soumis** (job 145826, seeds 0-2 ; G_raw = baseline sans EMA, même run) |
+| **P1** | G3 | Runs de sélection (`sel_95/90/75/50`) mesurés en **Inception + VGG** | Casser la circularité (sélection et FID CNN utilisent le même CNN) | runs sur le compte de Nicodème |
+| **P1** | G4 | **BCE + bruit 0,3** au protocole commun, 3 à 8 seeds | Seul cas où le bruit peut agir (RpGAN ne s'effondre jamais) | **soumis** (job 145826, 5 seeds, avec EMA ; G_raw = sans EMA) |
+| P2 | G5 | BCE sur logits ± R1 (≈ 10 lignes dans `utils.py`) | Séparer « relativiste » et « R1 » | à faire (code à ajouter) |
+| P2 | G6 | Contrôle **50 % au hasard** (celui de DeVries) | Moins d'images, ou images choisies ? | à faire (patch de 2 lignes) |
+| P2 | G7 | Temps total de génération et taux d'acceptation du DRS | Exigé par l'énoncé (p. 82), retiré des slides | **inclus dans G1** (colonne `seconds`) |
+| P3 | G8 | γ en Inception, R3GAN + EMA au commun, EMA 0,9999, 400 époques | Approfondissements | si le temps le permet |
 
 À ne pas relancer : `sel_50`, `sel_75` (résultat net, FID ≥ 216).
 
@@ -183,4 +184,4 @@ Avec 3 seeds, un écart de moins de **≈ 3,6 points d'Inception** est indétect
 
 1. **Fusionner le code de `noe/training` dans `main`** avant le 12/11 05h00 (sinon le modèle rendu n'est pas reproductible).
 2. Valider le changement de mesure principale (Inception) et le nouveau rôle du FID CNN.
-3. Qui lance G0-G4 sur Juliet, et quand (avant le 10/11 au soir pour écrire le 11/11).
+3. G1, G2, G4 tournent sur Juliet (compte de Quentin). G0 et G3 sont sur le compte de Nicodème.
