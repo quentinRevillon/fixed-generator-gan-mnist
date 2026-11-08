@@ -81,6 +81,8 @@ Lancées le 8/11 depuis `~/gan-a2-noe` (worktree de **`noe/training`**, la seule
 | **P0** | G2 | **Baseline + EMA** au protocole commun, 3 seeds | L'EMA seule suffit-elle ? (dernière case du tableau perte × EMA) | **soumis** (job 145826, seeds 0-2 ; G_raw = baseline sans EMA, même run) |
 | **P1** | G3 | Runs de sélection (`sel_95/90/75/50`) mesurés en **Inception + VGG** | Casser la circularité (sélection et FID CNN utilisent le même CNN) | **soumis** (job 145834) : les 52 `G.pth` poussés par Nicodème (dernier checkpoint, 120k mises à jour), en Inception + VGG + CNN |
 | **P1** | G4 | **BCE + bruit 0,3** au protocole commun, 3 à 8 seeds | Seul cas où le bruit peut agir (RpGAN ne s'effondre jamais) | **soumis** (job 145826, 5 seeds, avec EMA ; G_raw = sans EMA) |
+| **P1** | G9 | **KID Inception** et **FID par chiffre** (Inception et CNN, 1 000 images par chiffre), 6 configs × 3 seeds + plancher réel | Avis indépendant : le KID n'a pas de biais lié à N ; le FID par chiffre sépare « bon mélange » et « bons traits » | **soumis** (job 145835) |
+| **P1** | G10 | **Tests de sensibilité à 10 000 images** (Inception était à 500) : bruit, flou, chimères, effacement, épaississement, chiffres retirés, déséquilibres | Trancher la contradiction avec Lucic et al. 2018 (« FID heavily influenced by missing modes ») | **soumis** (job 145836) |
 | P2 | G5 | BCE sur logits ± R1 (≈ 10 lignes dans `utils.py`) | Séparer « relativiste » et « R1 » | à faire (code à ajouter) |
 | P2 | G6 | Contrôle **50 % au hasard** (celui de DeVries) | Moins d'images, ou images choisies ? | à faire (patch de 2 lignes) |
 | P2 | G7 | Temps total de génération et taux d'acceptation du DRS | Exigé par l'énoncé (p. 82), retiré des slides | **inclus dans G1** (colonne `seconds`) |

@@ -1,0 +1,19 @@
+real val,val
+Baseline,runs/cmploc_baseline_s0/G.pth
+Baseline + DRS,runs/cmploc_baseline_s0/G.pth,runs/cmploc_baseline_s0/D.pth
+RpGAN + R1 (sans EMA),runs/cmploc_rpgan_r1_ema_s0/G_raw.pth
+RpGAN + R1 + EMA,runs/cmploc_rpgan_r1_ema_s0/G.pth
+RpGAN + R1 + EMA + DRS,runs/cmploc_rpgan_r1_ema_s0/G.pth,runs/cmploc_rpgan_r1_ema_s0/D.pth
+RpGAN + R1 + EMA + bruit 0.3,runs/cmploc_rpgan_r1_ema_noise_03_s0/G.pth
+Baseline,runs/cmploc_baseline_s1/G.pth
+Baseline + DRS,runs/cmploc_baseline_s1/G.pth,runs/cmploc_baseline_s1/D.pth
+RpGAN + R1 (sans EMA),runs/cmploc_rpgan_r1_ema_s1/G_raw.pth
+RpGAN + R1 + EMA,runs/cmploc_rpgan_r1_ema_s1/G.pth
+RpGAN + R1 + EMA + DRS,runs/cmploc_rpgan_r1_ema_s1/G.pth,runs/cmploc_rpgan_r1_ema_s1/D.pth
+RpGAN + R1 + EMA + bruit 0.3,runs/cmploc_rpgan_r1_ema_noise_03_s1/G.pth
+Baseline,runs/cmploc_baseline_s2/G.pth
+Baseline + DRS,runs/cmploc_baseline_s2/G.pth,runs/cmploc_baseline_s2/D.pth
+RpGAN + R1 (sans EMA),runs/cmploc_rpgan_r1_ema_s2/G_raw.pth
+RpGAN + R1 + EMA,runs/cmploc_rpgan_r1_ema_s2/G.pth
+RpGAN + R1 + EMA + DRS,runs/cmploc_rpgan_r1_ema_s2/G.pth,runs/cmploc_rpgan_r1_ema_s2/D.pth
+RpGAN + R1 + EMA + bruit 0.3,runs/cmploc_rpgan_r1_ema_noise_03_s2/G.pth
