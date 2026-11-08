@@ -33,7 +33,7 @@ Toutes sur MNIST test, 10 000 images sauf mention. Scripts et CSV : `enquete/scr
 
 | # | Volet | Expérience | Résultat clé |
 |---|---|---|---|
-| L1 | FID | Dégradations dosées de vraies images, vues par les deux FID | 1 chiffre sur 10 retiré : **Inception +2 %, CNN +181 %**. Bruit sur 25 % des images : **Inception +285 %**, CNN +108 % (dans son propre bruit). |
+| L1 | FID | Dégradations dosées de vraies images, vues par les deux FID (Inception à 500 images) | Ordres de grandeur **confirmés à 10 000 images sur Juliet (G10, §5.1)** ; le « +2 % contre +181 % » à 500 images est remplacé par les chiffres de G10 |
 | L2 | FID | Part de la variance des features due au chiffre | **CNN 67 %**, Inception 26 % |
 | L3 | FID | Baseline remise dans les bonnes proportions de chiffres | FID CNN **162 → 32** (−82 %), FID Inception +16 % : le FID CNN de la baseline est surtout son mélange de chiffres |
 | L4 | FID | Accord entre les deux FID (Spearman) | Baseline après l'époque 100 : **ρ = −0,885** (ordre inverse) ; entre variantes RpGAN : 0,43 (n.s.) |
@@ -88,7 +88,7 @@ Lancées le 8/11 depuis `~/gan-a2-noe` (worktree de **`noe/training`**, la seule
 | **P1** | G3 | Runs de sélection (`sel_95/90/75/50`) mesurés en **Inception + VGG** | Casser la circularité (sélection et FID CNN utilisent le même CNN) | **fait** : le compromis P ↑ / R ↓ tient aussi en VGG ; la sélection ne bat jamais la référence en Inception (§5.2). `nico_data_test.csv` |
 | **P1** | G4 | **BCE + bruit 0,3** au protocole commun, 3 à 8 seeds | Seul cas où le bruit peut agir (RpGAN ne s'effondre jamais) | **fait** : **2 effondrements sur 5** ; runs sains : 30,1 contre 30,0 sans bruit (p = 0,91) (§5.2) |
 | **P1** | G9 | **KID Inception** et **FID par chiffre** (Inception et CNN, 1 000 images par chiffre), 6 configs × 3 seeds + plancher réel | Avis indépendant : le KID n'a pas de biais lié à N ; le FID par chiffre sépare « bon mélange » et « bons traits » | **soumis** (job 145835) |
-| **P1** | G10 | **Tests de sensibilité à 10 000 images** (Inception était à 500) : bruit, flou, chimères, effacement, épaississement, chiffres retirés, déséquilibres | Trancher la contradiction avec Lucic et al. 2018 (« FID heavily influenced by missing modes ») | **soumis** (job 145836) |
+| **P1** | G10 | **Tests de sensibilité à 10 000 images** (Inception était à 500) : bruit, flou, chimères, effacement, épaississement, chiffres retirés, déséquilibres | Trancher la contradiction avec Lucic et al. 2018 (« FID heavily influenced by missing modes ») | **fait** : Inception voit un chiffre manquant, mais 10 fois moins que le CNN (§5.1). `sensitivity_10k.csv` |
 | P2 | G5 | BCE sur logits ± R1 (≈ 10 lignes dans `utils.py`) | Séparer « relativiste » et « R1 » | à faire (code à ajouter) |
 | P2 | G6 | Contrôle **50 % au hasard** (celui de DeVries) | Moins d'images, ou images choisies ? | à faire (patch de 2 lignes) |
 | P2 | G7 | Temps total de génération et taux d'acceptation du DRS | Exigé par l'énoncé (p. 82), retiré des slides | **inclus dans G1** (colonne `seconds`) |
@@ -121,13 +121,18 @@ Gabarit de chaque méthode, 4 lignes : **Attendu (papier) → Observé (chiffre,
 | | FID Inception | FID CNN |
 |---|---|---|
 | Voit surtout | l'aspect des images (bruit, traits) | le **mélange des chiffres** |
-| Chiffre manquant | presque aveugle (+2 %) | très sensible (+181 %) |
+| 1 chiffre sur 10 retiré | le voit (1,5 → 2,4), mais pèse **2 %** de l'écart de la baseline | 2,7 → 39,5 : pèse **23 %** |
+| Proportions de chiffres de la baseline | 15 % | 76 % |
+| Bruit sur 25 % des images | **104 %** | 10 % |
+| Flou, chimères, effacement (25 %) | 15-18 % | 12-23 % |
 | Variation entre seeds | 2,6-4,5 % | 8,7-20 % |
 | Comparable aux papiers / plateforme | oui | non |
 | Rôle dans le rapport | **mesure principale** | **diagnostic**, toujours avec l'histogramme des chiffres |
 
 - **Pour** le FID CNN : dans le domaine, pratique publiée (Bińkowski et al. 2018 remplacent Inception par un classifieur LeNet sur MNIST), voit la perte de modes, quasi gratuit.
 - **Contre** : sature sur les bons modèles, non comparable, **circulaire** pour la sélection (même CNN), γ choisi avec lui.
+- **Tests à 10 000 images (Juliet, G10)** : « poids » = part de l'écart entre la baseline et de vraies images, dans la même mesure. Planchers réel contre réel : Inception 1,53, CNN 2,74. **Inception n'est pas aveugle aux chiffres** (Lucic et al. 2018 ont raison), mais il y est environ 10 fois moins sensible que le CNN ; c'est l'inverse pour le bruit de pixels.
+- **KID** : il suit le FID Inception à quelques points près (mêmes features). Il supprime le biais lié au nombre d'images, mais ne donne pas un autre point de vue.
 - Le **÷18 contre ÷1,75** s'explique : RpGAN corrige surtout le mélange des chiffres. À chiffre fixé, son gain en FID CNN n'est que de 11 %.
 
 ### 5.2 Données
