@@ -1,0 +1,41 @@
+== Gradient de la perte de G par rapport au logit de D(G(z))
+logit    -10: sigmoid+BCELoss grad -1.000e+00 | BCEWithLogits grad -1.000e+00
+logit    -20: sigmoid+BCELoss grad -1.000e+00 | BCEWithLogits grad -1.000e+00
+logit    -27: sigmoid+BCELoss grad -1.000e+00 | BCEWithLogits grad -1.000e+00
+logit    -28: sigmoid+BCELoss grad -6.914e-01 | BCEWithLogits grad -1.000e+00
+logit    -30: sigmoid+BCELoss grad -9.358e-02 | BCEWithLogits grad -1.000e+00
+logit    -40: sigmoid+BCELoss grad -4.248e-06 | BCEWithLogits grad -1.000e+00
+logit    -80: sigmoid+BCELoss grad -1.805e-23 | BCEWithLogits grad -1.000e+00
+logit   -100: sigmoid+BCELoss grad -0.000e+00 | BCEWithLogits grad -1.000e+00
+
+== Séparation linéaire réel / faux
+G init (s0)    sigma=0.0  |Δμ|=22.62 écart proj=1.05 séparation=21.51 précision du seuil linéaire≈1.000
+G init (s0)    sigma=0.1  |Δμ|=22.62 écart proj=1.06 séparation=21.42 précision du seuil linéaire≈1.000
+G init (s0)    sigma=0.3  |Δμ|=22.62 écart proj=1.09 séparation=20.69 précision du seuil linéaire≈1.000
+G init (s0)    sigma=1.0  |Δμ|=22.62 écart proj=1.45 séparation=15.59 précision du seuil linéaire≈1.000
+G init (s0)    sigma=3.0  |Δμ|=22.62 écart proj=3.18 séparation=7.12 précision du seuil linéaire≈1.000
+data_ref_s0    sigma=0.0  |Δμ|=1.94 écart proj=3.65 séparation=0.53 précision du seuil linéaire≈0.605
+data_ref_s0    sigma=0.1  |Δμ|=1.94 écart proj=3.65 séparation=0.53 précision du seuil linéaire≈0.605
+data_ref_s0    sigma=0.3  |Δμ|=1.94 écart proj=3.66 séparation=0.53 précision du seuil linéaire≈0.604
+data_ref_s0    sigma=1.0  |Δμ|=1.94 écart proj=3.78 séparation=0.51 précision du seuil linéaire≈0.601
+data_ref_s0    sigma=3.0  |Δμ|=1.94 écart proj=4.72 séparation=0.41 précision du seuil linéaire≈0.581
+noise_03_s0    sigma=0.0  |Δμ|=1.69 écart proj=3.34 séparation=0.50 précision du seuil linéaire≈0.600
+noise_03_s0    sigma=0.1  |Δμ|=1.69 écart proj=3.34 séparation=0.50 précision du seuil linéaire≈0.600
+noise_03_s0    sigma=0.3  |Δμ|=1.69 écart proj=3.36 séparation=0.50 précision du seuil linéaire≈0.599
+noise_03_s0    sigma=1.0  |Δμ|=1.69 écart proj=3.49 séparation=0.48 précision du seuil linéaire≈0.595
+noise_03_s0    sigma=3.0  |Δμ|=1.69 écart proj=4.49 séparation=0.38 précision du seuil linéaire≈0.574
+data_ref_s4    sigma=0.0  |Δμ|=23.94 écart proj=0.63 séparation=38.14 précision du seuil linéaire≈1.000
+data_ref_s4    sigma=0.1  |Δμ|=23.94 écart proj=0.64 séparation=37.66 précision du seuil linéaire≈1.000
+data_ref_s4    sigma=0.3  |Δμ|=23.94 écart proj=0.70 séparation=34.41 précision du seuil linéaire≈1.000
+data_ref_s4    sigma=1.0  |Δμ|=23.94 écart proj=1.18 séparation=20.27 précision du seuil linéaire≈1.000
+data_ref_s4    sigma=3.0  |Δμ|=23.94 écart proj=3.06 séparation=7.81 précision du seuil linéaire≈1.000
+
+== Course de D contre G à l'init (300 pas, Adam 2e-4, batch 100, 1 époque = 600 pas)
+sigma=0.0  seed=0: précision D=1.000 logit moyen faux= -10.09 D(G(z)) moyen=5.48e-05
+sigma=0.0  seed=1: précision D=1.000 logit moyen faux= -10.30 D(G(z)) moyen=4.71e-05
+sigma=0.1  seed=0: précision D=1.000 logit moyen faux= -10.58 D(G(z)) moyen=5.92e-05
+sigma=0.1  seed=1: précision D=1.000 logit moyen faux= -10.90 D(G(z)) moyen=4.68e-05
+sigma=0.3  seed=0: précision D=1.000 logit moyen faux= -10.65 D(G(z)) moyen=1.30e-04
+sigma=0.3  seed=1: précision D=1.000 logit moyen faux= -10.98 D(G(z)) moyen=1.10e-04
+sigma=1.0  seed=0: précision D=1.000 logit moyen faux= -10.52 D(G(z)) moyen=7.03e-05
+sigma=1.0  seed=1: précision D=1.000 logit moyen faux= -10.62 D(G(z)) moyen=6.14e-05

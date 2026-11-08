@@ -1,0 +1,4 @@
+network,n,between_class_share
+inception,2000,0.257
+cnn,2000,0.669
+cnn,10000,0.669

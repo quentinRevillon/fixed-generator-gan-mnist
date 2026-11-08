@@ -1,0 +1,9 @@
+source,n,spearman,p_value,inception_min,inception_max,cnn_min,cnn_max
+"baseline_200ep_prof, toutes epoques",100,0.52,2.9e-08,37.0,344.1,55.7,2512.7
+"baseline_200ep_prof, epoques >= 100",51,-0.885,7.3e-18,37.0,76.0,55.7,183.1
+comparison_local (18 lignes),18,0.81,4.6e-05,20.6,39.9,7.6,201.0
+comparison_local sans DRS (9),9,0.683,0.042,21.1,39.9,7.6,201.0
+comparison_local RpGAN seulement (12),12,0.427,0.17,20.6,23.6,7.6,20.4
+results.csv x results_prof.csv,18,0.024,0.93,31.1,43.7,92.6,171.7
+ecart des chiffres vs FID CNN (comparison_local),18,0.94,6.9e-09,0.0,0.3,7.6,201.0
+ecart des chiffres vs FID Inception (comparison_local),18,0.806,5.4e-05,0.0,0.3,20.6,39.9

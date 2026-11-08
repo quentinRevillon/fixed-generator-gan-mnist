@@ -1,0 +1,28 @@
+variant  data_ref  noise_01  noise_01_const  noise_03  sel_50  sel_50_global  sel_50_noise_01  sel_50_pixels  sel_75  sel_90  sel_95
+seed                                                                                                                                
+0             0.0       1.0             0.0       0.0     0.0            0.0              0.0            0.0     0.0     1.0     1.0
+1             0.0       0.0             1.0       0.0     1.0            0.0              0.0            1.0     0.0     0.0     0.0
+2             0.0       1.0             1.0       0.0     1.0            0.0              0.0            1.0     0.0     0.0     0.0
+3             0.0       0.0             NaN       NaN     1.0            NaN              NaN            NaN     NaN     1.0     1.0
+4             1.0       0.0             NaN       NaN     0.0            NaN              NaN            NaN     NaN     0.0     0.0
+5             1.0       1.0             NaN       NaN     0.0            NaN              NaN            NaN     NaN     NaN     NaN
+6             1.0       0.0             NaN       NaN     0.0            NaN              NaN            NaN     NaN     NaN     NaN
+7             0.0       1.0             NaN       NaN     1.0            NaN              NaN            NaN     NaN     NaN     NaN
+seeds 0-2, sans noise_03 : 10 / 30
+Fisher 10/30 vs 0/3 p = 0.5362903225806452
+P(0/3 | p=1/3) = 0.2962962962962962
+avec sélection 10 / 30 ; sans 9 / 22 Fisher p = 0.7712403788845058
+sigma=0.1 (toutes) 6 / 14
+0/3 vs 19/49 : p = 0.2907
+0/4 vs 19/49 : p = 0.2841
+0/5 vs 19/49 : p = 0.1492
+0/6 vs 19/49 : p = 0.0826
+0/7 vs 19/49 : p = 0.0823
+0/8 vs 19/49 : p = 0.0423
+0/9 vs 19/49 : p = 0.0237
+0/10 vs 19/49 : p = 0.0224
+0/11 vs 19/49 : p = 0.0118
+0/12 vs 19/49 : p = 0.0119
+0/13 vs 19/49 : p = 0.0059
+0/14 vs 19/49 : p = 0.0061
+0/15 vs 19/49 : p = 0.0029

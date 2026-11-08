@@ -1,0 +1,24 @@
+ecrit labels
+ecrit cnn_test
+ecrit cnn_train
+ecrit cnn_val
+ecrit cnn_deg_noise0.1
+ecrit cnn_deg_noise0.3
+ecrit cnn_deg_blur1.0
+ecrit cnn_deg_blend
+ecrit cnn_deg_erase10
+ecrit cnn_deg_thicken
+ecrit cnn_gan_cmploc_baseline_s0
+ecrit cnn_gan_cmploc_rpgan_r1_ema_s0
+ecrit cnn_gan_baseline_rebalanced
+ecrit inc_test_ref
+ecrit inc_pool_train
+ecrit inc_pool_val
+ecrit inc_gan_baseline
+ecrit inc_gan_baseline_rebalanced
+ecrit inc_gan_rpgan
+ecrit inc_deg_noise0.3
+ecrit inc_deg_blur1.0
+ecrit inc_deg_blend
+ecrit inc_deg_erase10
+termine

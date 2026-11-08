@@ -1,0 +1,103 @@
+baseline_rerun                     last_ep= 50 FID=187.99 P=0.641 R=0.316 best=187.99@50 sat_ep=None med=44.0s/ep lastD(x)=0.72 lastD(Gz)=0.29
+    FID : 10:1796.0 20:952.3 30:601.0 40:246.3 50:188.0
+cmploc_baseline_s0                 last_ep=200 FID=159.46 P=0.854 R=0.749 best=50.04@120 sat_ep=None med=35.9s/ep lastD(x)=0.72 lastD(Gz)=0.28
+    FID : 10:2491.0 20:1234.9 30:719.8 40:506.9 50:270.9 60:172.6 70:127.3 80:98.9 90:88.3 100:67.5 110:57.5 120:50.0 130:71.5 140:81.9 150:87.7 160:114.3 170:105.3 180:134.6 190:154.5 200:159.5
+cmploc_baseline_s1                 last_ep=200 FID=196.40 P=0.863 R=0.728 best=64.85@100 sat_ep=None med=36.0s/ep lastD(x)=0.72 lastD(Gz)=0.28
+    FID : 10:2659.4 20:1804.2 30:945.1 40:642.0 50:474.2 60:233.7 70:147.3 80:143.1 90:91.1 100:64.8 110:90.8 120:80.0 130:78.6 140:83.5 150:96.0 160:106.0 170:126.6 180:143.4 190:158.9 200:196.4
+cmploc_baseline_s2                 last_ep=200 FID=178.77 P=0.852 R=0.748 best=63.09@110 sat_ep=None med=26.9s/ep lastD(x)=0.72 lastD(Gz)=0.29
+    FID : 10:2262.1 20:1052.6 30:823.4 40:500.9 50:306.6 60:182.8 70:131.2 80:90.4 90:81.0 100:79.7 110:63.1 120:73.0 130:87.6 140:86.7 150:94.9 160:93.2 170:133.4 180:136.7 190:149.7 200:178.8
+cmploc_rpgan_r1_ema_noise_03_s0    last_ep=200 FID=7.31 P=0.769 R=0.820 best=7.29@190 sat_ep=None med=43.1s/ep lastD(x)=0.65 lastD(Gz)=0.62
+    FID : 10:340.6 20:92.3 30:44.8 40:29.3 50:23.2 60:21.4 70:19.9 80:16.4 90:14.5 100:12.8 110:11.5 120:10.6 130:10.8 140:9.8 150:9.3 160:8.7 170:7.9 180:7.8 190:7.3 200:7.3
+cmploc_rpgan_r1_ema_noise_03_s1    last_ep=200 FID=8.54 P=0.752 R=0.814 best=8.54@200 sat_ep=None med=31.5s/ep lastD(x)=0.65 lastD(Gz)=0.63
+    FID : 10:331.4 20:86.2 30:42.5 40:28.3 50:23.6 60:21.3 70:20.4 80:17.9 90:18.0 100:15.6 110:13.7 120:13.0 130:12.3 140:11.4 150:9.8 160:9.7 170:9.3 180:10.3 190:9.0 200:8.5
+cmploc_rpgan_r1_ema_noise_03_s2    last_ep=200 FID=7.14 P=0.768 R=0.818 best=7.14@200 sat_ep=None med=29.7s/ep lastD(x)=0.64 lastD(Gz)=0.62
+    FID : 10:338.8 20:89.2 30:46.3 40:31.1 50:24.2 60:20.9 70:22.1 80:17.1 90:15.8 100:14.0 110:13.0 120:11.2 130:10.1 140:9.6 150:8.0 160:8.1 170:7.6 180:7.8 190:7.7 200:7.1
+cmploc_rpgan_r1_ema_s0             last_ep=200 FID=10.80 P=0.757 R=0.804 best=9.58@190 sat_ep=None med=42.3s/ep lastD(x)=0.63 lastD(Gz)=0.61
+    FID : 10:285.8 20:74.2 30:40.9 40:30.1 50:24.2 60:23.6 70:21.9 80:19.6 90:18.4 100:17.1 110:15.8 120:14.0 130:13.1 140:12.0 150:12.8 160:11.7 170:11.9 180:11.1 190:9.6 200:10.8
+cmploc_rpgan_r1_ema_s1             last_ep=200 FID=5.96 P=0.768 R=0.820 best=5.96@200 sat_ep=None med=42.3s/ep lastD(x)=0.62 lastD(Gz)=0.59
+    FID : 10:272.5 20:75.6 30:42.0 40:27.1 50:25.3 60:22.1 70:18.2 80:16.7 90:15.2 100:13.7 110:11.3 120:10.7 130:11.2 140:10.7 150:8.6 160:8.4 170:7.1 180:7.6 190:7.5 200:6.0
+cmploc_rpgan_r1_ema_s2             last_ep=200 FID=9.09 P=0.769 R=0.824 best=8.97@170 sat_ep=None med=29.6s/ep lastD(x)=0.61 lastD(Gz)=0.58
+    FID : 10:275.6 20:73.7 30:39.2 40:27.9 50:22.5 60:22.4 70:20.5 80:18.4 90:16.1 100:15.2 110:14.8 120:13.9 130:12.1 140:11.2 150:10.7 160:10.0 170:9.0 180:9.3 190:9.3 200:9.1
+ema100_baseline_s0                 last_ep=100 FID=62.07 P=0.799 R=0.788 best=58.73@80 sat_ep=None med=52.0s/ep lastD(x)=0.67 lastD(Gz)=0.34
+    FID : 10:2583.4 20:1821.3 30:905.3 40:288.1 50:169.5 60:106.7 70:73.9 80:58.7 90:63.2 100:62.1
+ema100_baseline_s1                 last_ep=100 FID=55.25 P=0.794 R=0.785 best=51.74@90 sat_ep=None med=52.3s/ep lastD(x)=0.67 lastD(Gz)=0.33
+    FID : 10:2638.6 20:1741.1 30:808.3 40:294.7 50:162.8 60:95.5 70:67.6 80:61.3 90:51.7 100:55.2
+ema100_baseline_s2                 last_ep=100 FID=2770.19 P=0.900 R=0.000 best=2034.85@60 sat_ep=7 med=52.2s/ep lastD(x)=1.00 lastD(Gz)=0.00
+    FID : 10:2642.9 20:2713.2 30:2713.5 40:2712.9 50:2275.3 60:2034.8 70:2953.8 80:2394.9 90:2840.4 100:2770.2
+ema100_r3gan_s0                    last_ep=100 FID=13.37 P=0.698 R=0.796 best=13.37@100 sat_ep=None med=23.2s/ep lastD(x)=0.60 lastD(Gz)=0.59
+    FID : 10:155.6 20:52.7 30:31.2 40:27.1 50:25.6 60:24.0 70:19.1 80:16.6 90:16.2 100:13.4
+ema100_r3gan_s1                    last_ep=100 FID=15.17 P=0.709 R=0.799 best=15.17@100 sat_ep=None med=32.7s/ep lastD(x)=0.62 lastD(Gz)=0.60
+    FID : 10:158.4 20:52.1 30:33.2 40:24.3 50:25.5 60:22.3 70:17.0 80:16.4 90:17.0 100:15.2
+ema100_r3gan_s2                    last_ep=100 FID=14.72 P=0.698 R=0.795 best=14.72@100 sat_ep=None med=32.6s/ep lastD(x)=0.59 lastD(Gz)=0.57
+    FID : 10:166.7 20:57.3 30:34.4 40:25.8 50:24.6 60:20.9 70:20.4 80:18.2 90:17.1 100:14.7
+ema100_rpgan_r1_g0.1_s0            last_ep= 28 FID=2389.83 P=0.000 R=0.000 best=2388.24@10 sat_ep=None med=63.3s/ep lastD(x)=0.83 lastD(Gz)=0.01
+    FID : 10:2388.2 20:2389.8
+ema100_rpgan_r1_g0.1_s1            last_ep= 28 FID=2225.21 P=0.000 R=0.000 best=2225.21@20 sat_ep=None med=63.0s/ep lastD(x)=0.91 lastD(Gz)=0.01
+    FID : 10:2672.5 20:2225.2
+ema100_rpgan_r1_g0.1_s2            last_ep= 27 FID=2091.19 P=0.938 R=0.000 best=2091.19@20 sat_ep=None med=65.1s/ep lastD(x)=0.16 lastD(Gz)=0.00
+    FID : 10:2233.2 20:2091.2
+ema100_rpgan_r1_g10_s0             last_ep=100 FID=17.30 P=0.680 R=0.792 best=17.30@100 sat_ep=None med=40.7s/ep lastD(x)=0.54 lastD(Gz)=0.54
+    FID : 10:175.9 20:64.6 30:41.0 40:36.8 50:29.9 60:23.9 70:22.6 80:18.9 90:19.1 100:17.3
+ema100_rpgan_r1_g10_s1             last_ep=100 FID=18.70 P=0.671 R=0.785 best=17.92@90 sat_ep=None med=40.3s/ep lastD(x)=0.54 lastD(Gz)=0.53
+    FID : 10:171.7 20:60.6 30:37.0 40:34.5 50:28.7 60:26.0 70:22.6 80:20.0 90:17.9 100:18.7
+ema100_rpgan_r1_g10_s2             last_ep=100 FID=17.07 P=0.655 R=0.805 best=17.07@100 sat_ep=None med=40.2s/ep lastD(x)=0.51 lastD(Gz)=0.51
+    FID : 10:160.2 20:66.1 30:34.8 40:36.6 50:28.7 60:24.5 70:20.8 80:18.6 90:18.5 100:17.1
+ema100_rpgan_r1_s0                 last_ep=100 FID=14.23 P=0.726 R=0.795 best=13.99@90 sat_ep=None med=55.8s/ep lastD(x)=0.64 lastD(Gz)=0.61
+    FID : 10:191.1 20:59.1 30:35.4 40:25.3 50:21.3 60:20.5 70:16.6 80:14.9 90:14.0 100:14.2
+ema100_rpgan_r1_s1                 last_ep=100 FID=13.07 P=0.716 R=0.793 best=13.07@100 sat_ep=None med=55.7s/ep lastD(x)=0.65 lastD(Gz)=0.62
+    FID : 10:193.2 20:57.4 30:31.1 40:24.6 50:23.6 60:20.2 70:17.0 80:15.7 90:14.0 100:13.1
+ema100_rpgan_r1_s2                 last_ep=100 FID=14.80 P=0.722 R=0.797 best=13.80@90 sat_ep=None med=55.5s/ep lastD(x)=0.62 lastD(Gz)=0.59
+    FID : 10:186.0 20:60.8 30:37.1 40:21.9 50:18.3 60:21.3 70:18.5 80:15.4 90:13.8 100:14.8
+train_r3gan                        last_ep= 50 FID=48.94 P=0.646 R=0.583 best=48.94@50 sat_ep=None med=48.3s/ep lastD(x)=0.63 lastD(Gz)=0.59
+    FID : 10:170.2 20:132.4 30:72.5 40:49.1 50:48.9
+train_r3gan_adam                   last_ep= 50 FID=1539.50 P=0.456 R=0.000 best=1427.53@40 sat_ep=None med=47.3s/ep lastD(x)=0.72 lastD(Gz)=0.10
+    FID : 10:1559.0 20:1474.1 30:1530.2 40:1427.5 50:1539.5
+train_rpgan                        last_ep= 10 FID=2618.82 P=0.000 R=0.000 best=2618.82@10 sat_ep=None med=45.6s/ep lastD(x)=1.00 lastD(Gz)=1.00
+    FID : 10:2618.8
+train_rpgan_r1                     last_ep= 50 FID=43.62 P=0.648 R=0.598 best=43.62@50 sat_ep=None med=46.0s/ep lastD(x)=0.68 lastD(Gz)=0.63
+    FID : 10:172.8 20:119.6 30:77.9 40:60.4 50:43.6
+
+== Moyennes par config (dernière évaluation) ==
+baseline_rerun                 n=1 FID=187.99 P=0.64 R=0.32 epochs=(50,)
+cmploc_baseline                n=3 FID=178.21 ± 18.48 P=0.86 ± 0.01 R=0.74 ± 0.01 epochs=(200, 200, 200)
+cmploc_rpgan_r1_ema_noise_03   n=3 FID=7.66 ± 0.76 P=0.76 ± 0.01 R=0.82 ± 0.00 epochs=(200, 200, 200)
+cmploc_rpgan_r1_ema            n=3 FID=8.62 ± 2.45 P=0.76 ± 0.01 R=0.82 ± 0.01 epochs=(200, 200, 200)
+ema100_baseline                n=3 FID=962.50 ± 1565.51 P=0.83 ± 0.06 R=0.52 ± 0.45 epochs=(100, 100, 100) | sans effondrés (n=2) FID=58.66 ± 4.82 P=0.80 ± 0.00 R=0.79 ± 0.00
+ema100_r3gan                   n=3 FID=14.42 ± 0.94 P=0.70 ± 0.01 R=0.80 ± 0.00 epochs=(100, 100, 100)
+ema100_rpgan_r1_g0.1           n=3 FID=2235.41 ± 149.58 P=0.31 ± 0.54 R=0.00 ± 0.00 epochs=(28, 28, 27)
+ema100_rpgan_r1_g10            n=3 FID=17.69 ± 0.88 P=0.67 ± 0.01 R=0.79 ± 0.01 epochs=(100, 100, 100)
+ema100_rpgan_r1                n=3 FID=14.03 ± 0.88 P=0.72 ± 0.01 R=0.80 ± 0.00 epochs=(100, 100, 100)
+train_r3gan                    n=1 FID=48.94 P=0.65 R=0.58 epochs=(50,)
+train_r3gan_adam               n=1 FID=1539.50 P=0.46 R=0.00 epochs=(50,)
+train_rpgan                    n=1 FID=2618.82 P=0.00 R=0.00 epochs=(10,)
+train_rpgan_r1                 n=1 FID=43.62 P=0.65 R=0.60 epochs=(50,)
+
+== Proportions de chiffres (results.csv) ==
+runs/baseline/G.pth          FID=  162.34 min=  5.0% (chiffre 6) max= 15.9% (chiffre 1) sd=3.63 pts
+checkpoints/G.pth            FID=  103.71 min=  3.5% (chiffre 2) max= 19.2% (chiffre 1) sd=4.45 pts
+sanity_train_vs_test         FID=    5.12 min=  8.7% (chiffre 5) max= 11.4% (chiffre 1) sd=0.73 pts
+train_rpgan                  FID= 2618.82 min=  0.0% (chiffre 0) max=100.0% (chiffre 8) sd=30.00 pts
+baseline_rerun               FID=  187.99 min=  5.0% (chiffre 6) max= 17.4% (chiffre 3) sd=4.28 pts
+train_rpgan_r1               FID=   43.62 min=  8.4% (chiffre 9) max= 12.7% (chiffre 3) sd=1.55 pts
+train_r3gan_adam             FID= 1539.50 min=  0.0% (chiffre 0) max= 33.5% (chiffre 1) sd=12.02 pts
+train_r3gan                  FID=   48.94 min=  6.2% (chiffre 9) max= 13.0% (chiffre 1) sd=2.28 pts
+ema100_baseline_s0           FID=   62.07 min=  4.2% (chiffre 2) max= 15.9% (chiffre 1) sd=3.39 pts
+ema100_baseline_s2           FID= 2770.19 min=  0.0% (chiffre 0) max=100.0% (chiffre 8) sd=30.00 pts
+ema100_baseline_s1           FID=   55.25 min=  4.2% (chiffre 2) max= 14.7% (chiffre 7) sd=3.04 pts
+ema100_rpgan_r1_s1           FID=   13.07 min=  7.8% (chiffre 8) max= 12.0% (chiffre 1) sd=1.19 pts
+ema100_rpgan_r1_s2           FID=   14.80 min=  8.0% (chiffre 8) max= 12.6% (chiffre 7) sd=1.42 pts
+ema100_rpgan_r1_s0           FID=   14.23 min=  7.7% (chiffre 9) max= 12.5% (chiffre 7) sd=1.56 pts
+ema100_r3gan_s0              FID=   13.37 min=  7.8% (chiffre 9) max= 12.0% (chiffre 7) sd=1.33 pts
+ema100_r3gan_s1              FID=   15.17 min=  7.8% (chiffre 9) max= 12.4% (chiffre 1) sd=1.34 pts
+ema100_r3gan_s2              FID=   14.72 min=  7.7% (chiffre 9) max= 13.4% (chiffre 7) sd=1.56 pts
+ema100_rpgan_r1_g10_s0       FID=   17.30 min=  7.3% (chiffre 9) max= 12.8% (chiffre 7) sd=1.54 pts
+ema100_rpgan_r1_g10_s2       FID=   17.07 min=  7.4% (chiffre 9) max= 12.2% (chiffre 7) sd=1.51 pts
+ema100_rpgan_r1_g10_s1       FID=   18.70 min=  6.8% (chiffre 9) max= 13.0% (chiffre 7) sd=1.73 pts
+
+== Protocole commun (test) ==
+Baseline commune                       n=3 fid=38.66 ± 1.23 precision=0.47 ± 0.02 recall=0.51 ± 0.00 fid_cnn=181.83 ± 19.37 precision_cnn=0.83 ± 0.01 recall_cnn=0.75 ± 0.02
+Baseline commune + DRS                 n=3 fid=34.36 ± 0.73 precision=0.51 ± 0.02 recall=0.49 ± 0.01 fid_cnn=153.96 ± 30.85 precision_cnn=0.87 ± 0.01 recall_cnn=0.74 ± 0.04
+RpGAN + R1 + EMA + bruit 0,3           n=3 fid=21.44 ± 0.58 precision=0.60 ± 0.00 recall=0.61 ± 0.01 fid_cnn=9.01 ± 1.04 precision_cnn=0.74 ± 0.00 recall_cnn=0.82 ± 0.00
+RpGAN + R1 + EMA + bruit 0,3 + DRS     n=3 fid=21.93 ± 1.15 precision=0.60 ± 0.01 recall=0.60 ± 0.01 fid_cnn=13.90 ± 5.82 precision_cnn=0.75 ± 0.01 recall_cnn=0.82 ± 0.00
+RpGAN + R1 + EMA                       n=3 fid=22.14 ± 1.26 precision=0.59 ± 0.01 recall=0.59 ± 0.01 fid_cnn=9.93 ± 2.47 precision_cnn=0.74 ± 0.01 recall_cnn=0.83 ± 0.01
+RpGAN + R1 + EMA + DRS                 n=3 fid=22.04 ± 1.10 precision=0.59 ± 0.01 recall=0.58 ± 0.02 fid_cnn=14.17 ± 2.28 precision_cnn=0.74 ± 0.01 recall_cnn=0.82 ± 0.01

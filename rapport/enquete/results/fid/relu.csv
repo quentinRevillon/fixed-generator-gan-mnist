@@ -1,0 +1,3 @@
+features,dims_toujours_nulles,rang_covariance,plancher_train_vs_test,baseline,rpgan
+avant ReLU (evaluate.py),0,128,2.694,162.309,12.517
+apres ReLU,41,87,1.558,83.578,9.153

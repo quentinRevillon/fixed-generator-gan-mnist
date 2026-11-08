@@ -1,0 +1,84 @@
+== FID à 60k, runs sains (recalculé) vs summary.csv
+data_ref         n=8 eff=3 sains=5 FID60k=  75.7± 11.2 (csv 75.7±10.0) final= 226.6 (csv 226.6) best=  72.2 upd_best=[60000, 60000, 72000, 60000, 48000]
+sel_95           n=5 eff=2 sains=3 FID60k=  76.0± 10.8 (csv 76.0±8.8) final= 203.8 (csv 203.9) best=  76.0 upd_best=[59850, 59850, 59850]
+sel_90           n=5 eff=2 sains=3 FID60k= 111.9± 19.6 (csv 111.9±16.0) final= 243.8 (csv 243.7) best= 110.0 upd_best=[59400, 59400, 47520]
+sel_75           n=3 eff=0 sains=3 FID60k= 215.9± 48.2 (csv 215.9±39.4) final= 443.1 (csv 443.2) best= 208.0 upd_best=[60750, 48600, 48600]
+sel_50           n=8 eff=4 sains=4 FID60k= 331.4± 15.4 (csv 331.4±13.3) final= 729.0 (csv 729.0) best= 268.3 upd_best=[48000, 36000, 48000, 48000]
+sel_50_global    n=3 eff=0 sains=3 FID60k= 439.8± 15.5 (csv 439.8±12.7) final= 515.0 (csv 515.0) best= 406.3 upd_best=[72000, 72000, 48000]
+sel_50_pixels    n=3 eff=2 sains=1 FID60k= 509.5±  nan (csv 509.5±0.0) final= 836.2 (csv 836.2) best= 414.3 upd_best=[24000]
+noise_01         n=8 eff=4 sains=4 FID60k=  64.6±  5.3 (csv 64.6±4.6) final= 230.9 (csv 230.9) best=  62.1 upd_best=[60000, 60000, 60000, 48000]
+noise_03         n=3 eff=0 sains=3 FID60k=  67.7±  5.8 (csv 67.7±4.8) final= 222.9 (csv 222.9) best=  63.8 upd_best=[60000, 60000, 72000]
+noise_01_const   n=3 eff=2 sains=1 FID60k=  72.7±  nan (csv 72.7±0.0) final= 196.2 (csv 196.2) best=  69.2 upd_best=[48000]
+sel_50_noise_01  n=3 eff=0 sains=3 FID60k= 336.4± 24.6 (csv 336.4±20.1) final= 721.1 (csv 721.1) best= 295.4 upd_best=[48000, 36000, 36000]
+
+== Effondrements
+slide (5 variantes): 15 / 34
+toutes variantes sauf noise_03: 19 / 49
+total: 19 / 52
+Fisher slide (0/8 dont 5 seeds non observées): 15/34 vs 0/8 -> p = 0.0352
+Fisher slide, seulement les 3 seeds observées: 15/34 vs 0/3 -> p = 0.2568
+Fisher toutes sauf noise_03 vs noise_03 observé: 19/49 vs 0/3 -> p = 0.2907
+Fisher sel_95 vs data_ref: 2/5 vs 3/8 -> p = 1.0000
+Fisher sel_90 vs data_ref: 2/5 vs 3/8 -> p = 1.0000
+Fisher sel_75 vs data_ref: 0/3 vs 3/8 -> p = 0.4909
+Fisher sel_50 vs data_ref: 4/8 vs 3/8 -> p = 1.0000
+Fisher sel_50_global vs data_ref: 0/3 vs 3/8 -> p = 0.4909
+Fisher sel_50_pixels vs data_ref: 2/3 vs 3/8 -> p = 0.5455
+Fisher noise_01 vs data_ref: 4/8 vs 3/8 -> p = 1.0000
+Fisher noise_03 vs data_ref: 0/3 vs 3/8 -> p = 0.4909
+Fisher noise_01_const vs data_ref: 2/3 vs 3/8 -> p = 0.5455
+Fisher sel_50_noise_01 vs data_ref: 0/3 vs 3/8 -> p = 0.4909
+P(0 effondrement sur 3 | p=0.375) = 0.244 ; sur 8 = 0.0233
+P(0 effondrement sur 3 | p=0.441) = 0.175 ; sur 8 = 0.0095
+P(0 effondrement sur 3 | p=0.388) = 0.229 ; sur 8 = 0.0197
+IC95 Clopper-Pearson pour 0/3: [0, 0.708]
+IC95 Clopper-Pearson pour 0/8: [0, 0.369]
+IC95 pour 19/49: [0.252, 0.538] ; 15/34: ConfidenceInterval(low=0.27185019641486685, high=0.6211423560429288)
+
+== Tests sur le FID à 60k (sains) et sur tous les runs
+sel_95           vs data_ref: Welch sains p=0.969 (n=3 vs 5) | Mann-Whitney tous runs p=1.000 ; médiane tous runs 88.4 vs 87.0
+sel_90           vs data_ref: Welch sains p=0.067 (n=3 vs 5) | Mann-Whitney tous runs p=0.354 ; médiane tous runs 127.3 vs 87.0
+sel_75           vs data_ref: Welch sains p=0.034 (n=3 vs 5) | Mann-Whitney tous runs p=0.630 ; médiane tous runs 219.8 vs 87.0
+sel_50           vs data_ref: Welch sains p=0.000 (n=4 vs 5) | Mann-Whitney tous runs p=0.161 ; médiane tous runs 1333.4 vs 87.0
+sel_50_global    vs data_ref: Welch sains p=0.000 (n=3 vs 5) | Mann-Whitney tous runs p=0.630 ; médiane tous runs 431.0 vs 87.0
+sel_50_pixels    vs data_ref: Welch sains p=nan (n=1 vs 5) | Mann-Whitney tous runs p=0.497 ; médiane tous runs 2095.2 vs 87.0
+noise_01         vs data_ref: Welch sains p=0.099 (n=4 vs 5) | Mann-Whitney tous runs p=0.574 ; médiane tous runs 1087.0 vs 87.0
+noise_03         vs data_ref: Welch sains p=0.234 (n=3 vs 5) | Mann-Whitney tous runs p=0.194 ; médiane tous runs 66.9 vs 87.0
+noise_01_const   vs data_ref: Welch sains p=nan (n=1 vs 5) | Mann-Whitney tous runs p=0.776 ; médiane tous runs 2244.1 vs 87.0
+sel_50_noise_01  vs data_ref: Welch sains p=0.001 (n=3 vs 5) | Mann-Whitney tous runs p=0.630 ; médiane tous runs 326.7 vs 87.0
+
+== FID final
+noise_01         vs data_ref: Welch sains p=0.724 (n=4 vs 5) | Mann-Whitney tous runs p=0.574 ; médiane tous runs 1179.0 vs 244.4
+noise_03         vs data_ref: Welch sains p=0.859 (n=3 vs 5) | Mann-Whitney tous runs p=0.497 ; médiane tous runs 232.7 vs 244.4
+sel_95           vs data_ref: Welch sains p=0.227 (n=3 vs 5) | Mann-Whitney tous runs p=0.769 ; médiane tous runs 225.4 vs 244.4
+
+== FID best (meilleur point de chaque run, choisi sur le test)
+noise_01         vs data_ref: Welch sains p=0.051 (n=4 vs 5) | Mann-Whitney tous runs p=0.674 ; médiane tous runs 1082.4 vs 79.1
+noise_03         vs data_ref: Welch sains p=0.090 (n=3 vs 5) | Mann-Whitney tous runs p=0.085 ; médiane tous runs 62.3 vs 79.1
+sel_95           vs data_ref: Welch sains p=0.632 (n=3 vs 5) | Mann-Whitney tous runs p=0.833 ; médiane tous runs 88.4 vs 79.1
+sel_90           vs data_ref: Welch sains p=0.093 (n=3 vs 5) | Mann-Whitney tous runs p=0.284 ; médiane tous runs 127.3 vs 79.1
+
+== FID par chiffre (per_class_fid.csv), Welch depuis les stats résumées
+sel_95           64.5 vs 71.7: p=0.048
+sel_90           65.9 vs 71.7: p=0.189
+sel_75           79.6 vs 71.7: p=0.024
+sel_50           130.5 vs 71.7: p=0.000
+sel_50_global    159.6 vs 71.7: p=0.000
+noise_01         64.1 vs 71.7: p=0.084
+noise_03         55.5 vs 71.7: p=0.024
+sel_50_noise_01  125.4 vs 71.7: p=0.000
+Bonferroni (8 comparaisons): seuil 0.05/8 = 0.0063
+
+== saturation.csv
+collapsed=0 n=33 D_G_z [1.76e-01, 3.83e-01] grad_G [3.11e+00, 1.10e+01] preact [4.0, 4.6] std_z [0.279, 0.365]
+collapsed=1 n=19 D_G_z [0.00e+00, 1.00e+00] grad_G [0.00e+00, 1.75e-12] preact [2.4, 246.9] std_z [0.0, 0.171]
+D_G_z < 1e-12: 17 ; D_G_z == 1: 2 ; preact > 10: 16 ; grad_G < 1e-11: 19
+runs effondrés avec preact <= 10: ['data_ref_s5', 'sel_95_s0', 'noise_01_const_s1']
+cohérence runs.csv / saturation.csv: True
+
+== Protocole commun (comparison_local.csv)
+fid            bruit 21.444±0.583 [22.12 21.07 21.14] | sans 22.136±1.263 [23.56 21.15 21.69] | Welch p=0.456
+fid_cnn        bruit 9.014±1.036 [ 8.38 10.21  8.45] | sans 9.933±2.469 [12.52  7.6   9.69] | Welch p=0.598
+precision_cnn  bruit 0.738±0.004 [0.74 0.73 0.74] | sans 0.738±0.006 [0.73 0.74 0.75] | Welch p=0.883
+recall_cnn     bruit 0.825±0.004 [0.82 0.82 0.83] | sans 0.828±0.015 [0.81 0.83 0.84] | Welch p=0.787
+Baseline commune fid [39.9, 37.4, 38.7] fid_cnn [162.3, 201.0, 182.1]

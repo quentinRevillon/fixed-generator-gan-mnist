@@ -1,0 +1,40 @@
+C:\Users\quent\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\linear_model\_logistic.py:469: ConvergenceWarning: lbfgs failed to converge (status=1):
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT.
+
+Increase the number of iterations (max_iter) or scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+Please also refer to the documentation for alternative solver options:
+    https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
+  n_iter_i = _check_optimize_result(
+{'model': 'rp_s0_ema', 'd_real_mean': 0.19173473119735718, 'd_real_std': 0.22734776139259338, 'd_fake_mean': 0.14152133464813232, 'd_fake_std': 0.22745679318904877, 'd_fake_max': 0.9201873540878296, 'auc_raw': 0.562856705, 'auc_feat': 0.785566455, 'logmeanexp_d_on_G': 0.16727918182391655, 'logmeanexp_minus_d_on_real': -0.16572870988470179, 'platt_a': 0.9780890839292744, 'platt_b': -0.16119110782528281, 'logmeanexp_platt_on_G': 0.001873554874826766}
+{'model': 'rp_s0_ema', 'variant': 'plain', 'seed': 0, 'fid_cnn': 12.516776126032788, 'precision_cnn': 0.7329000234603882, 'recall_cnn': 0.8113999962806702, 'acceptance': 1.0, 'classes': '1070-1201-953-1073-989-935-952-1220-778-829', 'tv_to_test': 0.046099999999999995}
+{'model': 'rp_s0_ema', 'variant': 'drs_p50', 'seed': 0, 'fid_cnn': 13.404507474785028, 'precision_cnn': 0.7311000227928162, 'recall_cnn': 0.8019000291824341, 'acceptance': 0.508, 'classes': '1003-1028-931-1068-1102-948-894-1244-780-1002', 'tv_to_test': 0.0473}
+{'model': 'rp_s0_ema', 'variant': 'drs_p80', 'seed': 0, 'fid_cnn': 16.773322339537437, 'precision_cnn': 0.7312999963760376, 'recall_cnn': 0.8120999932289124, 'acceptance': 0.42163333333333336, 'classes': '1006-1008-888-1059-1129-944-862-1303-786-1015', 'tv_to_test': 0.05549999999999999}
+{'model': 'rp_s0_ema', 'variant': 'drs_p95', 'seed': 0, 'fid_cnn': 18.14731285202129, 'precision_cnn': 0.7315999865531921, 'recall_cnn': 0.8151000142097473, 'acceptance': 0.3195, 'classes': '1013-991-909-1027-1193-913-846-1320-744-1044', 'tv_to_test': 0.06090000000000002}
+{'model': 'rp_s0_ema', 'variant': 'drs_p80_platt', 'seed': 0, 'fid_cnn': 16.689180014037028, 'precision_cnn': 0.7315000295639038, 'recall_cnn': 0.8125, 'acceptance': 0.422, 'classes': '1005-1009-888-1059-1125-944-862-1303-788-1017', 'tv_to_test': 0.05519999999999999}
+{'model': 'rp_s0_ema', 'variant': 'drs_p80_featlr', 'seed': 0, 'fid_cnn': 11.97145715040925, 'precision_cnn': 0.7595999836921692, 'recall_cnn': 0.8097000122070312, 'acceptance': 0.314175, 'classes': '995-1244-879-1008-972-975-892-1253-855-927', 'tv_to_test': 0.04319999999999999}
+{'model': 'rp_s0_ema', 'variant': 'obrs_K3', 'seed': 0, 'fid_cnn': 16.721246817991414, 'precision_cnn': 0.7461000084877014, 'recall_cnn': 0.8137000203132629, 'acceptance': 0.4559666666666667, 'classes': '1024-1093-925-1059-1074-878-906-1319-749-973', 'tv_to_test': 0.047599999999999996}
+{'model': 'rp_s0_ema', 'variant': 'obrs_K3_featlr', 'seed': 0, 'fid_cnn': 10.714932402164543, 'precision_cnn': 0.7678999900817871, 'recall_cnn': 0.8059999942779541, 'acceptance': 0.3337333333333333, 'classes': '999-1213-907-1002-941-931-967-1233-864-943', 'tv_to_test': 0.035}
+{'model': 'rp_s0_ema', 'variant': 'drs_p80_plain_mix', 'seed': 0, 'fid_cnn': 11.728055984023001, 'precision_cnn': 0.7319999933242798, 'recall_cnn': 0.807200014591217, 'acceptance': nan, 'classes': '1070-1201-953-1073-989-935-952-1220-778-829', 'tv_to_test': 0.046099999999999995}
+{'model': 'rp_s0_ema', 'variant': 'drs_p80_test_mix', 'seed': 0, 'fid_cnn': 10.584068748410425, 'precision_cnn': 0.73089998960495, 'recall_cnn': 0.8070999979972839, 'acceptance': nan, 'classes': '980-1135-1032-1010-982-892-958-1028-974-1009', 'tv_to_test': 0.0}
+{'model': 'rp_s0_ema', 'variant': 'plain_test_mix', 'seed': 0, 'fid_cnn': 9.716137884991184, 'precision_cnn': 0.7408000230789185, 'recall_cnn': 0.8118000030517578, 'acceptance': 1.0, 'classes': '980-1135-1032-1010-982-892-958-1028-974-1009', 'tv_to_test': 0.0}
+C:\Users\quent\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\linear_model\_logistic.py:469: ConvergenceWarning: lbfgs failed to converge (status=1):
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT.
+
+Increase the number of iterations (max_iter) or scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+Please also refer to the documentation for alternative solver options:
+    https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
+  n_iter_i = _check_optimize_result(
+{'model': 'rp_s1_raw', 'd_real_mean': 0.9156289100646973, 'd_real_std': 0.21311543881893158, 'd_fake_mean': 0.7966755628585815, 'd_fake_std': 0.19476109743118286, 'd_fake_max': 1.5281606912612915, 'auc_raw': 0.66257419, 'auc_feat': 0.8746087550000001, 'logmeanexp_d_on_G': 0.8155523221674912, 'logmeanexp_minus_d_on_real': -0.8927909663910398, 'platt_a': 2.8470088269340907, 'platt_b': -2.428257444809294, 'logmeanexp_platt_on_G': -0.007833231648618266}
+{'model': 'rp_s1_raw', 'variant': 'plain', 'seed': 0, 'fid_cnn': 15.0038419085066, 'precision_cnn': 0.7106999754905701, 'recall_cnn': 0.7943000197410583, 'acceptance': 1.0, 'classes': '1021-1053-1094-1121-1076-961-907-1244-760-763', 'tv_to_test': 0.05929999999999999}
+{'model': 'rp_s1_raw', 'variant': 'drs_p50', 'seed': 0, 'fid_cnn': 16.777552284077267, 'precision_cnn': 0.7200999855995178, 'recall_cnn': 0.7828999757766724, 'acceptance': 0.50535, 'classes': '956-1142-1109-1113-977-903-1097-1210-722-771', 'tv_to_test': 0.051899999999999995}
+{'model': 'rp_s1_raw', 'variant': 'drs_p80', 'seed': 0, 'fid_cnn': 16.961004371640865, 'precision_cnn': 0.722000002861023, 'recall_cnn': 0.785099983215332, 'acceptance': 0.43206666666666665, 'classes': '942-1175-1091-1075-955-896-1133-1227-731-775', 'tv_to_test': 0.05419999999999999}
+{'model': 'rp_s1_raw', 'variant': 'drs_p95', 'seed': 0, 'fid_cnn': 17.302471279913362, 'precision_cnn': 0.7202000021934509, 'recall_cnn': 0.786300003528595, 'acceptance': 0.3469, 'classes': '936-1205-1072-1037-972-907-1158-1204-762-747', 'tv_to_test': 0.05279999999999999}
+{'model': 'rp_s1_raw', 'variant': 'drs_p80_platt', 'seed': 0, 'fid_cnn': 21.352655677310008, 'precision_cnn': 0.7254999876022339, 'recall_cnn': 0.7809000015258789, 'acceptance': 0.3851333333333333, 'classes': '873-1285-1104-979-961-911-1220-1209-704-754', 'tv_to_test': 0.06839999999999999}
+{'model': 'rp_s1_raw', 'variant': 'drs_p80_featlr', 'seed': 0, 'fid_cnn': 13.929871699833079, 'precision_cnn': 0.7336000204086304, 'recall_cnn': 0.7766000032424927, 'acceptance': 0.277875, 'classes': '1044-1144-1011-1106-995-906-955-1095-783-961', 'tv_to_test': 0.026300000000000004}
+{'model': 'rp_s1_raw', 'variant': 'obrs_K3', 'seed': 0, 'fid_cnn': 16.09695147788279, 'precision_cnn': 0.7139000296592712, 'recall_cnn': 0.7822999954223633, 'acceptance': 0.4749333333333333, 'classes': '887-1184-1081-1086-1018-950-1090-1228-717-759', 'tv_to_test': 0.06000000000000001}
+{'model': 'rp_s1_raw', 'variant': 'obrs_K3_featlr', 'seed': 0, 'fid_cnn': 14.712690592336092, 'precision_cnn': 0.7347999811172485, 'recall_cnn': 0.7767999768257141, 'acceptance': 0.33713333333333334, 'classes': '1038-1257-1000-1074-1030-975-945-1059-698-924', 'tv_to_test': 0.04059999999999999}
+{'model': 'rp_s1_raw', 'variant': 'drs_p80_plain_mix', 'seed': 0, 'fid_cnn': 15.681132348121166, 'precision_cnn': 0.7178000211715698, 'recall_cnn': 0.7857999801635742, 'acceptance': nan, 'classes': '1021-1053-1094-1121-1076-961-907-1244-760-763', 'tv_to_test': 0.05929999999999999}
+{'model': 'rp_s1_raw', 'variant': 'drs_p80_test_mix', 'seed': 0, 'fid_cnn': 15.73906154800674, 'precision_cnn': 0.7221999764442444, 'recall_cnn': 0.7867000102996826, 'acceptance': nan, 'classes': '980-1135-1032-1010-982-892-958-1028-974-1009', 'tv_to_test': 0.0}
+{'model': 'rp_s1_raw', 'variant': 'plain_test_mix', 'seed': 0, 'fid_cnn': 16.072336311950554, 'precision_cnn': 0.7123000025749207, 'recall_cnn': 0.7906000018119812, 'acceptance': 1.0, 'classes': '980-1135-1032-1010-982-892-958-1028-974-1009', 'tv_to_test': 0.0}

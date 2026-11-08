@@ -1,0 +1,116 @@
+controle fid rapide 2.6942 vs evaluate.fid 2.6942
+controle fid rapide 171.0918 vs evaluate.fid 171.0918
+controle fid rapide 55.5549 vs evaluate.fid 55.5548
+{'setting': 'cnn_10k', 'experiment': 'plancher', 'condition': 'reel vs test', 'level': 'pool', 'n': 10000, 'fid': 2.714, 'fid_sd': 0.21, 'draws': 5, 'ratio_floor': 1.0, 'z': 0.0, 'part_baseline': 0.0}
+{'setting': 'cnn_10k', 'experiment': 'gan', 'condition': 'baseline', 'level': '', 'n': 10000, 'fid': 162.309, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 59.81, 'z': 759.1, 'part_baseline': 1.0}
+{'setting': 'cnn_10k', 'experiment': 'gan', 'condition': 'baseline remise en proportion', 'level': '', 'n': 10000, 'fid': 31.61, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 11.65, 'z': 137.4, 'part_baseline': 0.181}
+{'setting': 'cnn_10k', 'experiment': 'gan', 'condition': 'rpgan_r1_ema', 'level': '', 'n': 10000, 'fid': 12.517, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 4.61, 'z': 46.6, 'part_baseline': 0.061}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'noise0.1', 'level': 0.1, 'n': 10000, 'fid': 2.962, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.09, 'z': 1.2, 'part_baseline': 0.002}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'noise0.1', 'level': 0.25, 'n': 10000, 'fid': 4.052, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.49, 'z': 6.4, 'part_baseline': 0.008}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'noise0.1', 'level': 0.5, 'n': 10000, 'fid': 7.944, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 2.93, 'z': 24.9, 'part_baseline': 0.033}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'noise0.1', 'level': 1.0, 'n': 10000, 'fid': 24.402, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 8.99, 'z': 103.2, 'part_baseline': 0.136}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'noise0.3', 'level': 0.1, 'n': 10000, 'fid': 5.28, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.95, 'z': 12.2, 'part_baseline': 0.016}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'noise0.3', 'level': 0.25, 'n': 10000, 'fid': 17.232, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 6.35, 'z': 69.1, 'part_baseline': 0.091}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'noise0.3', 'level': 0.5, 'n': 10000, 'fid': 60.28, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 22.21, 'z': 273.8, 'part_baseline': 0.361}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'noise0.3', 'level': 1.0, 'n': 10000, 'fid': 267.478, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 98.56, 'z': 1259.4, 'part_baseline': 1.659}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'blur1.0', 'level': 0.1, 'n': 10000, 'fid': 9.341, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 3.44, 'z': 31.5, 'part_baseline': 0.042}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'blur1.0', 'level': 0.25, 'n': 10000, 'fid': 38.814, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 14.3, 'z': 171.7, 'part_baseline': 0.226}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'blur1.0', 'level': 0.5, 'n': 10000, 'fid': 133.717, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 49.27, 'z': 623.1, 'part_baseline': 0.821}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'blur1.0', 'level': 1.0, 'n': 10000, 'fid': 563.726, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 207.71, 'z': 2668.5, 'part_baseline': 3.515}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'blend', 'level': 0.1, 'n': 10000, 'fid': 7.538, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 2.78, 'z': 22.9, 'part_baseline': 0.03}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'blend', 'level': 0.25, 'n': 10000, 'fid': 30.757, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 11.33, 'z': 133.4, 'part_baseline': 0.176}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'blend', 'level': 0.5, 'n': 10000, 'fid': 112.574, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 41.48, 'z': 522.6, 'part_baseline': 0.688}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'blend', 'level': 1.0, 'n': 10000, 'fid': 540.102, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 199.01, 'z': 2556.1, 'part_baseline': 3.367}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'erase10', 'level': 0.1, 'n': 10000, 'fid': 6.044, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 2.23, 'z': 15.8, 'part_baseline': 0.021}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'erase10', 'level': 0.25, 'n': 10000, 'fid': 21.535, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 7.93, 'z': 89.5, 'part_baseline': 0.118}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'erase10', 'level': 0.5, 'n': 10000, 'fid': 71.515, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 26.35, 'z': 327.3, 'part_baseline': 0.431}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'erase10', 'level': 1.0, 'n': 10000, 'fid': 275.839, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 101.64, 'z': 1299.1, 'part_baseline': 1.711}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'thicken', 'level': 0.1, 'n': 10000, 'fid': 4.469, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.65, 'z': 8.3, 'part_baseline': 0.011}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'thicken', 'level': 0.25, 'n': 10000, 'fid': 13.295, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 4.9, 'z': 50.3, 'part_baseline': 0.066}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'thicken', 'level': 0.5, 'n': 10000, 'fid': 42.614, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 15.7, 'z': 189.8, 'part_baseline': 0.25}
+{'setting': 'cnn_10k', 'experiment': 'pixels', 'condition': 'thicken', 'level': 1.0, 'n': 10000, 'fid': 164.157, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 60.49, 'z': 767.9, 'part_baseline': 1.012}
+{'setting': 'cnn_10k', 'experiment': 'classes', 'condition': 'chiffres retires', 'level': 1, 'n': 10000, 'fid': 45.162, 'fid_sd': 9.705, 'draws': 5, 'ratio_floor': 16.64, 'z': 201.9, 'part_baseline': 0.266}
+{'setting': 'cnn_10k', 'experiment': 'classes', 'condition': 'chiffres retires', 'level': 2, 'n': 10000, 'fid': 85.146, 'fid_sd': 13.631, 'draws': 5, 'ratio_floor': 31.37, 'z': 392.1, 'part_baseline': 0.517}
+{'setting': 'cnn_10k', 'experiment': 'classes', 'condition': 'chiffres retires', 'level': 5, 'n': 10000, 'fid': 297.328, 'fid_sd': 39.928, 'draws': 5, 'ratio_floor': 109.56, 'z': 1401.4, 'part_baseline': 1.846}
+{'setting': 'cnn_10k', 'experiment': 'classes', 'condition': 'desequilibre', 'level': '30% de 1', 'n': 10000, 'fid': 83.549, 'fid_sd': 1.527, 'draws': 5, 'ratio_floor': 30.78, 'z': 384.5, 'part_baseline': 0.507}
+{'setting': 'cnn_10k', 'experiment': 'classes', 'condition': 'desequilibre', 'level': '20% de 1', 'n': 10000, 'fid': 23.274, 'fid_sd': 0.366, 'draws': 5, 'ratio_floor': 8.58, 'z': 97.8, 'part_baseline': 0.129}
+{'setting': 'cnn_10k', 'experiment': 'classes', 'condition': 'desequilibre', 'level': 'parts de la baseline', 'n': 10000, 'fid': 125.946, 'fid_sd': 1.156, 'draws': 5, 'ratio_floor': 46.41, 'z': 586.2, 'part_baseline': 0.772}
+{'setting': 'cnn_500', 'experiment': 'plancher', 'condition': 'reel vs test', 'level': 'pool', 'n': 500, 'fid': 18.858, 'fid_sd': 3.769, 'draws': 5, 'ratio_floor': 1.0, 'z': 0.0, 'part_baseline': 0.0}
+{'setting': 'cnn_500', 'experiment': 'gan', 'condition': 'baseline', 'level': '', 'n': 500, 'fid': 171.092, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 9.07, 'z': 40.4, 'part_baseline': 1.0}
+{'setting': 'cnn_500', 'experiment': 'gan', 'condition': 'baseline remise en proportion', 'level': '', 'n': 500, 'fid': 54.011, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 2.86, 'z': 9.3, 'part_baseline': 0.231}
+{'setting': 'cnn_500', 'experiment': 'gan', 'condition': 'rpgan_r1_ema', 'level': '', 'n': 500, 'fid': 21.044, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.12, 'z': 0.6, 'part_baseline': 0.014}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'noise0.1', 'level': 0.1, 'n': 500, 'fid': 20.448, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.08, 'z': 0.4, 'part_baseline': 0.01}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'noise0.1', 'level': 0.25, 'n': 500, 'fid': 22.436, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.19, 'z': 0.9, 'part_baseline': 0.024}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'noise0.1', 'level': 0.5, 'n': 500, 'fid': 27.597, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.46, 'z': 2.3, 'part_baseline': 0.057}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'noise0.1', 'level': 1.0, 'n': 500, 'fid': 48.655, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 2.58, 'z': 7.9, 'part_baseline': 0.196}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'noise0.3', 'level': 0.1, 'n': 500, 'fid': 24.504, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.3, 'z': 1.5, 'part_baseline': 0.037}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'noise0.3', 'level': 0.25, 'n': 500, 'fid': 39.224, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 2.08, 'z': 5.4, 'part_baseline': 0.134}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'noise0.3', 'level': 0.5, 'n': 500, 'fid': 85.059, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 4.51, 'z': 17.6, 'part_baseline': 0.435}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'noise0.3', 'level': 1.0, 'n': 500, 'fid': 309.834, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 16.43, 'z': 77.2, 'part_baseline': 1.911}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'blur1.0', 'level': 0.1, 'n': 500, 'fid': 30.728, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.63, 'z': 3.1, 'part_baseline': 0.078}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'blur1.0', 'level': 0.25, 'n': 500, 'fid': 63.437, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 3.36, 'z': 11.8, 'part_baseline': 0.293}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'blur1.0', 'level': 0.5, 'n': 500, 'fid': 163.415, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 8.67, 'z': 38.4, 'part_baseline': 0.95}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'blur1.0', 'level': 1.0, 'n': 500, 'fid': 611.387, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 32.42, 'z': 157.2, 'part_baseline': 3.892}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'blend', 'level': 0.1, 'n': 500, 'fid': 29.482, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.56, 'z': 2.8, 'part_baseline': 0.07}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'blend', 'level': 0.25, 'n': 500, 'fid': 56.945, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 3.02, 'z': 10.1, 'part_baseline': 0.25}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'blend', 'level': 0.5, 'n': 500, 'fid': 139.903, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 7.42, 'z': 32.1, 'part_baseline': 0.795}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'blend', 'level': 1.0, 'n': 500, 'fid': 571.343, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 30.3, 'z': 146.6, 'part_baseline': 3.629}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'erase10', 'level': 0.1, 'n': 500, 'fid': 25.259, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.34, 'z': 1.7, 'part_baseline': 0.042}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'erase10', 'level': 0.25, 'n': 500, 'fid': 43.278, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 2.29, 'z': 6.5, 'part_baseline': 0.16}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'erase10', 'level': 0.5, 'n': 500, 'fid': 94.288, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 5.0, 'z': 20.0, 'part_baseline': 0.495}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'erase10', 'level': 1.0, 'n': 500, 'fid': 322.025, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 17.08, 'z': 80.4, 'part_baseline': 1.991}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'thicken', 'level': 0.1, 'n': 500, 'fid': 20.221, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.07, 'z': 0.4, 'part_baseline': 0.009}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'thicken', 'level': 0.25, 'n': 500, 'fid': 29.247, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.55, 'z': 2.8, 'part_baseline': 0.068}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'thicken', 'level': 0.5, 'n': 500, 'fid': 57.237, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 3.04, 'z': 10.2, 'part_baseline': 0.252}
+{'setting': 'cnn_500', 'experiment': 'pixels', 'condition': 'thicken', 'level': 1.0, 'n': 500, 'fid': 179.279, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 9.51, 'z': 42.6, 'part_baseline': 1.054}
+{'setting': 'cnn_500', 'experiment': 'classes', 'condition': 'chiffres retires', 'level': 1, 'n': 500, 'fid': 52.912, 'fid_sd': 11.021, 'draws': 5, 'ratio_floor': 2.81, 'z': 9.0, 'part_baseline': 0.224}
+{'setting': 'cnn_500', 'experiment': 'classes', 'condition': 'chiffres retires', 'level': 2, 'n': 500, 'fid': 96.139, 'fid_sd': 19.902, 'draws': 5, 'ratio_floor': 5.1, 'z': 20.5, 'part_baseline': 0.508}
+{'setting': 'cnn_500', 'experiment': 'classes', 'condition': 'chiffres retires', 'level': 5, 'n': 500, 'fid': 306.778, 'fid_sd': 40.621, 'draws': 5, 'ratio_floor': 16.27, 'z': 76.4, 'part_baseline': 1.891}
+{'setting': 'cnn_500', 'experiment': 'classes', 'condition': 'desequilibre', 'level': '30% de 1', 'n': 500, 'fid': 104.663, 'fid_sd': 6.318, 'draws': 5, 'ratio_floor': 5.55, 'z': 22.8, 'part_baseline': 0.564}
+{'setting': 'cnn_500', 'experiment': 'classes', 'condition': 'desequilibre', 'level': '20% de 1', 'n': 500, 'fid': 40.843, 'fid_sd': 2.371, 'draws': 5, 'ratio_floor': 2.17, 'z': 5.8, 'part_baseline': 0.144}
+{'setting': 'cnn_500', 'experiment': 'classes', 'condition': 'desequilibre', 'level': 'parts de la baseline', 'n': 500, 'fid': 130.213, 'fid_sd': 5.538, 'draws': 5, 'ratio_floor': 6.9, 'z': 29.5, 'part_baseline': 0.731}
+{'setting': 'inception', 'experiment': 'plancher', 'condition': 'reel vs test', 'level': 'pool', 'n': 500, 'fid': 14.65, 'fid_sd': 0.125, 'draws': 5, 'ratio_floor': 1.0, 'z': 0.0, 'part_baseline': 0.0}
+{'setting': 'inception', 'experiment': 'gan', 'condition': 'baseline', 'level': '', 'n': 500, 'fid': 55.555, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 3.79, 'z': 326.8, 'part_baseline': 1.0}
+{'setting': 'inception', 'experiment': 'gan', 'condition': 'baseline remise en proportion', 'level': '', 'n': 500, 'fid': 61.939, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 4.23, 'z': 377.9, 'part_baseline': 1.156}
+{'setting': 'inception', 'experiment': 'gan', 'condition': 'rpgan_r1_ema', 'level': '', 'n': 500, 'fid': 37.652, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 2.57, 'z': 183.8, 'part_baseline': 0.562}
+{'setting': 'inception', 'experiment': 'pixels', 'condition': 'noise0.3', 'level': 0.1, 'n': 500, 'fid': 28.562, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.95, 'z': 111.2, 'part_baseline': 0.34}
+{'setting': 'inception', 'experiment': 'pixels', 'condition': 'noise0.3', 'level': 0.25, 'n': 500, 'fid': 56.33, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 3.85, 'z': 333.0, 'part_baseline': 1.019}
+{'setting': 'inception', 'experiment': 'pixels', 'condition': 'noise0.3', 'level': 0.5, 'n': 500, 'fid': 107.085, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 7.31, 'z': 738.6, 'part_baseline': 2.26}
+{'setting': 'inception', 'experiment': 'pixels', 'condition': 'noise0.3', 'level': 1.0, 'n': 500, 'fid': 241.284, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 16.47, 'z': 1810.9, 'part_baseline': 5.541}
+{'setting': 'inception', 'experiment': 'pixels', 'condition': 'blur1.0', 'level': 0.1, 'n': 500, 'fid': 16.627, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.13, 'z': 15.8, 'part_baseline': 0.048}
+{'setting': 'inception', 'experiment': 'pixels', 'condition': 'blur1.0', 'level': 0.25, 'n': 500, 'fid': 22.179, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.51, 'z': 60.2, 'part_baseline': 0.184}
+{'setting': 'inception', 'experiment': 'pixels', 'condition': 'blur1.0', 'level': 0.5, 'n': 500, 'fid': 34.612, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 2.36, 'z': 159.5, 'part_baseline': 0.488}
+{'setting': 'inception', 'experiment': 'pixels', 'condition': 'blur1.0', 'level': 1.0, 'n': 500, 'fid': 73.813, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 5.04, 'z': 472.7, 'part_baseline': 1.446}
+{'setting': 'inception', 'experiment': 'pixels', 'condition': 'blend', 'level': 0.1, 'n': 500, 'fid': 16.563, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.13, 'z': 15.3, 'part_baseline': 0.047}
+{'setting': 'inception', 'experiment': 'pixels', 'condition': 'blend', 'level': 0.25, 'n': 500, 'fid': 21.822, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.49, 'z': 57.3, 'part_baseline': 0.175}
+{'setting': 'inception', 'experiment': 'pixels', 'condition': 'blend', 'level': 0.5, 'n': 500, 'fid': 33.956, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 2.32, 'z': 154.3, 'part_baseline': 0.472}
+{'setting': 'inception', 'experiment': 'pixels', 'condition': 'blend', 'level': 1.0, 'n': 500, 'fid': 70.847, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 4.84, 'z': 449.0, 'part_baseline': 1.374}
+{'setting': 'inception', 'experiment': 'pixels', 'condition': 'erase10', 'level': 0.1, 'n': 500, 'fid': 17.001, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.16, 'z': 18.8, 'part_baseline': 0.057}
+{'setting': 'inception', 'experiment': 'pixels', 'condition': 'erase10', 'level': 0.25, 'n': 500, 'fid': 21.827, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 1.49, 'z': 57.3, 'part_baseline': 0.175}
+{'setting': 'inception', 'experiment': 'pixels', 'condition': 'erase10', 'level': 0.5, 'n': 500, 'fid': 32.684, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 2.23, 'z': 144.1, 'part_baseline': 0.441}
+{'setting': 'inception', 'experiment': 'pixels', 'condition': 'erase10', 'level': 1.0, 'n': 500, 'fid': 67.374, 'fid_sd': 0.0, 'draws': 1, 'ratio_floor': 4.6, 'z': 421.3, 'part_baseline': 1.289}
+{'setting': 'inception', 'experiment': 'classes', 'condition': 'chiffres retires', 'level': 1, 'n': 500, 'fid': 15.003, 'fid_sd': 0.118, 'draws': 5, 'ratio_floor': 1.02, 'z': 2.8, 'part_baseline': 0.009}
+{'setting': 'inception', 'experiment': 'classes', 'condition': 'chiffres retires', 'level': 2, 'n': 500, 'fid': 17.261, 'fid_sd': 1.049, 'draws': 5, 'ratio_floor': 1.18, 'z': 20.9, 'part_baseline': 0.064}
+{'setting': 'inception', 'experiment': 'classes', 'condition': 'chiffres retires', 'level': 5, 'n': 500, 'fid': 23.972, 'fid_sd': 1.596, 'draws': 5, 'ratio_floor': 1.64, 'z': 74.5, 'part_baseline': 0.228}
+{'setting': 'inception', 'experiment': 'classes', 'condition': 'desequilibre', 'level': '30% de 1', 'n': 500, 'fid': 19.943, 'fid_sd': 0.095, 'draws': 5, 'ratio_floor': 1.36, 'z': 42.3, 'part_baseline': 0.129}
+{'setting': 'inception', 'experiment': 'classes', 'condition': 'desequilibre', 'level': '20% de 1', 'n': 500, 'fid': 15.922, 'fid_sd': 0.276, 'draws': 5, 'ratio_floor': 1.09, 'z': 10.2, 'part_baseline': 0.031}
+{'setting': 'inception', 'experiment': 'classes', 'condition': 'desequilibre', 'level': 'parts de la baseline', 'n': 500, 'fid': 19.839, 'fid_sd': 0.447, 'draws': 5, 'ratio_floor': 1.35, 'z': 41.5, 'part_baseline': 0.127}
+{'setting': 'inception', 'experiment': 'biais N', 'condition': 'reel vs test', 'level': 250, 'n': 250, 'fid': 29.666, 'fid_sd': 1.166, 'draws': 5}
+{'setting': 'inception', 'experiment': 'biais N', 'condition': 'baseline GAN vs test', 'level': 250, 'n': 250, 'fid': 70.432, 'fid_sd': 1.083, 'draws': 5}
+{'setting': 'inception', 'experiment': 'biais N', 'condition': 'reel vs test', 'level': 500, 'n': 500, 'fid': 18.541, 'fid_sd': 0.182, 'draws': 5}
+{'setting': 'inception', 'experiment': 'biais N', 'condition': 'baseline GAN vs test', 'level': 500, 'n': 500, 'fid': 60.034, 'fid_sd': 0.51, 'draws': 5}
+{'setting': 'inception', 'experiment': 'biais N', 'condition': 'reel vs test', 'level': 1000, 'n': 1000, 'fid': 11.302, 'fid_sd': 0.108, 'draws': 5}
+{'setting': 'cnn', 'experiment': 'biais N', 'condition': 'reel vs test', 'level': 250, 'n': 250, 'fid': 62.742, 'fid_sd': 15.931, 'draws': 5}
+{'setting': 'cnn', 'experiment': 'biais N', 'condition': 'baseline GAN vs test', 'level': 250, 'n': 250, 'fid': 215.045, 'fid_sd': 55.613, 'draws': 5}
+{'setting': 'cnn', 'experiment': 'biais N', 'condition': 'reel vs test', 'level': 500, 'n': 500, 'fid': 22.902, 'fid_sd': 4.094, 'draws': 5}
+{'setting': 'cnn', 'experiment': 'biais N', 'condition': 'baseline GAN vs test', 'level': 500, 'n': 500, 'fid': 198.279, 'fid_sd': 13.665, 'draws': 5}
+{'setting': 'cnn', 'experiment': 'biais N', 'condition': 'reel vs test', 'level': 1000, 'n': 1000, 'fid': 17.081, 'fid_sd': 1.244, 'draws': 5}
+{'setting': 'cnn', 'experiment': 'biais N', 'condition': 'baseline GAN vs test', 'level': 1000, 'n': 1000, 'fid': 170.652, 'fid_sd': 8.948, 'draws': 5}
+{'setting': 'cnn', 'experiment': 'biais N', 'condition': 'reel vs test', 'level': 2000, 'n': 2000, 'fid': 7.969, 'fid_sd': 0.806, 'draws': 5}
+{'setting': 'cnn', 'experiment': 'biais N', 'condition': 'baseline GAN vs test', 'level': 2000, 'n': 2000, 'fid': 174.887, 'fid_sd': 19.438, 'draws': 5}
+{'setting': 'cnn', 'experiment': 'biais N', 'condition': 'reel vs test', 'level': 5000, 'n': 5000, 'fid': 4.056, 'fid_sd': 0.97, 'draws': 5}
+{'setting': 'cnn', 'experiment': 'biais N', 'condition': 'baseline GAN vs test', 'level': 5000, 'n': 5000, 'fid': 171.229, 'fid_sd': 8.561, 'draws': 5}
+{'setting': 'cnn', 'experiment': 'biais N', 'condition': 'reel vs test', 'level': 10000, 'n': 10000, 'fid': 2.903, 'fid_sd': 0.268, 'draws': 5}
+{'setting': 'cnn', 'experiment': 'biais N', 'condition': 'baseline GAN vs test', 'level': 10000, 'n': 10000, 'fid': 161.753, 'fid_sd': 1.931, 'draws': 5}
+[{'network': 'inception', 'n': 2000, 'between_class_share': 0.257}, {'network': 'cnn', 'n': 2000, 'between_class_share': 0.669}, {'network': 'cnn', 'n': 10000, 'between_class_share': 0.669}]
+[{'features': 'avant ReLU (evaluate.py)', 'dims_toujours_nulles': 0, 'rang_covariance': 128, 'plancher_train_vs_test': 2.694, 'baseline': 162.309, 'rpgan': 12.517}, {'features': 'apres ReLU', 'dims_toujours_nulles': 41, 'rang_covariance': 87, 'plancher_train_vs_test': 1.558, 'baseline': 83.578, 'rpgan': 9.153}]
