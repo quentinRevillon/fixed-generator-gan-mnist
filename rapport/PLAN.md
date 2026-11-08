@@ -10,12 +10,12 @@
 | Question | Réponse courte |
 |---|---|
 | Des collaborateurs ont-ils poussé du nouveau ? | **Non.** Dernier commit : 4/11 22h15 (modèle final sur `main`). |
-| Les chiffres des slides sont-ils justes ? | **Oui, à l'arrondi près**, sauf « Noise 0.3 : 0 of 8 » : 3 runs observés, 5 comptés sains d'office. |
+| Les chiffres des slides sont-ils justes ? | **Oui, à l'arrondi près**, sauf « Noise 0.3 : 0 of 8 » : 3 runs observés, 5 comptés sains d'office. Au protocole commun, le bruit 0,3 fait **2 effondrements sur 5** (la baseline sans bruit : 0 sur 6) : « fewer collapses » est faux. |
 | Le DRS fait-il baisser les performances ? (prof) | **En partie.** Il aide la baseline, ne change rien à RpGAN en FID Inception, et **dégrade RpGAN en FID CNN** (9,9 → 14,2, 3 seeds sur 3). |
 | Pourquoi ? | Le D de RpGAN ne sépare plus vrai et faux (AUC 0,57 contre 0,75) : le tri est presque aléatoire et déforme le mélange des chiffres, que le FID CNN voit fortement. |
 | Peut-on réparer ? | **Oui : en recalibrant D** (l'étape d'Azadi que nous avions sautée), le tri améliore le modèle final en FID Inception : **22,0 → 20,2 (DRS), 19,7 (OBRS)**, sur les 3 seeds, rappel inchangé (Juliet, §5.4). |
 | Faut-il garder le FID CNN ? (prof) | **Oui, mais comme diagnostic, pas comme mesure principale.** Il mesure surtout le mélange des chiffres. La mesure principale devient le FID Inception (celle de la plateforme). |
-| « The loss gives the largest gain » ? | **Faux pour le FID Inception.** La baseline commune n'a pas d'EMA. Sans EMA, RpGAN + R1 = baseline en Inception (37,7 contre 38,7, p = 0,34) ; c'est l'EMA qui donne 37,7 → 22,1 (p = 0,0001). La perte + R1 corrige le mélange des chiffres (FID CNN 182 → 20). Vérifié sur 3 seeds (§2). |
+| « The loss gives the largest gain » ? | **Faux tel quel.** La baseline commune n'a pas d'EMA. En FID Inception : sans EMA, la perte ne fait rien (37,7 contre 38,7) ; l'EMA seule fait baseline 36,6 → 30,0 ; **perte + EMA ensemble** font 22,1. Les deux se renforcent (§2). La perte + R1 corrige le mélange des chiffres (FID CNN 182 → 20), l'EMA non. |
 | Bloquant pour le rendu | `main` ne contient pas le code qui entraîne le modèle rendu (RpGAN + EMA est seulement sur `noe/training`). **À fusionner avant le 12/11.** |
 
 **Notions utilisées**
@@ -55,17 +55,22 @@ Toutes sur MNIST test, 10 000 images sauf mention. Scripts et CSV : `enquete/scr
 | Baseline (BCE) | non | 38,7 ± 1,2 | 182 ± 19 |
 | RpGAN + R1 (G brut) | non | **37,7 ± 1,0** | 19,7 ± 4,2 |
 | RpGAN + R1 + EMA (rendu) | oui | 22,1 ± 1,3 | 9,9 ± 2,5 |
-| Baseline + EMA | oui | *en cours (G2, job 145826)* | *en cours* |
+| Baseline + EMA (Juliet) | oui | **30,0 ± 0,2** | 182 ± 17 |
 
-| Effet (Welch, 3 seeds contre 3) | FID Inception | FID CNN |
-|---|---|---|
-| Perte + R1 (baseline → RpGAN brut) | −1,0 (p = 0,34, **rien**) | −162 (p = 0,003) |
-| EMA (RpGAN brut → RpGAN + EMA) | **−15,5 (p = 0,0001)** | −9,8 (p = 0,03) |
+Tableau complet perte × EMA, FID Inception (P / R VGG) :
 
-- **Perte + R1** : corrige le **mélange des chiffres** (écart-type des proportions 3,3 → 1,4 point) et supprime les effondrements. Le FID CNN le voit ; Inception non.
-- **EMA** : améliore l'**aspect des images**. C'est elle qui fait tout le gain en FID Inception, donc sur la plateforme.
-- **Nouvelle conclusion** : *« Perte + R1 : bons chiffres et stabilité. EMA : images plus propres. Les deux sont nécessaires. »*
-- **Question ouverte, la plus importante** : l'EMA seule suffirait-elle sur la baseline ? À 100 époques, elle ne faisait que −10 % de FID CNN sur la BCE, mais son effet Inception n'a jamais été mesuré → **G2 devient la priorité n° 1**.
+| | sans EMA | avec EMA | effet de l'EMA (mêmes runs) |
+|---|---|---|---|
+| **BCE** (Juliet, job 145826) | 36,6 ± 1,3 (0,48 / 0,49) | 30,0 ± 0,2 (0,56 / 0,54) | **−6,7** (p = 0,01, apparié) |
+| **RpGAN + R1** (Mac, `cmploc`) | 37,7 ± 1,0 (0,47 / 0,47) | 22,1 ± 1,3 (0,59 / 0,59) | **−15,6** (p = 0,0001) |
+| effet de la perte | ≈ 0 | **≈ −8** (p = 0,007) | |
+
+- **Perte + R1 seule** : corrige le **mélange des chiffres** (écart-type des proportions 3,3 → 1,4 point) et supprime les effondrements, mais n'améliore pas l'aspect des images. Le FID CNN le voit ; Inception non.
+- **EMA seule** : améliore l'aspect des images (Inception −6,7, P +0,08, R +0,05), mais ne corrige pas le mélange des chiffres (FID CNN inchangé, 26 % de « 1 »).
+- **Ensemble** : l'EMA gagne deux fois plus sur RpGAN que sur la BCE. Hypothèse : RpGAN + R1 oscille autour d'un bon équilibre, que la moyenne retrouve ; la BCE dérive lentement, et la moyenne ne corrige pas une dérive.
+- **Conclusion** : *« Perte + R1 : bons chiffres et stabilité. EMA : images plus propres. Le gain vient de la combinaison. »*
+- Limite : la ligne BCE a tourné sur Juliet (CUDA), la ligne RpGAN sur Mac (MPS). Écart de machine estimé : baseline 36,6 (Juliet) contre 38,7 (Mac), soit ≈ 2 points. Les effets de l'EMA sont mesurés sur les mêmes runs ; l'effet de la perte avec EMA (≈ −8) traverse les machines.
+- **Bonus** : baseline + EMA + DRS (D tel quel) = **24,8 ± 1,0** (p = 0,01) : le DRS marche bien sur une baseline avec EMA.
 - **Réplication indépendante** retrouvée sur Juliet (jobs 143380-143381 du 4/11, jamais rapatriés ; CUDA, meilleur checkpoint, sans EMA) : baseline **36,4 ± 1,0**, RpGAN + R1 **36,1 ± 1,2**, R3GAN 37,7 ± 0,9 (FID Inception, 3 seeds). Même conclusion : sans EMA, la perte ne change rien en Inception. Bruit 0,1 et sélection 50 % : 1 et 2 seeds sur 3 effondrées.
 - Scripts et CSV : `enquete/scripts/ema/`, `enquete/results/ema/`, `enquete/results/juliet/`.
 
@@ -79,9 +84,9 @@ Lancées le 8/11 depuis `~/gan-a2-noe` (worktree de **`noe/training`**, la seule
 |---|---|---|---|---|
 | **P0** | G0 | Rapatrier les 5 runs `noise_03_e100` restés sur Juliet | « 0 of 8 » vrai ou faux | **non poussés** sur `nico/preprocessing` (seulement `noise_03_s0-2`) : à demander à Nicodème |
 | **P1** | G1 | DRS avec **D recalibré** + OBRS, mesuré en **Inception**, baseline et RpGAN, 3 seeds × 3 tirages | La recalibration rend-elle le DRS utile au sens de la plateforme ? | **fait** : oui pour RpGAN (22,0 → 19,7), non pour la baseline (§5.4). `enquete/results/juliet/drs_recalib_test.csv` |
-| **P0** | G2 | **Baseline + EMA** au protocole commun, 3 seeds | L'EMA seule suffit-elle ? (dernière case du tableau perte × EMA) | **soumis** (job 145826, seeds 0-2 ; G_raw = baseline sans EMA, même run) |
-| **P1** | G3 | Runs de sélection (`sel_95/90/75/50`) mesurés en **Inception + VGG** | Casser la circularité (sélection et FID CNN utilisent le même CNN) | **soumis** (job 145834) : les 52 `G.pth` poussés par Nicodème (dernier checkpoint, 120k mises à jour), en Inception + VGG + CNN |
-| **P1** | G4 | **BCE + bruit 0,3** au protocole commun, 3 à 8 seeds | Seul cas où le bruit peut agir (RpGAN ne s'effondre jamais) | **soumis** (job 145826, 5 seeds, avec EMA ; G_raw = sans EMA) |
+| **P0** | G2 | **Baseline + EMA** au protocole commun, 3 seeds | L'EMA seule suffit-elle ? (dernière case du tableau perte × EMA) | **fait** : non, 30,0 contre 22,1 (§2). `enquete/results/juliet/juliet2_test.csv` |
+| **P1** | G3 | Runs de sélection (`sel_95/90/75/50`) mesurés en **Inception + VGG** | Casser la circularité (sélection et FID CNN utilisent le même CNN) | **fait** : le compromis P ↑ / R ↓ tient aussi en VGG ; la sélection ne bat jamais la référence en Inception (§5.2). `nico_data_test.csv` |
+| **P1** | G4 | **BCE + bruit 0,3** au protocole commun, 3 à 8 seeds | Seul cas où le bruit peut agir (RpGAN ne s'effondre jamais) | **fait** : **2 effondrements sur 5** ; runs sains : 30,1 contre 30,0 sans bruit (p = 0,91) (§5.2) |
 | **P1** | G9 | **KID Inception** et **FID par chiffre** (Inception et CNN, 1 000 images par chiffre), 6 configs × 3 seeds + plancher réel | Avis indépendant : le KID n'a pas de biais lié à N ; le FID par chiffre sépare « bon mélange » et « bons traits » | **soumis** (job 145835) |
 | **P1** | G10 | **Tests de sensibilité à 10 000 images** (Inception était à 500) : bruit, flou, chimères, effacement, épaississement, chiffres retirés, déséquilibres | Trancher la contradiction avec Lucic et al. 2018 (« FID heavily influenced by missing modes ») | **soumis** (job 145836) |
 | P2 | G5 | BCE sur logits ± R1 (≈ 10 lignes dans `utils.py`) | Séparer « relativiste » et « R1 » | à faire (code à ajouter) |
@@ -130,8 +135,24 @@ Gabarit de chaque méthode, 4 lignes : **Attendu (papier) → Observé (chiffre,
 | Méthode | Attendu (papier) | Observé | Pourquoi l'écart |
 |---|---|---|---|
 | Sélection (DeVries 2020) | FID 21,4 → 12,6 à 50 % (ImageNet) | 95 % = référence ; 50 % : FID 76 → 331, rappel 0,72 → 0,38 | G non conditionnel, MNIST déjà propre, la capacité ne limite pas (le même G atteint 9,9) |
-| Bruit (Sønderby 2017) | stabilité, aucun gain de FID annoncé | FID inchangé (p = 0,10-0,46) ; effondrements non démontrés | σ = 0,3 trop petit pour faire se recouvrir les distributions ; redondant avec R1 |
-| Effondrement | — | 15/34 runs BCE | sigmoïde + `BCELoss` : le gradient de G s'annule (vérifié) |
+| Bruit (Sønderby 2017) | stabilité, aucun gain de FID annoncé | FID inchangé (p = 0,10-0,91) ; **ne protège pas des effondrements** (2 sur 5 au protocole commun) | σ = 0,3 trop petit pour faire se recouvrir les distributions ; redondant avec R1 |
+| Effondrement | — | 19/49 runs BCE sans bruit 0,3 (volet Données) | sigmoïde + `BCELoss` : le gradient de G s'annule (vérifié) |
+
+**Sans le biais du CNN** (job 145834, Juliet) : les 52 générateurs poussés par Nicodème, mesurés comme la plateforme. Dernier checkpoint (120k mises à jour, les slides lisaient à 60k), runs sains seulement, contre test.
+
+| Run | Effondrés | FID Inception | P VGG | R VGG | P CNN | R CNN |
+|---|---|---|---|---|---|---|
+| Référence | 3 / 8 | **35,4 ± 0,9** | 0,51 | 0,52 | 0,85 | 0,74 |
+| Bruit 0,1 | 4 / 8 | 35,5 ± 2,5 | 0,52 | 0,52 | 0,85 | 0,75 |
+| Bruit 0,3 | 0 / 3 | 37,0 ± 1,6 | 0,51 | 0,52 | 0,85 | 0,76 |
+| Sélection 95 % | 2 / 5 | 38,2 ± 2,7 | 0,50 | 0,48 | 0,86 | 0,73 |
+| Sélection 90 % | 2 / 5 | 35,8 ± 3,3 | 0,53 | 0,49 | 0,87 | 0,70 |
+| Sélection 75 % | 0 / 3 | 40,8 ± 3,9 | 0,54 | 0,40 | 0,90 | 0,58 |
+| Sélection 50 % | 4 / 8 | 47,8 ± 2,9 | **0,56** | **0,32** | 0,93 | 0,37 |
+
+- **Le compromis précision ↑ / rappel ↓ tient en VGG** : ce n'est pas un artefact du CNN partagé. La circularité l'**amplifie** seulement (P à 50 % : +0,05 en VGG, +0,08 en CNN).
+- **En FID Inception, la sélection ne bat jamais la référence** : 90 % l'égale (35,8 contre 35,4), les autres font pire. Même conclusion que Nicodème, désormais indépendante du CNN.
+- **Bruit 0,3, tous runs confondus** : 2 effondrements sur 8 (0/3 ici + 2/5 au protocole commun), contre 19/49 sans bruit 0,3 (p = 0,70). Aucune preuve qu'il stabilise.
 
 ### 5.3 Entraînement
 
@@ -166,7 +187,7 @@ Juliet (job 145828), protocole commun, 3 seeds × 2 tirages, contre test. Recali
 
 | Effet | Δ FID Inception | Verdict |
 |---|---|---|
-| Perte + R1 + EMA | −16,5 (p < 0,001) | réel, **dû à l'EMA** (perte + R1 seule : −1,0, p = 0,34) |
+| Perte + R1 + EMA | −16,5 (p < 0,001) | réel, **dû à la combinaison** : perte seule ≈ 0, EMA seule −6,7 |
 | Bruit 0,3 sur RpGAN | −0,7 (p = 0,46) | bruit des seeds |
 | DRS sur baseline | −4,3 (3 seeds sur 3) | réel, compromis P ↑ / R ↓ |
 | DRS sur RpGAN | −0,1 (Inception) ; +4,2 en CNN (p = 0,03) | inutile, voire nuisible, **sauf avec D recalibré** (−2,3 en moyenne, 3 seeds sur 3) |
@@ -182,12 +203,12 @@ Avec 3 seeds, un écart de moins de **≈ 3,6 points d'Inception** est indétect
 | Three levers | RpGAN + R1, Huang et al. 2024 | RpGAN (Jolicoeur-Martineau 2019) + R1 (Mescheder 2018) **+ EMA**, recette R3GAN sans R2 |
 | Protocol | Data : 120k updates | lu à 60k ; ajouter colonnes « EMA » et « checkpoint » |
 | Protocol | precision, recall | préciser : CNN (k = 3) ; plateforme : VGG (k = 5) |
-| Data : collapsed | Noise 0.3 : 0 of 8 | **0 of 3, non significatif** (ou vrai compte après G0) |
+| Data : collapsed | Noise 0.3 : 0 of 8 | **0 of 3 ; au protocole commun, 2 of 5 collapse** : pas d'effet stabilisant |
 | Training | RpGAN : none | RpGAN + R1 (γ ≥ 1) : 0 sur 9 ; sans R1 : diverge |
 | Sampling : method | γ ≈ −6,4 ; D as trained | γ ≈ −6,4 **pour la baseline** ; D non recalibré (le papier recalibre) |
 | Common protocol | The loss improves both FIDs | Perte + R1 + EMA ; **baseline sans EMA** |
-| Conclusion | The loss gives the largest gain | Loss + R1: right digit mix, no collapse. EMA: the Inception gain (37.7 → 22.1). |
-| Conclusion | Noise 0.3 : fewer collapses | aucun effet mesurable |
+| Conclusion | The loss gives the largest gain | Loss + R1: right digit mix, no collapse. EMA: cleaner images. Together: 38.7 → 22.1 (EMA alone: 30.0). |
+| Conclusion | Noise 0.3 : fewer collapses | aucun effet mesurable, ni sur le FID ni sur les effondrements |
 | Partout | γ pour R1 et pour le DRS | deux symboles différents |
 
 ---
