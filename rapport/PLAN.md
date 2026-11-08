@@ -12,7 +12,8 @@
 | Des collaborateurs ont-ils poussé du nouveau ? | **Non.** Dernier commit : 4/11 22h15 (modèle final sur `main`). |
 | Les chiffres des slides sont-ils justes ? | **Oui, à l'arrondi près**, sauf « Noise 0.3 : 0 of 8 » : 3 runs observés, 5 comptés sains d'office. |
 | Le DRS fait-il baisser les performances ? (prof) | **En partie.** Il aide la baseline, ne change rien à RpGAN en FID Inception, et **dégrade RpGAN en FID CNN** (9,9 → 14,2, 3 seeds sur 3). |
-| Pourquoi ? | Le D de RpGAN ne sépare plus vrai et faux (AUC 0,55 contre 0,75) : le tri est presque aléatoire et déforme le mélange des chiffres, que le FID CNN voit fortement. |
+| Pourquoi ? | Le D de RpGAN ne sépare plus vrai et faux (AUC 0,57 contre 0,75) : le tri est presque aléatoire et déforme le mélange des chiffres, que le FID CNN voit fortement. |
+| Peut-on réparer ? | **Oui : en recalibrant D** (l'étape d'Azadi que nous avions sautée), le tri améliore le modèle final en FID Inception : **22,0 → 20,2 (DRS), 19,7 (OBRS)**, sur les 3 seeds, rappel inchangé (Juliet, §5.4). |
 | Faut-il garder le FID CNN ? (prof) | **Oui, mais comme diagnostic, pas comme mesure principale.** Il mesure surtout le mélange des chiffres. La mesure principale devient le FID Inception (celle de la plateforme). |
 | « The loss gives the largest gain » ? | **Faux pour le FID Inception.** La baseline commune n'a pas d'EMA. Sans EMA, RpGAN + R1 = baseline en Inception (37,7 contre 38,7, p = 0,34) ; c'est l'EMA qui donne 37,7 → 22,1 (p = 0,0001). La perte + R1 corrige le mélange des chiffres (FID CNN 182 → 20). Vérifié sur 3 seeds (§2). |
 | Bloquant pour le rendu | `main` ne contient pas le code qui entraîne le modèle rendu (RpGAN + EMA est seulement sur `noe/training`). **À fusionner avant le 12/11.** |
@@ -38,7 +39,7 @@ Toutes sur MNIST test, 10 000 images sauf mention. Scripts et CSV : `enquete/scr
 | L4 | FID | Accord entre les deux FID (Spearman) | Baseline après l'époque 100 : **ρ = −0,885** (ordre inverse) ; entre variantes RpGAN : 0,43 (n.s.) |
 | L5 | FID | Biais selon le nombre d'images, plancher réel-réel | CNN : 62,7 (N = 250) → 2,9 (N = 10 000) |
 | L6 | DRS | Notes de D, AUC, acceptation par chiffre, 5 modèles | AUC baseline 0,75-0,76 ; **RpGAN 0,55-0,56** ; 43 % gardées contre 30 % |
-| L7 | DRS | DRS avec D recalibré (couche logistique, comme Azadi) | Baseline : FID CNN 174 → **111** (DRS actuel : 159) ; **87** avec OBRS. RpGAN : redevient neutre |
+| L7 | DRS | DRS avec D recalibré (couche logistique, comme Azadi), CNN seulement | Baseline : FID CNN 174 → 111 ; RpGAN : neutre en CNN. **Confirmé et complété en Inception sur Juliet (G1, §5.4)** |
 | L8 | DRS | DRS sur le G brut avec son D | Dégrade aussi (15,0 → 17,0) : l'EMA n'est pas la seule cause |
 | L9 | Training | G_EMA contre G brut (= run sans EMA), 18 runs | FID CNN commun : baseline 182 → RpGAN + R1 brut **19,7** → + EMA **9,9** |
 | L10 | Training | FID Inception G brut, **3 seeds, 10 000 images** (contrôle : redonne le 21,15 du groupe à 1e-6 près) | Sans EMA : **37,7 ± 1,0** (baseline 38,7) ; avec EMA : 22,1. Voir §2 |
@@ -77,7 +78,7 @@ Lancées le 8/11 depuis `~/gan-a2-noe` (worktree de **`noe/training`**, la seule
 | Prio | # | Expérience | Question tranchée | État |
 |---|---|---|---|---|
 | **P0** | G0 | Rapatrier les 5 runs `noise_03_e100` restés sur Juliet | « 0 of 8 » vrai ou faux | **non poussés** sur `nico/preprocessing` (seulement `noise_03_s0-2`) : à demander à Nicodème |
-| **P1** | G1 | DRS avec **D recalibré** + OBRS, mesuré en **Inception**, baseline et RpGAN, 3 seeds × 3 tirages | La recalibration rend-elle le DRS utile au sens de la plateforme ? | **soumis** (job 145828, 6 modèles × 5 variantes × 2 tirages, avec temps de génération) |
+| **P1** | G1 | DRS avec **D recalibré** + OBRS, mesuré en **Inception**, baseline et RpGAN, 3 seeds × 3 tirages | La recalibration rend-elle le DRS utile au sens de la plateforme ? | **fait** : oui pour RpGAN (22,0 → 19,7), non pour la baseline (§5.4). `enquete/results/juliet/drs_recalib_test.csv` |
 | **P0** | G2 | **Baseline + EMA** au protocole commun, 3 seeds | L'EMA seule suffit-elle ? (dernière case du tableau perte × EMA) | **soumis** (job 145826, seeds 0-2 ; G_raw = baseline sans EMA, même run) |
 | **P1** | G3 | Runs de sélection (`sel_95/90/75/50`) mesurés en **Inception + VGG** | Casser la circularité (sélection et FID CNN utilisent le même CNN) | **soumis** (job 145834) : les 52 `G.pth` poussés par Nicodème (dernier checkpoint, 120k mises à jour), en Inception + VGG + CNN |
 | **P1** | G4 | **BCE + bruit 0,3** au protocole commun, 3 à 8 seeds | Seul cas où le bruit peut agir (RpGAN ne s'effondre jamais) | **soumis** (job 145826, 5 seeds, avec EMA ; G_raw = sans EMA) |
@@ -102,7 +103,7 @@ Gabarit de chaque méthode, 4 lignes : **Attendu (papier) → Observé (chiffre,
 | 2 | **Évaluation (FID)** | Deux FID, deux rôles (§5.1) | Figure de sensibilité (`fid_sensitivity.png`) + histogramme des chiffres | 0,8 |
 | 3 | **Données** | Sélection : précision ↑, rappel ↓, FID jamais meilleur. Bruit : aucun effet mesurable. | `data_results.png` + compte d'effondrements corrigé | 0,8 |
 | 4 | **Entraînement** | RpGAN + R1 corrige le mélange des chiffres et ne s'effondre jamais ; **l'EMA fait tout le gain Inception** | Tableau perte × EMA (§2), en Inception et CNN + `cmp_loss_effect.png` | 0,9 |
-| 5 | **Inference (DRS)** | Aide un G imparfait, inutile sur un bon G ; la recalibration de D répare | Tableau baseline / RpGAN × sans DRS / DRS / DRS recalibré + acceptation + temps | 0,8 |
+| 5 | **Inference (DRS)** | Aide un G imparfait avec D tel quel ; sur un bon G, il faut recalibrer D (22,0 → 19,7) | Tableau baseline / RpGAN × sans DRS / DRS / DRS recalibré + acceptation + temps | 0,8 |
 | 6 | **Combinaison** | Les effets ne s'additionnent pas ; seul perte + EMA dépasse le bruit | Tableau commun complet (Inception, P/R VGG, CNN, acceptation) | 0,7 |
 | 7 | **Conclusion** | Modèle rendu : RpGAN + R1 + EMA, seed 1. Plateforme : **FID 21,59, P 0,702, R 0,585**. | — | 0,3 |
 
@@ -143,14 +144,23 @@ Gabarit de chaque méthode, 4 lignes : **Attendu (papier) → Observé (chiffre,
 
 ### 5.4 Inference (DRS)
 
-| Cas | Effet | Mécanisme |
-|---|---|---|
-| Baseline, D tel quel | FID Inception 38,7 → 34,4 ; P +0,04 ; R −0,01 | D distingue bien (AUC 0,76) |
-| Baseline, D recalibré | FID CNN 174 → 111 (à confirmer en Inception, G1) | AUC 0,75 → 0,83-0,85 |
-| RpGAN, D tel quel | Inception = ; **CNN +4,2** | AUC 0,55 : tri presque au hasard qui déforme le mélange des chiffres |
-| RpGAN, D recalibré | neutre | il reste peu à corriger sur un bon G |
+Juliet (job 145828), protocole commun, 3 seeds × 2 tirages, contre test. Recalibrer = remplacer la dernière couche de D par une régression logistique entraînée sur val contre G (Azadi et al. 2019, §4.2).
 
-Règle : **mesurer l'AUC de D avant d'utiliser le DRS.**
+| G | Tri | AUC de D | FID Inception | P / R VGG | FID CNN | Acceptation |
+|---|---|---|---|---|---|---|
+| Baseline | aucun | — | 38,7 | 0,47 / 0,50 | 183 | 100 % |
+| Baseline | DRS, D tel quel | 0,75 | 34,3 | 0,51 / 0,50 | 154 | 30 % |
+| Baseline | DRS, D recalibré | 0,83 | 36,3 | 0,46 / 0,51 | 103 | 32 % |
+| Baseline | **OBRS, D tel quel** | 0,75 | **33,8** | 0,51 / 0,50 | 145 | 33 % |
+| RpGAN + R1 + EMA | aucun | — | 22,0 | 0,59 / 0,59 | 9,9 | 100 % |
+| RpGAN + R1 + EMA | DRS, D tel quel | 0,57 | 22,1 | 0,59 / 0,59 | 14,4 | 42 % |
+| RpGAN + R1 + EMA | DRS, D recalibré | 0,78 | 20,2 | 0,62 / 0,59 | 10,0 | 32 % |
+| RpGAN + R1 + EMA | **OBRS, D recalibré** | 0,78 | **19,7** | 0,62 / 0,59 | 10,2 | 33 % |
+
+- **Quand D distingue déjà bien (baseline)** : le tri marche avec D tel quel. La recalibration corrige le mélange des chiffres (CNN 154 → 103) mais garde des images moins nettes (Inception moins bon).
+- **Quand D ne distingue plus (RpGAN, AUC 0,57)** : D tel quel trie au hasard ; recalibré (AUC 0,78), il redevient utile : **−1,3 à −3,0 points d'Inception sur les 3 seeds**, précision +0,03, rappel inchangé.
+- **Coût** : 10 000 images en 0,02 s sans tri, 0,08-0,14 s avec DRS, 0,16 s avec OBRS (GPU A100) ; le coût réel est le facteur ≈ 3 de propositions.
+- Règle : **mesurer l'AUC de D avant de trier ; la recaler si elle est proche de 0,5.**
 
 ### 5.5 Combinaison
 
@@ -159,7 +169,7 @@ Règle : **mesurer l'AUC de D avant d'utiliser le DRS.**
 | Perte + R1 + EMA | −16,5 (p < 0,001) | réel, **dû à l'EMA** (perte + R1 seule : −1,0, p = 0,34) |
 | Bruit 0,3 sur RpGAN | −0,7 (p = 0,46) | bruit des seeds |
 | DRS sur baseline | −4,3 (3 seeds sur 3) | réel, compromis P ↑ / R ↓ |
-| DRS sur RpGAN | −0,1 (Inception) ; +4,2 en CNN (p = 0,03) | inutile, voire nuisible |
+| DRS sur RpGAN | −0,1 (Inception) ; +4,2 en CNN (p = 0,03) | inutile, voire nuisible, **sauf avec D recalibré** (−2,3 en moyenne, 3 seeds sur 3) |
 
 Avec 3 seeds, un écart de moins de **≈ 3,6 points d'Inception** est indétectable.
 
@@ -184,6 +194,7 @@ Avec 3 seeds, un écart de moins de **≈ 3,6 points d'Inception** est indétect
 
 ## 7. Décisions pour le groupe
 
+1. **Rendre le modèle avec OBRS + D recalibré ?** Gain attendu ≈ −2 points de FID sur la plateforme ; il faut que `generate.py` charge D, la couche recalibrée et fasse le tri. Décision du groupe avant le 12/11 05h00.
 1. **Fusionner le code de `noe/training` dans `main`** avant le 12/11 05h00 (sinon le modèle rendu n'est pas reproductible).
 2. Valider le changement de mesure principale (Inception) et le nouveau rôle du FID CNN.
 3. G1, G2, G3, G4 tournent sur Juliet (compte de Quentin). G0 : demander à Nicodème de pousser les 5 runs `noise_03_e100`.
