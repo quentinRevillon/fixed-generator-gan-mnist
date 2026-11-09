@@ -98,14 +98,15 @@ def measure(name, g_path, d_path, ref, device, clf):
     return rows
 
 
-if __name__ == '__main__':
+def main(manifest_path, out_path):
+    """Mesure chaque ligne du manifeste et écrit les lignes au fur et à mesure."""
     device = get_device()
     clf = load_classifier(device)
     ref = real_reference(device, clf)
-    with open(sys.argv[1], newline='') as f:
+    with open(manifest_path, newline='') as f:
         manifest = [(row + [''])[:3] for row in csv.reader(f) if row]
     fields = ['name', 'g', 'digit', 'n', 'fid_inception', 'kid_inception_x1000', 'kid_std_x1000', 'fid_cnn']
-    with open(sys.argv[2], 'w', newline='') as f:
+    with open(out_path, 'w', newline='') as f:
         out = csv.DictWriter(f, fieldnames=fields, lineterminator='\n')
         out.writeheader()
         for name, g_path, d_path in manifest:
@@ -113,3 +114,7 @@ if __name__ == '__main__':
                 out.writerow(row)
                 f.flush()
                 print(row, flush=True)
+
+
+if __name__ == '__main__':
+    main(sys.argv[1], sys.argv[2])
