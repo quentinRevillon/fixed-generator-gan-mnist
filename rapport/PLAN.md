@@ -65,12 +65,26 @@ Tableau complet perte × EMA, FID Inception (P / R VGG) :
 | **RpGAN + R1** (Mac, `cmploc`) | 37,7 ± 1,0 (0,47 / 0,47) | 22,1 ± 1,3 (0,59 / 0,59) | **−15,6** (p = 0,0001) |
 | effet de la perte | ≈ 0 | **≈ −8** (p = 0,007) | |
 
-- **Perte + R1 seule** : corrige le **mélange des chiffres** (écart-type des proportions 3,3 → 1,4 point) et supprime les effondrements, mais n'améliore pas l'aspect des images. Le FID CNN le voit ; Inception non.
+- **Perte + R1 seule** : corrige le **mélange des chiffres** (écart-type des proportions 3,3 → 1,4 point), supprime les effondrements et améliore les chiffres difficiles (FID Inception par chiffre 63,6 → 55,4), mais le FID global ne bouge pas (voir plus bas).
 - **EMA seule** : améliore l'aspect des images (Inception −6,7, P +0,08, R +0,05), mais ne corrige pas le mélange des chiffres (FID CNN inchangé, 26 % de « 1 »).
 - **Ensemble** : l'EMA gagne deux fois plus sur RpGAN que sur la BCE. Hypothèse : RpGAN + R1 oscille autour d'un bon équilibre, que la moyenne retrouve ; la BCE dérive lentement, et la moyenne ne corrige pas une dérive.
 - **Conclusion** : *« Perte + R1 : bons chiffres et stabilité. EMA : images plus propres. Le gain vient de la combinaison. »*
 - Limite : la ligne BCE a tourné sur Juliet (CUDA), la ligne RpGAN sur Mac (MPS). Écart de machine estimé : baseline 36,6 (Juliet) contre 38,7 (Mac), soit ≈ 2 points. Les effets de l'EMA sont mesurés sur les mêmes runs ; l'effet de la perte avec EMA (≈ −8) traverse les machines.
 - **Bonus** : baseline + EMA + DRS (D tel quel) = **24,8 ± 1,0** (p = 0,01) : le DRS marche bien sur une baseline avec EMA.
+
+**FID et KID Inception par chiffre** (job 145835/145899) : on compare chaque chiffre généré au même chiffre réel (1 000 images par chiffre, même nombre pour tous les modèles). Cela sépare la **qualité des traits** du **mélange des chiffres**.
+
+| Modèle (3 seeds) | FID Inception global | KID global × 1000 | FID Inception moyen par chiffre | « 2 » | « 1 » |
+|---|---|---|---|---|---|
+| Vraies images (val) | 1,5 | 0,1 | 8,6 | 10,2 | 7,7 |
+| Baseline | 38,7 | 28,5 | 63,6 ± 1,2 | **112,7** | **36,7** |
+| RpGAN + R1 sans EMA | 37,7 | 31,1 | **55,4 ± 1,8** | 79,8 | 51,8 |
+| RpGAN + R1 + EMA | 22,1 | 15,4 | **37,3 ± 1,9** | 58,0 | 34,4 |
+
+- **La perte améliore bien les traits, à chiffre fixé** : FID par chiffre 63,6 → 55,4 (p = 0,005), surtout sur les chiffres difficiles (« 2 » 113 → 80, « 5 » 83 → 63, « 3 » 72 → 53).
+- **Pourquoi le FID global ne le voit pas** : la baseline produit surtout des chiffres faciles et bien dessinés (25 % de « 1 », FID 37) et presque pas de « 2 » (1,6 %, FID 113). Le FID global pondère chaque chiffre par sa fréquence : les chiffres ratés de la baseline pèsent peu. RpGAN produit tous les chiffres à parts égales, difficiles compris : son gain par chiffre est compensé.
+- **L'EMA améliore tous les chiffres** : 55,4 → 37,3 (p = 0,0007).
+- **Le KID confirme le FID Inception** sur tous les classements (mêmes features) ; au global, RpGAN sans EMA n'est pas meilleur que la baseline (31,1 contre 28,5, p = 0,16).
 - **Réplication indépendante** retrouvée sur Juliet (jobs 143380-143381 du 4/11, jamais rapatriés ; CUDA, meilleur checkpoint, sans EMA) : baseline **36,4 ± 1,0**, RpGAN + R1 **36,1 ± 1,2**, R3GAN 37,7 ± 0,9 (FID Inception, 3 seeds). Même conclusion : sans EMA, la perte ne change rien en Inception. Bruit 0,1 et sélection 50 % : 1 et 2 seeds sur 3 effondrées.
 - Scripts et CSV : `enquete/scripts/ema/`, `enquete/results/ema/`, `enquete/results/juliet/`.
 
@@ -87,7 +101,7 @@ Lancées le 8/11 depuis `~/gan-a2-noe` (worktree de **`noe/training`**, la seule
 | **P0** | G2 | **Baseline + EMA** au protocole commun, 3 seeds | L'EMA seule suffit-elle ? (dernière case du tableau perte × EMA) | **fait** : non, 30,0 contre 22,1 (§2). `enquete/results/juliet/juliet2_test.csv` |
 | **P1** | G3 | Runs de sélection (`sel_95/90/75/50`) mesurés en **Inception + VGG** | Casser la circularité (sélection et FID CNN utilisent le même CNN) | **fait** : le compromis P ↑ / R ↓ tient aussi en VGG ; la sélection ne bat jamais la référence en Inception (§5.2). `nico_data_test.csv` |
 | **P1** | G4 | **BCE + bruit 0,3** au protocole commun, 3 à 8 seeds | Seul cas où le bruit peut agir (RpGAN ne s'effondre jamais) | **fait** : **2 effondrements sur 5** ; runs sains : 30,1 contre 30,0 sans bruit (p = 0,91) (§5.2) |
-| **P1** | G9 | **KID Inception** et **FID par chiffre** (Inception et CNN, 1 000 images par chiffre), 6 configs × 3 seeds + plancher réel | Avis indépendant : le KID n'a pas de biais lié à N ; le FID par chiffre sépare « bon mélange » et « bons traits » | **soumis** (job 145835) |
+| **P1** | G9 | **KID Inception** et **FID par chiffre** (Inception et CNN, 1 000 images par chiffre), 6 configs × 3 seeds + plancher réel | Avis indépendant : le KID n'a pas de biais lié à N ; le FID par chiffre sépare « bon mélange » et « bons traits » | **fait** (§2, §5.1). `kid_perclass_all.csv` |
 | **P1** | G10 | **Tests de sensibilité à 10 000 images** (Inception était à 500) : bruit, flou, chimères, effacement, épaississement, chiffres retirés, déséquilibres | Trancher la contradiction avec Lucic et al. 2018 (« FID heavily influenced by missing modes ») | **fait** : Inception voit un chiffre manquant, mais 10 fois moins que le CNN (§5.1). `sensitivity_10k.csv` |
 | P2 | G5 | BCE sur logits ± R1 (≈ 10 lignes dans `utils.py`) | Séparer « relativiste » et « R1 » | à faire (code à ajouter) |
 | P2 | G6 | Contrôle **50 % au hasard** (celui de DeVries) | Moins d'images, ou images choisies ? | à faire (patch de 2 lignes) |
@@ -133,6 +147,7 @@ Gabarit de chaque méthode, 4 lignes : **Attendu (papier) → Observé (chiffre,
 - **Contre** : sature sur les bons modèles, non comparable, **circulaire** pour la sélection (même CNN), γ choisi avec lui.
 - **Tests à 10 000 images (Juliet, G10)** : « poids » = part de l'écart entre la baseline et de vraies images, dans la même mesure. Planchers réel contre réel : Inception 1,53, CNN 2,74. **Inception n'est pas aveugle aux chiffres** (Lucic et al. 2018 ont raison), mais il y est environ 10 fois moins sensible que le CNN ; c'est l'inverse pour le bruit de pixels.
 - **KID** : il suit le FID Inception à quelques points près (mêmes features). Il supprime le biais lié au nombre d'images, mais ne donne pas un autre point de vue.
+- **FID Inception par chiffre** : c'est lui qui départage. Il montre que le FID global d'Inception **cache** les chiffres ratés quand ils sont rares (baseline : « 2 » à 113 mais 1,6 % des images). Recommandation : dans le rapport, donner le FID Inception global (plateforme) **et** le FID Inception moyen par chiffre (qualité des traits), avec l'histogramme des chiffres (mélange).
 - Le **÷18 contre ÷1,75** s'explique : RpGAN corrige surtout le mélange des chiffres. À chiffre fixé, son gain en FID CNN n'est que de 11 %.
 
 ### 5.2 Données
