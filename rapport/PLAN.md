@@ -96,7 +96,7 @@ Lancées le 8/11 depuis `~/gan-a2-noe` (worktree de **`noe/training`**, la seule
 
 | Prio | # | Expérience | Question tranchée | État |
 |---|---|---|---|---|
-| **P0** | G0 | Rapatrier les 5 runs `noise_03_e100` restés sur Juliet | « 0 of 8 » vrai ou faux | **non poussés** sur `nico/preprocessing` (seulement `noise_03_s0-2`) : à demander à Nicodème |
+| **P0** | G0 | Rapatrier les 5 runs `noise_03_e100` restés sur Juliet | « 0 of 8 » vrai ou faux | **rerun fait le 9/11** (jobs 146077-146078, seeds 0-7 appariés, 60k mises à jour) : **faux**. Bruit 0,3 : 1/8 effondrés, référence : 3/8 (Fisher p = 0,57) ; FID_Inc des runs sains 54,3 ± 3,9 contre 55,3 ± 2,6 (p = 0,58). `enquete/results/juliet/noise_rerun_test.csv` |
 | **P1** | G1 | DRS avec **D recalibré** + OBRS, mesuré en **Inception**, baseline et RpGAN, 3 seeds × 3 tirages | La recalibration rend-elle le DRS utile au sens de la plateforme ? | **fait** : oui pour RpGAN (22,0 → 19,7), non pour la baseline (§5.4). `enquete/results/juliet/drs_recalib_test.csv` |
 | **P0** | G2 | **Baseline + EMA** au protocole commun, 3 seeds | L'EMA seule suffit-elle ? (dernière case du tableau perte × EMA) | **fait** : non, 30,0 contre 22,1 (§2). `enquete/results/juliet/juliet2_test.csv` |
 | **P1** | G3 | Runs de sélection (`sel_95/90/75/50`) mesurés en **Inception + VGG** | Casser la circularité (sélection et FID CNN utilisent le même CNN) | **fait** : le compromis P ↑ / R ↓ tient aussi en VGG ; la sélection ne bat jamais la référence en Inception (§5.2). `nico_data_test.csv` |
@@ -172,7 +172,7 @@ Gabarit de chaque méthode, 4 lignes : **Attendu (papier) → Observé (chiffre,
 
 - **Le compromis précision ↑ / rappel ↓ tient en VGG** : ce n'est pas un artefact du CNN partagé. La circularité l'**amplifie** seulement (P à 50 % : +0,05 en VGG, +0,08 en CNN).
 - **En FID Inception, la sélection ne bat jamais la référence** : 90 % l'égale (35,8 contre 35,4), les autres font pire. Même conclusion que Nicodème, désormais indépendante du CNN.
-- **Bruit 0,3, tous runs confondus** : 2 effondrements sur 8 (0/3 ici + 2/5 au protocole commun), contre 19/49 sans bruit 0,3 (p = 0,70). Aucune preuve qu'il stabilise.
+- **Bruit 0,3, tous runs confondus** : 2 effondrements sur 8 (0/3 ici + 2/5 au protocole commun), contre 19/49 sans bruit 0,3 (p = 0,70). Aucune preuve qu'il stabilise. Rerun apparié du 9/11 (8 seeds) : 1/8 contre 3/8 (p = 0,57), tendance favorable mais non significative.
 
 ### 5.3 Entraînement
 

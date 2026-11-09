@@ -1,18 +1,25 @@
-% Préambule commun : article deux colonnes, style papier de recherche.
+% Préambule commun : article deux colonnes, style papier de recherche (Times, légendes de tableau au-dessus,
+% de figure en dessous, encadré \takeaway{...} en fin de partie, colonnes de la dernière page équilibrées).
+% Tableaux : légende courte (titre en gras + lecture), définitions des abréviations en \tabnote{...} sous le tableau.
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
+\usepackage{amsmath}
 \usepackage{mathptmx}
 \usepackage[a4paper,margin=1.7cm,columnsep=0.6cm]{geometry}
 \usepackage{microtype}
 \usepackage{graphicx}
 \usepackage{booktabs}
-\usepackage{amsmath}
+\usepackage{tabularx}
 \usepackage{xcolor}
-\usepackage[font=small,labelfont=bf,skip=3pt]{caption}
+\usepackage[font=small,labelfont=bf,labelsep=period,skip=3pt,justification=raggedright,singlelinecheck=false]{caption}
+\captionsetup[table]{position=top,skip=2pt}
 \usepackage{subcaption}
 \usepackage{enumitem}
-\usepackage{titlesec}
+\usepackage[nobottomtitles*]{titlesec}
+\renewcommand{\bottomtitlespace}{5\baselineskip} % pas de titre isolé en bas de colonne
 \usepackage[numbers,sort&compress]{natbib}
+\usepackage[nospread]{flushend} % colonnes de la dernière page équilibrées, sans étirer les blancs
+\raggedbottom % colonnes ordinaires : pas d'étirement vertical
 \usepackage[hidelinks]{hyperref}
 \graphicspath{{figures/}}
 \setlist{nosep,leftmargin=1.2em}
@@ -20,13 +27,19 @@
 \titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{0.5em}{}
 \titlespacing*{\section}{0pt}{8pt plus 2pt}{3pt}
 \titlespacing*{\subsection}{0pt}{5pt plus 1pt}{2pt}
-\setlength{\textfloatsep}{8pt plus 2pt}
-\setlength{\floatsep}{6pt plus 2pt}
+\setlength{\textfloatsep}{10pt plus 2pt}
+\setlength{\floatsep}{10pt plus 2pt}
 \setlength{\intextsep}{6pt plus 2pt}
-\setlength{\abovecaptionskip}{3pt}
+\setlength{\dbltextfloatsep}{8pt plus 2pt}
+\setlength{\parskip}{1.5pt plus 0.5pt} % un peu d'air avant chaque paragraphe (Expected., Observed., Why.)
+\renewcommand{\topfraction}{0.8}
+\renewcommand{\textfraction}{0.15}
+\renewcommand{\arraystretch}{1.05}
 \definecolor{accent}{HTML}{1F6FC5}
 \definecolor{alert}{HTML}{D55E00}
 \definecolor{good}{HTML}{009E73}
 \definecolor{muted}{HTML}{52514E}
 % Encadré « ce qu'il faut retenir » d'une partie : une phrase.
 \newcommand{\takeaway}[1]{\par\smallskip\noindent\colorbox{accent!8}{\parbox{\dimexpr\linewidth-2\fboxsep}{\small\textbf{Takeaway.} #1}}\par\smallskip}
+% Note sous un tableau : abréviations, renvois ; petite taille, alignée à gauche.
+\newcommand{\tabnote}[1]{\par\vspace{2pt}{\footnotesize\raggedright #1\par}}

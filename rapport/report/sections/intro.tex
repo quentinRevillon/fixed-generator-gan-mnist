@@ -1,3 +1,52 @@
-% Partie intro : ecrite par son agent.
-\section{intro}
-TODO.
+% Partie intro : problème, mesures, protocole commun et ses écarts, résultat principal.
+% Sources : PLAN.md §2, §4, §5.2 (taille minimale détectable : ≈ 3,6 points, PLAN.md l. 215 ; combinaison.md
+% donnait 3,7 en t non central, PLAN.md prime) ; results/comparison_local.csv ; baseline.md §C (P plateforme) ;
+% training-r3gan.md l.106 (coût R1) ; enquete/results/juliet/juliet2_test.csv (baseline Juliet = G brut des runs
+% baseline_ema) et drs_recalib_test.csv (même G évalué sur Juliet : 39,892 contre 39,888 sur Mac).
+% Stabilité entre seeds : sd relatif 3-6 % (Inc) contre 11-25 % (CNN), soit 3 à 4 fois moins (fid.md l. 65).
+% Tableau 1 en pleine largeur en haut de la première page de contenu (hors flottant : \twocolumn[...]),
+% une ligne par cellule pour rester lisible.
+\twocolumn[{%
+\centering\footnotesize
+\captionof{table}{\textbf{Protocol.} The same $G$ scores 39.89 on Mac and on the cluster.}
+\label{tab:intro-protocol}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\multicolumn{2}{@{}l}{\textbf{Common protocol} (headline comparisons)}\\
+\midrule
+Split & MNIST train $\to$ 50k train / 10k val.; all scores on MNIST test \\
+Budget & 200 epochs (100k updates), batch 100, Adam ($2{\times}10^{-4}$; 0.9, 0.999); scored at the last epoch; R1 adds 5\% time \\
+Samples & 10\,000 per model (P/R: 9\,984, as on the platform) \\
+Seeds & 3 per arm, mean $\pm$ sd; more for collapse counts (\emph{collapsed}: R $<0.01$) \\
+Tests & Welch $t$ (independent runs), paired $t$ (same runs), Fisher (collapses); no multiple-test correction \\
+Detectable & ${\approx}3.6$ FID$_\text{Inc}$ between independent arms (power 0.8); less if paired \\
+\midrule
+\multicolumn{2}{@{}l}{\textbf{Where protocols differ}}\\
+\midrule
+Data & BCE, no EMA, 60k images (fewer with selection), 120k updates, cluster, 3--8 seeds; own reference ${35.4\pm0.9}$ \\
+$\gamma$ sweep & 60k images, 60k updates, $G_\mathrm{EMA}$, Mac; $\gamma$ chosen on FID$_\text{CNN}$ \\
+Machines & Mac vs.\ cluster (A100): ${\approx}2$ FID apart (baseline ${38.7\pm1.2}$ vs.\ ${36.6\pm1.3}$, $p=0.12$) \\
+\bottomrule
+\end{tabularx}
+\vspace{10pt}
+}]
+
+\section{Introduction and protocol}\label{sec:intro}
+
+The generator $G$ is a fixed MLP: 100-d latent $z$ $\to$ 256, 512, 1024 units $\to$ $28{\times}28$ pixels.
+Three levers remain: \emph{data} (Sec.~\ref{sec:data}), \emph{training} (loss, discriminator $D$, weight
+averaging; Sec.~\ref{sec:training}), \emph{inference} (sampling; Sec.~\ref{sec:inference}).
+$G_\mathrm{EMA}$: running average of $G$'s weights; raw $G$: the trained weights.
+One lever changes at a time (Table~\ref{tab:intro-protocol}); each part reads
+\emph{expected $\to$ observed $\to$ why $\to$ when it fails}.
+
+\textbf{Metrics} (Sec.~\ref{sec:fid}). FID$_\text{Inc}$ ranks models: it is the platform's metric (ours within
+1 point: 43.2 vs.\ 44.0), 3--4$\times$ more stable across seeds than FID$_\text{CNN}$, and comparable to papers.
+VGG precision P (fidelity) and recall R (diversity) only rank our models (same model: our P 0.40, platform 0.70).
+FID$_\text{CNN}$ diagnoses the digit mix.
+
+\textbf{Baseline.} Provided code (BCE loss, no EMA), batch 100 (not 64), 200 epochs (not 100), 50k images:
+FID$_\text{Inc}$ $38.7\pm1.2$, P $0.47\pm0.02$, R $0.51\pm0.005$.
+
+\takeaway{With 3 seeds, gaps below ${\approx}3.6$ FID$_\text{Inc}$ between independently trained models are
+likely missed; paired tests are finer.}
