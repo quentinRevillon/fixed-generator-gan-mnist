@@ -1,0 +1,32 @@
+% Préambule commun : article deux colonnes, style papier de recherche.
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{mathptmx}
+\usepackage[a4paper,margin=1.7cm,columnsep=0.6cm]{geometry}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage[font=small,labelfont=bf,skip=3pt]{caption}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[hidelinks]{hyperref}
+\graphicspath{{figures/}}
+\setlist{nosep,leftmargin=1.2em}
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{0.5em}{}
+\titlespacing*{\section}{0pt}{8pt plus 2pt}{3pt}
+\titlespacing*{\subsection}{0pt}{5pt plus 1pt}{2pt}
+\setlength{\textfloatsep}{8pt plus 2pt}
+\setlength{\floatsep}{6pt plus 2pt}
+\setlength{\intextsep}{6pt plus 2pt}
+\setlength{\abovecaptionskip}{3pt}
+\definecolor{accent}{HTML}{1F6FC5}
+\definecolor{alert}{HTML}{D55E00}
+\definecolor{good}{HTML}{009E73}
+\definecolor{muted}{HTML}{52514E}
+% Encadré « ce qu'il faut retenir » d'une partie : une phrase.
+\newcommand{\takeaway}[1]{\par\smallskip\noindent\colorbox{accent!8}{\parbox{\dimexpr\linewidth-2\fboxsep}{\small\textbf{Takeaway.} #1}}\par\smallskip}

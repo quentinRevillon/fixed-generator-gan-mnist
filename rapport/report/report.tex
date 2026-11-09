@@ -1,0 +1,37 @@
+% Rapport final, projet A2 (GAN sur MNIST, générateur fixe).
+% Compiler : python tools/build.py   (pdflatex deux fois -> report.pdf ; pages PNG : python tools/render.py <dossier>)
+% Chaque partie vit dans sections/<partie>.tex ; les figures dans figures/, tracées par figscripts/<partie>.py.
+\documentclass[10pt,twocolumn]{article}
+\input{preamble}
+
+\begin{document}
+
+% ---------- Page de garde (hors des 5 pages de contenu) ----------
+\onecolumn
+\thispagestyle{empty}
+\begin{center}
+\vspace*{5cm}
+{\LARGE\bfseries Improving a fixed-architecture GAN on MNIST:\\[4pt] what helps, why, and when it fails\par}
+\vspace{1.2cm}
+{\large Quentin Revillon \quad Noé Mosca \quad Nicodème Gorge\par}
+\vspace{0.4cm}
+{\large Group 3 --- DataLab, Master IASD\par}
+\vspace{0.3cm}
+{\large November 2026\par}
+\vfill
+\end{center}
+\clearpage
+\twocolumn
+\setcounter{page}{1}
+
+\input{sections/intro}
+\input{sections/fid}
+\input{sections/data}
+\input{sections/training}
+\input{sections/inference}
+\input{sections/combination}
+
+{\footnotesize
+\input{references}
+}
+\end{document}
