@@ -1,0 +1,5 @@
+# Témoin : Discriminator Rejection Sampling (Azadi et al. 2019, slides Def. 3.1).
+# gamma est calibré pour atteindre le même budget K qu'OBRS (comparaison à coût égal).
+method: drs
+K: 10            # budget : propositions par image gardée (taux d'acceptation 1/K)
+n_calib: 50000   # taille du pool qui estime M = max r(x) et calibre gamma

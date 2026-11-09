@@ -1,0 +1,105 @@
+Run runs/ema100_baseline_s1 | device mps | 60000 images | époques 1->100 | loss bce (R1=0.0, R2=0.0) | EMA 0.999
+[001/100] D=1.108 G=2.078 D(x)=0.74 D(G(z))=0.40 | 40.1s/ep | écoulé 0m40s | restant ~1h06m10s
+[002/100] D=0.940 G=3.323 D(x)=0.75 D(G(z))=0.30 | 42.4s/ep | écoulé 1m22s | restant ~1h07m22s
+[003/100] D=0.925 G=16.307 D(x)=0.80 D(G(z))=0.25 | 41.2s/ep | écoulé 2m03s | restant ~1h06m40s
+[004/100] D=1.184 G=5.928 D(x)=0.76 D(G(z))=0.28 | 45.5s/ep | écoulé 2m49s | restant ~1h07m41s
+[005/100] D=0.911 G=3.230 D(x)=0.77 D(G(z))=0.25 | 46.8s/ep | écoulé 3m36s | restant ~1h08m24s
+[006/100] D=0.725 G=3.124 D(x)=0.79 D(G(z))=0.23 | 43.0s/ep | écoulé 4m19s | restant ~1h07m38s
+[007/100] D=0.706 G=3.101 D(x)=0.81 D(G(z))=0.21 | 46.4s/ep | écoulé 5m05s | restant ~1h07m37s
+[008/100] D=0.741 G=3.156 D(x)=0.80 D(G(z))=0.21 | 48.6s/ep | écoulé 5m53s | restant ~1h07m50s
+[009/100] D=0.737 G=2.663 D(x)=0.79 D(G(z))=0.22 | 50.6s/ep | écoulé 6m44s | restant ~1h08m10s
+[010/100] D=0.773 G=2.395 D(x)=0.78 D(G(z))=0.24 | FID=2638.63 P=0.997 R=0.000 | 51.6s/ep | écoulé 7m36s | restant ~1h08m25s
+[011/100] D=0.843 G=2.520 D(x)=0.76 D(G(z))=0.26 | 51.6s/ep | écoulé 8m27s | restant ~1h08m28s
+[012/100] D=0.775 G=2.596 D(x)=0.78 D(G(z))=0.24 | 51.3s/ep | écoulé 9m19s | restant ~1h08m20s
+[013/100] D=0.833 G=2.293 D(x)=0.75 D(G(z))=0.26 | 54.0s/ep | écoulé 10m13s | restant ~1h08m22s
+[014/100] D=0.805 G=2.381 D(x)=0.77 D(G(z))=0.25 | 51.8s/ep | écoulé 11m04s | restant ~1h08m04s
+[015/100] D=0.761 G=2.813 D(x)=0.79 D(G(z))=0.22 | 49.5s/ep | écoulé 11m54s | restant ~1h07m28s
+[016/100] D=0.688 G=2.987 D(x)=0.81 D(G(z))=0.21 | 66.1s/ep | écoulé 13m00s | restant ~1h08m17s
+[017/100] D=0.626 G=2.968 D(x)=0.82 D(G(z))=0.19 | 75.0s/ep | écoulé 14m15s | restant ~1h09m36s
+[018/100] D=0.674 G=3.293 D(x)=0.82 D(G(z))=0.19 | 62.0s/ep | écoulé 15m17s | restant ~1h09m39s
+[019/100] D=0.646 G=2.947 D(x)=0.82 D(G(z))=0.20 | 67.7s/ep | écoulé 16m25s | restant ~1h09m59s
+[020/100] D=0.596 G=3.243 D(x)=0.83 D(G(z))=0.18 | FID=1741.07 P=0.796 R=0.000 | 70.7s/ep | écoulé 17m35s | restant ~1h10m23s
+[021/100] D=0.536 G=3.129 D(x)=0.84 D(G(z))=0.17 | 74.9s/ep | écoulé 18m50s | restant ~1h10m53s
+[022/100] D=0.570 G=3.024 D(x)=0.83 D(G(z))=0.17 | 81.4s/ep | écoulé 20m12s | restant ~1h11m37s
+[023/100] D=0.585 G=2.915 D(x)=0.83 D(G(z))=0.18 | 65.5s/ep | écoulé 21m17s | restant ~1h11m17s
+[024/100] D=0.585 G=3.020 D(x)=0.83 D(G(z))=0.18 | 63.4s/ep | écoulé 22m21s | restant ~1h10m46s
+[025/100] D=0.553 G=3.017 D(x)=0.83 D(G(z))=0.17 | 72.0s/ep | écoulé 23m33s | restant ~1h10m39s
+[026/100] D=0.589 G=2.752 D(x)=0.82 D(G(z))=0.18 | 81.0s/ep | écoulé 24m54s | restant ~1h10m52s
+[027/100] D=0.578 G=2.761 D(x)=0.82 D(G(z))=0.18 | 80.1s/ep | écoulé 26m14s | restant ~1h10m56s
+[028/100] D=0.605 G=2.641 D(x)=0.82 D(G(z))=0.19 | 73.4s/ep | écoulé 27m27s | restant ~1h10m36s
+[029/100] D=0.638 G=2.562 D(x)=0.81 D(G(z))=0.20 | 75.4s/ep | écoulé 28m43s | restant ~1h10m18s
+[030/100] D=0.667 G=2.525 D(x)=0.80 D(G(z))=0.21 | FID=808.31 P=0.800 R=0.031 | 73.4s/ep | écoulé 29m56s | restant ~1h09m51s
+[031/100] D=0.701 G=2.388 D(x)=0.78 D(G(z))=0.22 | 69.9s/ep | écoulé 31m06s | restant ~1h09m14s
+[032/100] D=0.709 G=2.235 D(x)=0.78 D(G(z))=0.23 | 69.9s/ep | écoulé 32m16s | restant ~1h08m34s
+[033/100] D=0.695 G=2.319 D(x)=0.78 D(G(z))=0.22 | 72.4s/ep | écoulé 33m28s | restant ~1h07m58s
+[034/100] D=0.720 G=2.192 D(x)=0.77 D(G(z))=0.23 | 65.6s/ep | écoulé 34m34s | restant ~1h07m06s
+[035/100] D=0.751 G=2.146 D(x)=0.77 D(G(z))=0.24 | 71.9s/ep | écoulé 35m46s | restant ~1h06m25s
+[036/100] D=0.749 G=2.074 D(x)=0.76 D(G(z))=0.24 | 84.1s/ep | écoulé 37m10s | restant ~1h06m04s
+[037/100] D=0.759 G=2.025 D(x)=0.76 D(G(z))=0.25 | 62.5s/ep | écoulé 38m12s | restant ~1h05m03s
+[038/100] D=0.780 G=2.026 D(x)=0.76 D(G(z))=0.25 | 66.9s/ep | écoulé 39m19s | restant ~1h04m09s
+[039/100] D=0.793 G=1.977 D(x)=0.75 D(G(z))=0.26 | 66.7s/ep | écoulé 40m26s | restant ~1h03m14s
+[040/100] D=0.789 G=1.985 D(x)=0.75 D(G(z))=0.26 | FID=294.69 P=0.757 R=0.221 | 101.1s/ep | écoulé 42m07s | restant ~1h03m11s
+[041/100] D=0.817 G=1.885 D(x)=0.74 D(G(z))=0.27 | 336.1s/ep | écoulé 47m43s | restant ~1h08m40s
+[042/100] D=0.841 G=1.826 D(x)=0.73 D(G(z))=0.27 | 5804.4s/ep | écoulé 2h24m27s | restant ~3h19m29s
+[043/100] D=0.817 G=1.883 D(x)=0.74 D(G(z))=0.27 | 6503.2s/ep | écoulé 4h12m51s | restant ~5h35m10s
+[044/100] D=0.806 G=1.891 D(x)=0.74 D(G(z))=0.26 | 41.3s/ep | écoulé 4h13m32s | restant ~5h22m41s
+[045/100] D=0.849 G=1.791 D(x)=0.73 D(G(z))=0.28 | 36.8s/ep | écoulé 4h14m09s | restant ~5h10m37s
+[046/100] D=0.858 G=1.792 D(x)=0.73 D(G(z))=0.28 | 42.3s/ep | écoulé 4h14m51s | restant ~4h59m10s
+[047/100] D=0.856 G=1.772 D(x)=0.73 D(G(z))=0.28 | 44.5s/ep | écoulé 4h15m35s | restant ~4h48m13s
+[048/100] D=0.853 G=1.780 D(x)=0.73 D(G(z))=0.28 | 42.5s/ep | écoulé 4h16m18s | restant ~4h37m39s
+[049/100] D=0.869 G=1.741 D(x)=0.72 D(G(z))=0.28 | 43.5s/ep | écoulé 4h17m01s | restant ~4h27m31s
+[050/100] D=0.892 G=1.668 D(x)=0.71 D(G(z))=0.29 | FID=162.82 P=0.754 R=0.491 | 50.0s/ep | écoulé 4h17m51s | restant ~4h17m51s
+[051/100] D=0.920 G=1.624 D(x)=0.70 D(G(z))=0.30 | 45.2s/ep | écoulé 4h18m37s | restant ~4h08m28s
+[052/100] D=0.919 G=1.609 D(x)=0.70 D(G(z))=0.30 | 47.0s/ep | écoulé 4h19m24s | restant ~3h59m26s
+[053/100] D=0.928 G=1.611 D(x)=0.70 D(G(z))=0.31 | 52.4s/ep | écoulé 4h20m16s | restant ~3h50m48s
+[054/100] D=0.932 G=1.571 D(x)=0.70 D(G(z))=0.31 | 47.6s/ep | écoulé 4h21m04s | restant ~3h42m23s
+[055/100] D=0.928 G=1.598 D(x)=0.70 D(G(z))=0.31 | 51.0s/ep | écoulé 4h21m55s | restant ~3h34m17s
+[056/100] D=0.939 G=1.564 D(x)=0.69 D(G(z))=0.31 | 55.0s/ep | écoulé 4h22m50s | restant ~3h26m30s
+[057/100] D=0.949 G=1.544 D(x)=0.69 D(G(z))=0.31 | 57.8s/ep | écoulé 4h23m47s | restant ~3h19m00s
+[058/100] D=0.955 G=1.541 D(x)=0.69 D(G(z))=0.32 | 59.6s/ep | écoulé 4h24m47s | restant ~3h11m44s
+[059/100] D=0.955 G=1.535 D(x)=0.69 D(G(z))=0.32 | 57.2s/ep | écoulé 4h25m44s | restant ~3h04m40s
+[060/100] D=0.966 G=1.501 D(x)=0.68 D(G(z))=0.32 | FID=95.51 P=0.752 R=0.627 | 61.0s/ep | écoulé 4h26m45s | restant ~2h57m50s
+[061/100] D=0.952 G=1.543 D(x)=0.69 D(G(z))=0.32 | 57.8s/ep | écoulé 4h27m43s | restant ~2h51m10s
+[062/100] D=0.964 G=1.525 D(x)=0.68 D(G(z))=0.32 | 56.0s/ep | écoulé 4h28m39s | restant ~2h44m39s
+[063/100] D=0.970 G=1.501 D(x)=0.68 D(G(z))=0.32 | 57.5s/ep | écoulé 4h29m37s | restant ~2h38m20s
+[064/100] D=0.980 G=1.501 D(x)=0.68 D(G(z))=0.33 | 56.5s/ep | écoulé 4h30m33s | restant ~2h32m11s
+[065/100] D=0.962 G=1.499 D(x)=0.68 D(G(z))=0.32 | 707.4s/ep | écoulé 4h42m20s | restant ~2h32m01s
+[066/100] D=0.974 G=1.481 D(x)=0.68 D(G(z))=0.33 | 1844.7s/ep | écoulé 5h13m05s | restant ~2h41m17s
+[067/100] D=0.962 G=1.526 D(x)=0.68 D(G(z))=0.32 | 2477.0s/ep | écoulé 5h54m22s | restant ~2h54m32s
+[068/100] D=0.973 G=1.495 D(x)=0.68 D(G(z))=0.32 | 4591.0s/ep | écoulé 7h10m53s | restant ~3h22m46s
+[069/100] D=0.975 G=1.474 D(x)=0.68 D(G(z))=0.33 | 316.7s/ep | écoulé 7h16m10s | restant ~3h15m57s
+[070/100] D=0.968 G=1.491 D(x)=0.68 D(G(z))=0.32 | FID=67.63 P=0.764 R=0.713 | 152.6s/ep | écoulé 7h18m42s | restant ~3h08m01s
+[071/100] D=0.979 G=1.473 D(x)=0.68 D(G(z))=0.33 | 38.1s/ep | écoulé 7h19m20s | restant ~2h59m27s
+[072/100] D=0.985 G=1.464 D(x)=0.68 D(G(z))=0.33 | 37.4s/ep | écoulé 7h19m58s | restant ~2h51m06s
+[073/100] D=0.974 G=1.495 D(x)=0.68 D(G(z))=0.32 | 38.3s/ep | écoulé 7h20m36s | restant ~2h42m57s
+[074/100] D=0.989 G=1.445 D(x)=0.67 D(G(z))=0.33 | 40.3s/ep | écoulé 7h21m16s | restant ~2h35m02s
+[075/100] D=0.981 G=1.473 D(x)=0.68 D(G(z))=0.33 | 47.0s/ep | écoulé 7h22m03s | restant ~2h27m21s
+[076/100] D=0.987 G=1.465 D(x)=0.67 D(G(z))=0.33 | 43.6s/ep | écoulé 7h22m47s | restant ~2h19m49s
+[077/100] D=0.983 G=1.478 D(x)=0.68 D(G(z))=0.33 | 44.9s/ep | écoulé 7h23m32s | restant ~2h12m29s
+[078/100] D=0.977 G=1.498 D(x)=0.68 D(G(z))=0.33 | 45.4s/ep | écoulé 7h24m17s | restant ~2h05m18s
+[079/100] D=0.983 G=1.476 D(x)=0.67 D(G(z))=0.33 | 43.9s/ep | écoulé 7h25m01s | restant ~1h58m17s
+[080/100] D=0.977 G=1.486 D(x)=0.68 D(G(z))=0.33 | FID=61.34 P=0.766 R=0.765 | 49.6s/ep | écoulé 7h25m51s | restant ~1h51m27s
+[081/100] D=0.985 G=1.465 D(x)=0.67 D(G(z))=0.33 | 50.0s/ep | écoulé 7h26m41s | restant ~1h44m46s
+[082/100] D=0.989 G=1.457 D(x)=0.67 D(G(z))=0.33 | 47.6s/ep | écoulé 7h27m29s | restant ~1h38m13s
+[083/100] D=0.991 G=1.457 D(x)=0.67 D(G(z))=0.33 | 46.2s/ep | écoulé 7h28m15s | restant ~1h31m48s
+[084/100] D=0.985 G=1.471 D(x)=0.67 D(G(z))=0.33 | 48.2s/ep | écoulé 7h29m03s | restant ~1h25m32s
+[085/100] D=0.998 G=1.433 D(x)=0.67 D(G(z))=0.33 | 50.8s/ep | écoulé 7h29m54s | restant ~1h19m23s
+[086/100] D=0.988 G=1.472 D(x)=0.67 D(G(z))=0.33 | 50.9s/ep | écoulé 7h30m45s | restant ~1h13m22s
+[087/100] D=1.002 G=1.431 D(x)=0.67 D(G(z))=0.33 | 47.9s/ep | écoulé 7h31m33s | restant ~1h07m28s
+[088/100] D=0.997 G=1.444 D(x)=0.67 D(G(z))=0.33 | 47.7s/ep | écoulé 7h32m20s | restant ~1h01m41s
+[089/100] D=0.996 G=1.441 D(x)=0.67 D(G(z))=0.33 | 56.0s/ep | écoulé 7h33m16s | restant ~56m01s
+[090/100] D=0.991 G=1.457 D(x)=0.67 D(G(z))=0.33 | FID=51.74 P=0.789 R=0.790 | 57.7s/ep | écoulé 7h34m14s | restant ~50m28s
+[091/100] D=0.991 G=1.453 D(x)=0.67 D(G(z))=0.33 | 49.4s/ep | écoulé 7h35m03s | restant ~45m00s
+[092/100] D=0.990 G=1.465 D(x)=0.67 D(G(z))=0.33 | 52.2s/ep | écoulé 7h35m56s | restant ~39m38s
+[093/100] D=1.000 G=1.428 D(x)=0.67 D(G(z))=0.33 | 53.0s/ep | écoulé 7h36m49s | restant ~34m23s
+[094/100] D=0.997 G=1.449 D(x)=0.67 D(G(z))=0.33 | 53.6s/ep | écoulé 7h37m42s | restant ~29m12s
+[095/100] D=1.004 G=1.416 D(x)=0.67 D(G(z))=0.34 | 52.8s/ep | écoulé 7h38m35s | restant ~24m08s
+[096/100] D=1.003 G=1.434 D(x)=0.67 D(G(z))=0.34 | 52.2s/ep | écoulé 7h39m27s | restant ~19m08s
+[097/100] D=1.006 G=1.440 D(x)=0.67 D(G(z))=0.34 | 47.8s/ep | écoulé 7h40m15s | restant ~14m14s
+[098/100] D=0.996 G=1.428 D(x)=0.67 D(G(z))=0.33 | 47.0s/ep | écoulé 7h41m02s | restant ~9m24s
+[099/100] D=0.998 G=1.449 D(x)=0.67 D(G(z))=0.33 | 46.7s/ep | écoulé 7h41m49s | restant ~4m39s
+[100/100] D=0.997 G=1.442 D(x)=0.67 D(G(z))=0.33 | FID=55.25 P=0.794 R=0.785 | 50.0s/ep | écoulé 7h42m39s | restant ~0m00s
+ema100_baseline_s1 : FID=55.246 precision=0.794 recall=0.785
+Classes 0-9 (%) : 10.8 14.6 4.2 10.5 9.2 8.5 8.6 14.7 7.4 11.6
+Grille : runs/ema100_baseline_s1/grid.png
+Entraînement terminé en 7h42m39s. Générateur : runs/ema100_baseline_s1/G.pth

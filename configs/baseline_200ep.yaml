@@ -1,0 +1,22 @@
+# Essai : baseline.yaml avec 200 époques au lieu de 50 (seul changement, à part save_every pour limiter le disque).
+# Question : 50 époques suffisent-elles ? baseline_v1 n'a pas convergé (FID sur val encore en forte baisse à l'époque 50).
+name: baseline_200ep      # dossier de sortie : <output.dir>/<name>/
+seed: 0
+
+train:
+  epochs: 200
+  batch_size: 100
+
+optimizer:
+  name: adam
+  lr: 0.0002              # point décimal obligatoire (0,0002 serait lu comme du texte)
+  betas: [0.9, 0.999]
+
+output:
+  dir: runs
+  save_every: 50          # checkpoint ckpt/epoch_XXX.pth toutes les N époques (+ last.pth à chaque époque)
+
+eval:
+  every: 10               # FID / precision / recall sur 'val' toutes les N époques
+  n_samples: 10000
+  k: 3                    # k plus proches voisins pour precision / recall

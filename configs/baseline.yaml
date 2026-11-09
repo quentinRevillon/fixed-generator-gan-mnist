@@ -1,14 +1,12 @@
 # Baseline commune du groupe. Copier ce fichier pour chaque nouvelle expérience.
-name: baseline            # dossier de sortie : <output.dir>/<name>/
+# Données : split figé train (50k) / val (10k) / test (10k) défini dans gan/data.py (pas de paramètre ici :
+# c'est un contrat commun). $DATA est utilisé s'il est défini (Juliet), sinon MNIST est téléchargé dans data/.
+name: baseline_v1         # dossier de sortie : <output.dir>/<name>/ (v1 = première baseline sur le split train/val)
 seed: 0
-
-data:
-  path: data              # remplacé par $DATA si défini (Juliet) ; pas de validation croisée
 
 train:
   epochs: 50
   batch_size: 100
-  num_workers: 4
 
 optimizer:
   name: adam
@@ -20,6 +18,6 @@ output:
   save_every: 10          # checkpoint ckpt/epoch_XXX.pth toutes les N époques (+ last.pth à chaque époque)
 
 eval:
-  every: 10               # FID / precision / recall toutes les N époques
+  every: 10               # FID / precision / recall sur 'val' toutes les N époques
   n_samples: 10000
   k: 3                    # k plus proches voisins pour precision / recall
