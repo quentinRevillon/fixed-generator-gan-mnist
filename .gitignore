@@ -49,3 +49,10 @@ slides/*.out
 slides/*.snm
 slides/*.toc
 slides/*.pdf
+
+# Rapport : artefacts LaTeX (le PDF rendu est report.pdf à la racine)
+report/*.aux
+report/*.log
+report/*.out
+report/report.pdf
+report/build/

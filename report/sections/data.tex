@@ -1,0 +1,75 @@
+% Partie données (Nicodème) : sélection d'instances et bruit d'instance.
+% Sources : enquete/results/juliet/nico_data_test.csv (runs données), juliet2_test.csv (BCE + EMA +- bruit, cluster),
+% results/comparison_local.csv (RpGAN + R1 + EMA +- bruit, Mac), enquete/data.md (mécanisme des effondrements, DeVries),
+% rerun apparié du 9/11 : enquete/results/juliet/noise_rerun_test.csv (8 seeds, 60k mises à jour).
+\section{Data: cleaner or noisier inputs}\label{sec:data}
+
+These experiments were run on a slightly different protocol (all 60\,000 training images, a longer training, baseline
+loss without EMA), with their own reference trained the same way: compare them with that reference only
+(Table~\ref{tab:data}).
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\caption{\textbf{Data lever.} Mean over the runs that did not collapse. Precision: quality; recall: diversity.}
+\label{tab:data}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Variant & \finc{} & Precision & Recall \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Instance selection (data protocol)}} \\
+All images (reference) & $35.4\pm0.9$ & 0.51 & 0.52 \\
+Keep 95\%              & $38.2\pm2.7$ & 0.49 & 0.48 \\
+Keep 90\%              & $35.8\pm3.3$ & 0.53 & 0.49 \\
+Keep 75\%              & $40.8\pm3.9$ & 0.54 & 0.40 \\
+Keep 50\%              & $47.8\pm2.9$ & 0.56 & 0.32 \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Instance noise (common protocol, with EMA)}} \\
+Baseline loss          & $30.0\pm0.2$ & 0.56 & 0.54 \\
+\quad + noise          & $30.1\pm1.3$ & 0.56 & 0.54 \\
+Final loss (Sec.~\ref{sec:training}) & $22.1\pm1.3$ & 0.59 & 0.59 \\
+\quad + noise          & $21.4\pm0.6$ & 0.60 & 0.61 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Instance selection: train on typical images only}
+
+\textbf{Idea.} Some training images are odd: unusual shapes, thick strokes, ambiguous digits. DeVries et
+al.~\cite{devries2020} showed that removing the least typical images lets a GAN spend its limited capacity on the rest: on
+ImageNet, keeping the most typical half improved the FID from 21.4 to 12.6. We measure how typical an image is by how
+close its classifier features are to the average of its digit, and keep the 95, 90, 75 or 50\% most typical images of
+each digit.
+
+\textbf{Result.} No selection rate beats the reference. Keeping 90\% ties, keeping 50\% is clearly worse (47.8 against
+35.4). The trade-off is the expected one, but unbalanced: precision rises a little (0.51 to 0.56) while recall collapses
+(0.52 to 0.32). The generator draws fewer odd digits, but also far fewer kinds of digits.
+
+\textbf{Why it does not transfer.} Three differences with the paper explain it. First, their generator is told which
+class to draw; ours is not, and with less variety to imitate it drops whole digits (at 50\%, no ``0'' is generated at
+all, against 10\% normally). Second, MNIST is already clean: its unusual images are mostly legitimate handwriting styles,
+not errors, so removing them removes diversity. Third, the paper's model was short of capacity; ours is not the
+bottleneck, since the same generator reaches 22.1 with a better training (Sec.~\ref{sec:training}).
+
+\subsection{Instance noise: blur the discriminator's view}
+
+\textbf{Idea.} Early in training, real and generated images are so different that $D$ separates them perfectly; $G$
+then receives almost no useful signal. Adding random noise to every image $D$ sees, real or generated, makes the two sets
+overlap and keeps $D$ from winning too early~\cite{sonderby2017,arjovsky2017}. The noise starts at a standard deviation
+of 0.3 (pixels range from $-1$ to 1) and fades to zero halfway through training. The literature promises a more stable
+training, not a better score.
+
+\textbf{Result.} The score does not move, with either loss (Table~\ref{tab:data}). What about stability? Some runs
+of the baseline \emph{collapse}: training breaks down and $G$ outputs only noise or one repeated shape
+(Fig.~\ref{fig:samples}d). A first experiment suggested that noise prevents this (0 collapses in 8 runs). We reran it
+properly, with and without noise on the same 8 seeds: 1 collapse out of 8 with noise, 3 out of 8 without. The trend
+favours noise, but this difference is well within chance ($p=0.57$).
+
+\textbf{Why collapses happen.} We inspected the 19 collapsed runs. In 17 of them, $D$ becomes so sure of itself that it gives
+generated images a probability of being real below $10^{-12}$. The baseline's loss function cannot represent smaller
+numbers and clips them, which makes $G$'s gradient vanish: $G$ stops learning for good. Noise does not prevent this: a
+single direction in pixel space is enough to separate real from fake, and noise spread over all pixels does not hide it.
+The remedy is a numerically safer loss: the one of Sec.~\ref{sec:training} never collapsed.
+
+\takeaway{On MNIST, neither data lever improved the score. Keeping only typical images trades too much diversity for
+little quality; noise neither helps the score nor clearly prevents collapses, which come from the loss function.}
