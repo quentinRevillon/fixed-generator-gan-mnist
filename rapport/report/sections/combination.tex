@@ -1,6 +1,6 @@
 % Partie combinaison et conclusion.
 % Sources : results/comparison_local.csv, enquete/results/juliet/{juliet2_test,drs_recalib_test}.csv, enquete/combinaison.md,
-% PLAN.md (score plateforme : 21,59 / 0,702 / 0,585 ; FID test du modèle rendu 21,15).
+% PLAN.md (score plateforme du G sans tri : 21,59 ; soumission OBRS + D recalibré : FID test 19,43, P 0,614, R 0,599, job Juliet 146394).
 \section{Combining the levers, and conclusion}\label{sec:combination}
 
 \textbf{Gains do not simply add up.} Each lever's effect depends on the model it is applied to. The new loss only pays off
@@ -8,16 +8,16 @@ once the generator is averaged (Sec.~\ref{sec:training}). Filtering with the ori
 without EMA (30.0 to 24.8 with EMA), but not the final model, unless $D$ is recalibrated (Sec.~\ref{sec:inference}). The
 data levers brought nothing to stack.
 
-\textbf{Submitted model.} RpGAN + R1 ($\gamma=1$) with EMA, the seed with the best validation score, and no filter. It
-scores 21.15 on our test set (the method averages $22.1\pm1.3$ over seeds) and, on the platform, FID 21.59 with
-precision 0.70 and recall 0.59, against 38.7, 0.47 and 0.51 for the baseline. Its samples are shown in
-Fig.~\ref{fig:samples}c. With the recalibrated OBRS filter, found after submission, we would expect about 2 points more
-for three times more generated images.
+\textbf{Submitted model.} The generator is RpGAN + R1 ($\gamma=1$) with EMA, from the seed with the best validation
+score (Fig.~\ref{fig:samples}c); images are drawn with OBRS ($K=3$) and the recalibrated $D$. On the MNIST test set,
+with the platform's evaluator, the filter takes this generator from 21.15 to \textbf{19.43}, with precision 0.61 and
+recall 0.60 (baseline: 38.7, 0.47, 0.51). It costs three proposals per kept image, 0.16\,s for 10\,000 images on a GPU.
+The platform scored the same generator without filter at 21.59, close to our 21.15.
 
 \textbf{What we learned.}
 \begin{itemize}
 \item On a fixed, small generator, \emph{how} it is trained matters more than \emph{what} it sees: the training lever
-gave all of the gain.
+gave most of the gain (38.7 to 22.1), the filter the rest (to 19.4).
 \item Ideas that work on large, diverse datasets do not automatically transfer to MNIST: selecting typical images
 removes useful diversity, and noise does not cure a numerical problem.
 \item A tool built on the discriminator (here, a filter) must be checked against the discriminator's actual ability:
@@ -30,5 +30,5 @@ so we always report which one we use, and look at the images.
 different machines (about 2 points apart); the data experiments used their own protocol; and two controls are missing
 (R1 with the baseline loss, selection of a random half of the images).
 
-\takeaway{Averaging the generator and a relativistic loss with R1 take the FID from 38.7 to 22.1 (21.59 on the
-platform); filtering with a recalibrated discriminator could take it to about 19.7.}
+\takeaway{Averaging the generator and a relativistic loss with R1 take the FID from 38.7 to 22.1; filtering with a
+recalibrated discriminator takes the submitted model to 19.4.}

@@ -17,7 +17,7 @@ L_D &= \mathrm{sp}\big(D(\tilde x)-D(x)\big) + \tfrac{\gamma}{2}\,\|\nabla_x D(x
 L_G &= \mathrm{sp}\big(D(x)-D(\tilde x)\big).
 \end{align*}
 We chose the weight $\gamma$ of the penalty by trying 0.1, 1 and 10 with three seeds each: at 0.1 all runs diverge, 1 is
-the best and 10 learns more slowly.
+the best and 10 learns more slowly. The penalty adds about 5\% to the training time.
 
 \textbf{An averaged generator (EMA).} During training, the weights of $G$ keep moving around a good solution. Instead of
 keeping the last weights, we keep a running average of them, updated after every step:
