@@ -19,20 +19,16 @@ from style import ACCENT, DARK, INK, MUTED, NOTE, apply, save  # noqa: E402
 CSV = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'enquete', 'results', 'juliet',
                    'sensitivity_10k.csv')
 # Lignes de haut en bas : str = titre de groupe ; tuple = (experiment, condition, level, label affiché).
-ROWS = ['Digit mix of real images',
-        ('classes', 'chiffres retires', '1', '1 digit removed'),
-        ('classes', 'chiffres retires', '2', '2 digits removed'),
-        ('classes', 'desequilibre', '30% de 1', '30% of 1s (vs 11%)'),
-        ('classes', 'desequilibre', 'parts de la baseline', 'baseline digit mix'),
-        'Defect on 25% of real images',
-        ('pixels', 'noise0.3', '0.25', r'noise $\sigma{=}0.3$'),
-        ('pixels', 'blur1.0', '0.25', r'blur $\sigma{=}1$'),
-        ('pixels', 'blend', '0.25', 'blend of 2 digits'),
-        ('pixels', 'erase10', '0.25', '10-px square erased'),
-        ('pixels', 'thicken', '0.25', 'thickened strokes'),
+ROWS = ['Real images, unbalanced',
+        ('classes', 'chiffres retires', '1', 'one digit missing'),
+        ('classes', 'chiffres retires', '2', 'two digits missing'),
+        ('classes', 'desequilibre', 'parts de la baseline', "baseline's digit balance"),
+        'Real images, 25% damaged',
+        ('pixels', 'noise0.3', '0.25', 'pixel noise'),
+        ('pixels', 'blur1.0', '0.25', 'blur'),
         'Generated images',
         ('gan', 'baseline remise en proportion', '', 'baseline, rebalanced'),
-        ('gan', 'rpgan_r1_ema', '', 'RpGAN + R1 + EMA')]
+        ('gan', 'rpgan_r1_ema', '', 'final model')]
 
 
 def load_shares(path):
@@ -55,7 +51,7 @@ def load_shares(path):
 def plot(labels, inc, cnn):
     """Barres horizontales groupées : FID_Inc (accent) et FID_CNN (gris), valeur au bout de chaque barre en gris foncé,
     titres de groupe dans le graphique, légende horizontale au-dessus des axes, ligne 100 % étiquetée."""
-    fig, ax = plt.subplots(figsize=(3.3, 3.5))
+    fig, ax = plt.subplots(figsize=(3.3, 2.6))
     y = np.arange(len(labels))[::-1].astype(float)
     h = 0.42
     ax.barh(y + h / 2, inc, h, color=ACCENT, label=r'FID$_\mathrm{Inc}$')
@@ -71,10 +67,10 @@ def plot(labels, inc, cnn):
         ax.text(b + 1.5, yi - h / 2, f'{b:.0f}', va='center', fontsize=NOTE, color=DARK)
     ax.set_yticks(ticks, names)
     ax.axvline(100, color=INK, lw=0.6, ls=(0, (3, 2)))
-    ax.text(101.5, y[9], '100% =\nbaseline gap', ha='left', va='center', fontsize=NOTE, color=DARK)
+    ax.text(101.5, y[2], '100% =\nas bad as\nthe baseline', ha='left', va='center', fontsize=NOTE, color=DARK)
     ax.set_xlim(0, 132)
     ax.set_ylim(-0.6, y[0] + 0.5)
-    ax.set_xlabel('share of the baseline gap (%)')
+    ax.set_xlabel("FID above the floor, as % of the baseline's")
     ax.tick_params(axis='y', length=0)
     ax.xaxis.set_major_locator(plt.MultipleLocator(25))
     ax.legend(loc='lower center', bbox_to_anchor=(0.5, 1.0), ncol=2, handlelength=1.2, borderaxespad=0.2)

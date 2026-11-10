@@ -1,55 +1,49 @@
 % Partie fid : quelle mesure mène, et pourquoi un FID CNN à côté du FID Inception.
-% Sources : PLAN.md §2, §5.1 ; enquete/fid.md ; baseline.md §3 ; enquete/results/juliet/{sensitivity_10k,kid_perclass_all}.csv ;
-% enquete/results/fid/{rank_correlation,variance_share}.csv ; results/comparison_local.csv (sd entre seeds, ddof = 1).
-% Plancher par chiffre : 8,5 (kid_perclass_all.csv 8,547) ; PLAN.md écrit 8,6 par erreur d'arrondi.
-% Figure : figscripts/fid.py.
-\section{Which FID? Evaluation}\label{sec:fid}
+% Sources : PLAN.md §2, §5.1 ; enquete/fid.md ; enquete/results/juliet/{sensitivity_10k,kid_perclass_all}.csv ;
+% enquete/results/fid/variance_share.csv ; results/comparison_local.csv (sd entre seeds). Figure : figscripts/fid.py.
+\section{Which score should we trust?}\label{sec:fid}
 
-We add FID$_\text{CNN}$: in-domain (like the LeNet FID of~\cite{binkowski2018}), fast (seconds vs ${\approx}40$\,min of CPU) and meant to see missing digits.
-The two FIDs can rank models oppositely: which should lead?
-
-\paragraph{Measures.}
-For features $\phi$ of real ($r$) and generated ($g$) images, with means $\mu$ and covariances $\Sigma$~\cite{heusel2017},
+\textbf{How a FID works.} Real and generated images are passed through a pretrained network, and each image is replaced
+by the vector of features the network computes (its ``impression'' of the image). Each set of vectors is summarized by its
+mean $\mu$ and covariance $\Sigma$, and the FID measures the distance between the two~\cite{heusel2017}:
 \[
 \mathrm{FID}=\lVert\mu_r-\mu_g\rVert^2+\mathrm{Tr}\bigl(\Sigma_r+\Sigma_g-2(\Sigma_r\Sigma_g)^{1/2}\bigr).
 \]
-\textbf{FID$_\text{Inc}$}: $\phi$ = 2048-d pool layer of Inception-v3 (ImageNet).
-\textbf{FID$_\text{CNN}$}: $\phi$ = 128-d penultimate layer of our MNIST classifier (98.7\% test accuracy).
-\textbf{P}: share of generated images that look like some real image (inside its $k$-NN radius, $k{=}5$, VGG features); \textbf{R}: share of real images that some generated image covers~\cite{kynkaanniemi2019}.
-\textbf{Floor}: FID of real vs real (MNIST train vs test; finite-$N$ bias~\cite{chong2020}), 1.53 (Inc), 2.74 (CNN).
+The score therefore depends on \emph{which} network looks at the images. The platform uses Inception-v3, trained on
+ImageNet photos (\finc{}). We also built a FID on the features of a small classifier we trained on MNIST (98.7\% accuracy),
+called \fcnn{}. It is computed in seconds instead of about 40 minutes, so we could follow it at every epoch, and we expected
+it to catch the most common failure of our GAN: since $G$ is never told which digit to draw, it can neglect some digits.
+Even comparing real images to real images gives a small non-zero FID (1.5 for \finc{}), which is the best possible score.
 
-\paragraph{Expected.}
-A FID follows the classes of its network~\cite{kynkaanniemi2023}: ImageNet has no digit class, our CNN has ten, so FID$_\text{CNN}$ should see the digit mix, FID$_\text{Inc}$ the appearance~\cite{heusel2017}.
-Yet Lucic et al.\ find FID$_\text{Inc}$ on MNIST ``heavily influenced by the missing modes''~\cite{lucic2018}.
+\textbf{The two scores can disagree.} Changing the loss (Sec.~\ref{sec:training}) divides \fcnn{} by nine but leaves
+\finc{} unchanged. Which one is right? To find out, we damaged \emph{real} images in controlled ways and measured how much
+each FID reacts (Fig.~\ref{fig:fid-sensitivity}).
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{fid_sensitivity}
-\caption{\textbf{How much each FID sees each defect applied to real images.} Bar: $(\mathrm{FID}-\text{floor})/(\mathrm{FID}_\text{base}-\text{floor})$, i.e.\ 100\% = as bad as the baseline (seed~0: 39.9 Inc, 162 CNN), 0 = unseen. Digit mix: 3 draws; other rows: one.}
+\caption{\textbf{Each FID sees a different defect.} Real images are damaged on purpose; a bar at 100\% means the defect
+alone is as bad as everything that is wrong with the baseline, 0\% that the FID does not see it.}
 \label{fig:fid-sensitivity}
 \end{figure}
 
-\paragraph{Observed.}
-FID$_\text{Inc}$ weighs missing digits about ten times less than FID$_\text{CNN}$ (2 vs 23\%, 7 vs 70\%), an unbalanced mix 4--5 times less (14 vs 51\%, 15 vs 76\%), pixel noise ten times more; blur, blends and erasing weigh alike (Fig.~\ref{fig:fid-sensitivity}).
-Check: rebalancing baseline samples to the test mix cuts FID$_\text{CNN}$ 162\,$\to$\,32 but \emph{raises} FID$_\text{Inc}$ 39.9\,$\to$\,46.2 (badly drawn rare digits enter).
+\textbf{What each score sees.} \fcnn{} reacts strongly to the \emph{balance between digits}: removing one digit costs
+23\% of the baseline's score, against 2\% for \finc{}. \finc{} reacts to the \emph{look of the strokes}: noise on a quarter
+of the images costs 104\%, against 9\% for \fcnn{}. This follows from what each network was trained for~\cite{kynkaanniemi2023}:
+our classifier only knows the ten digits (digit identity explains 67\% of its feature variance, 26\% for Inception),
+whereas Inception knows textures and shapes. A direct check confirms it: if we resample the baseline's images so that every
+digit appears equally often, \fcnn{} drops from 162 to 32, but \finc{} \emph{rises} from 39.9 to 46.2, because the rare digits
+that are added are badly drawn.
 
-\paragraph{Per-digit FID$_\text{Inc}$.}
-Our CNN labels 100\,000 samples; 1\,000 per digit are scored against that digit's test images; the ten scores are averaged, unweighted (floor 8.5).
-Thus the baseline's ``2'' scores 113 (real 10.2) but is only 1.6\% of images: the global FID barely sees it.
+\textbf{Our choice.} We rank models with \finc{}: it is the platform's score, it varies less between seeds (3--6\% of its
+value against 11--25\%) and it is the one used in the literature. \fcnn{} serves as a diagnostic of digit balance. To see
+the quality of rare digits, which a global score hides, we also compute a \emph{per-digit FID}: our classifier sorts the
+generated images by digit, and each group of 1\,000 images is compared with the real images of the same digit. The
+baseline's ``2'', for example, scores 113 (real ``2''s: 10), but it is only 1.6\% of the images, so the global FID
+barely notices it.
 
-\begin{table}[t]
-\centering\footnotesize\setlength{\tabcolsep}{3pt}
-\caption{\textbf{Which measure answers which question, and when it fails.}}
-\label{tab:fid-roles}
-\begin{tabularx}{\columnwidth}{@{}>{\raggedright}p{1.5cm}>{\raggedright}p{1.7cm}>{\raggedright\arraybackslash}X@{}}
-\toprule
-Question & Measure & Fails when \\
-\midrule
-Rank models & FID$_\text{Inc}$ + P/R & humans disagree (DINOv2 advised~\cite{stein2023}, untested); we inspect samples (Fig.~\ref{fig:combination-samples}), as the platform does \\
-Strokes at fixed digit & mean per-digit FID$_\text{Inc}$ & the CNN's forced digit label is unsure (confidence ${<}\,0.9$: 12.6\% of baseline images, 3.7\% of real) \\
-Digit mix & digit histogram; FID$_\text{CNN}$ & selection (same features: circular); classifier seed (142--224 on the same images); saturation (final model: 6\% of the baseline gap vs 57\% for FID$_\text{Inc}$) \\
-\bottomrule
-\end{tabularx}
-\end{table}
+\textbf{Limit.} No score replaces the human eye: FIDs can disagree with human judgment~\cite{stein2023}. We therefore also
+look at samples (Fig.~\ref{fig:samples}), as the platform does.
 
-\takeaway{FID$_\text{CNN}$ measures mostly the digit mix, FID$_\text{Inc}$ the appearance (it even rewards under-representing badly drawn digits): each answers its own question (Table~\ref{tab:fid-roles}).}
+\takeaway{The FID on a digit classifier mostly measures whether all digits are drawn equally often; the Inception FID
+measures how well they are drawn. We rank with the latter and use the former as a diagnostic.}

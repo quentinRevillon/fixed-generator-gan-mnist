@@ -38,9 +38,9 @@ def digit_shares(csv, name):
 def plot_fid(ax):
     """Panneau haut : FID Inception par chiffre, BCE contre RpGAN + R1 sans et avec EMA."""
     x = np.arange(10)
-    series = [('Baseline', 'BCE', MUTED, 'o', '-'),
-              ('RpGAN + R1 (sans EMA)', 'RpGAN + R1, raw $G$', ACCENT, 'o', '--'),
-              ('RpGAN + R1 + EMA', r'RpGAN + R1, $G_\mathrm{EMA}$', ACCENT, 's', '-')]
+    series = [('Baseline', 'baseline', MUTED, 'o', '-'),
+              ('RpGAN + R1 (sans EMA)', 'new loss', ACCENT, 'o', '--'),
+              ('RpGAN + R1 + EMA', 'new loss + EMA', ACCENT, 's', '-')]
     for name, label, color, marker, ls in series:
         m, s = perdigit_fid(name)
         face = 'white' if ls == '--' else color
@@ -57,10 +57,10 @@ def plot_shares(ax):
     """Panneau bas : part de chaque chiffre ; l'EMA (appariée, mêmes runs BCE) ne corrige pas le mélange, la perte le corrige."""
     x = np.arange(10)
     w = 0.27
-    bars = [(digit_shares(os.path.join(JULIET, 'juliet2_test.csv'), 'baseline_ema G brut'), 'BCE, raw $G$', MUTED, None),
-            (digit_shares(os.path.join(JULIET, 'juliet2_test.csv'), 'baseline_ema G_EMA'), r'BCE, $G_\mathrm{EMA}$',
+    bars = [(digit_shares(os.path.join(JULIET, 'juliet2_test.csv'), 'baseline_ema G brut'), 'baseline', MUTED, None),
+            (digit_shares(os.path.join(JULIET, 'juliet2_test.csv'), 'baseline_ema G_EMA'), 'baseline + EMA',
              'white', '/////'),
-            (digit_shares(os.path.join(JULIET, 'juliet2_test.csv'), 'cmploc_rpgan_r1_ema G brut'), 'RpGAN + R1, raw $G$',
+            (digit_shares(os.path.join(JULIET, 'juliet2_test.csv'), 'cmploc_rpgan_r1_ema G brut'), 'new loss',
              ACCENT, None)]
     for i, (v, label, color, hatch) in enumerate(bars):
         ax.bar(x + (i - 1) * w, v, w, color=color, edgecolor=MUTED if hatch else color, hatch=hatch, lw=0.5,

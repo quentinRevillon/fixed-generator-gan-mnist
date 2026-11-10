@@ -1,61 +1,77 @@
-% Partie training (Noé Mosca) : perte relativiste, R1 et EMA.
-% Chiffres : enquete/results/juliet/juliet2_test.csv (BCE brut / EMA, A100), results/comparison_local.csv (baseline Mac, RpGAN + EMA),
-% enquete/results/ema/ema_summary.csv (RpGAN brut), kid_perclass_all.csv (FID par chiffre), enquete/training.md (balayage gamma,
-% effondrements, équilibre de D), PLAN.md §2 (réplication A100). Figure : figscripts/training.py -> figures/training_perdigit.pdf.
-\section{Training: relativistic loss, R1 and EMA}\label{sec:training}
+% Partie entraînement (Noé) : perte relativiste, R1 et EMA.
+% Sources : enquete/results/juliet/juliet2_test.csv (BCE brut / EMA, cluster), results/comparison_local.csv (baseline Mac,
+% RpGAN + R1 + EMA), enquete/results/ema/ema_summary.csv (RpGAN brut), kid_perclass_all.csv (FID par chiffre),
+% enquete/training.md (balayage gamma, effondrements, équilibre de D). Figure : figscripts/training.py.
+\section{Training: a better loss and an averaged generator}\label{sec:training}
 
-\textbf{Hypotheses.} H1: the sigmoid BCE saturates (collapse) and drifts to easy digits; a relativistic loss with R1 keeps $G$'s gradient informative. H2: averaging $G$'s weights removes the oscillation around equilibrium.
+We combine two ideas taken from recent GAN recipes~\cite{huang2024}.
 
-\textbf{Method.} $D(x)$: raw score of $D$ (before the sigmoid); $\mathrm{sp}(t)=\log(1+e^t)$. RpGAN~\cite{jolicoeur2019} scores a pair (real $x$, fake $\tilde x$); R1~\cite{mescheder2018} penalises $D$'s slope on real images (we omit R2, its fake-image twin in R3GAN~\cite{huang2024}):
+\textbf{A relativistic loss with a penalty (RpGAN + R1).} The baseline's $D$ judges each image alone (``is it real?''),
+and becomes overconfident: this is what makes runs collapse (Sec.~\ref{sec:data}). The relativistic loss~\cite{jolicoeur2019}
+shows $D$ a real image $x$ and a generated one $\tilde x$ and asks which one is \emph{more} real; since the answer is
+relative, $G$ always receives a useful signal. The R1 penalty~\cite{mescheder2018} discourages $D$ from changing its
+verdict too abruptly around real images, which helps the two networks settle instead of circling around each other.
+With $D(\cdot)$ the raw score of $D$ and $\mathrm{sp}(t)=\log(1+e^t)$:
 \begin{align*}
 L_D &= \mathrm{sp}\big(D(\tilde x)-D(x)\big) + \tfrac{\gamma}{2}\,\|\nabla_x D(x)\|^2,\\
 L_G &= \mathrm{sp}\big(D(x)-D(\tilde x)\big).
 \end{align*}
-EMA~\cite{yazici2019}: after each step, $G_\mathrm{EMA}\leftarrow\beta\,G_\mathrm{EMA}+(1-\beta)\,G$, $\beta=0.999$ (half-life $\approx$\,1.4 epochs). Training uses only raw $G$: each run yields both, so EMA effects are paired.
+We chose the weight $\gamma$ of the penalty by trying 0.1, 1 and 10 with three seeds each: at 0.1 all runs diverge, 1 is
+the best and 10 learns more slowly.
+
+\textbf{An averaged generator (EMA).} During training, the weights of $G$ keep moving around a good solution. Instead of
+keeping the last weights, we keep a running average of them, updated after every step:
+$G_\mathrm{EMA}\leftarrow 0.999\,G_\mathrm{EMA}+0.001\,G$ (it mostly reflects the last 1.4 epochs). On CIFAR-10, this
+alone improves the FID by 24--29\%~\cite{yazici2019}. It costs nothing: the same run gives both the raw and the averaged
+generator, so the two can be compared on exactly the same runs.
+
+\begin{table}[t]
+\centering\small
+\setlength{\tabcolsep}{6pt}
+\caption{\textbf{Loss $\times$ EMA.} \finc{} (lower is better), common protocol, 3 seeds.}
+\label{tab:training}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+ & Baseline loss & RpGAN + R1 \\
+\midrule
+Raw generator      & $36.6\pm1.3$ & $37.7\pm1.0$ \\
+Averaged (EMA)     & $30.0\pm0.2$ & $\mathbf{22.1\pm1.3}$ \\
+\midrule
+Gain of the EMA    & $-6.7$ & $-15.6$ \\
+\bottomrule
+\end{tabular}
+\tabnote{Baseline loss trained on the cluster, RpGAN + R1 on a Mac; the same baseline scores 38.7 on the Mac (machines
+differ by about 2 points).}
+\end{table}
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{training_perdigit}
-\caption{\textbf{RpGAN + R1 fixes the digit mix; EMA cleans every digit.} Common protocol, 3 seeds. (a) Per-digit FID$_\text{Inc}$ (real data: 6.5--10.4). (b) Share of each digit in 10\,000 samples (dotted: 10\%). BCE: Mac in (a), cluster in (b).}
+\caption{\textbf{The loss fixes the balance between digits, the EMA cleans every digit.} (a) FID of each digit against
+real images of the same digit (real data: 6.5--10.4). (b) Share of each digit among 10\,000 samples; 10\% is the balance
+of real data.}
 \label{fig:training-perdigit}
 \end{figure}
 
-\begin{table}[t]
-\centering\footnotesize\setlength{\tabcolsep}{3pt}
-\caption{\textbf{Loss $\times$ EMA} (common protocol).}
-\label{tab:training-ema}
-\begin{tabular}{@{}llcccc@{}}
-\toprule
- & & \multicolumn{2}{c}{BCE} & RpGAN + R1 & Loss $\Delta$\\
-\cmidrule(lr){3-4}
- & & Mac & cluster & Mac & ($p$)\\
-\midrule
-raw $G$ & FID$_\text{Inc}$ & 38.7$\pm$1.2 & 36.6$\pm$1.3 & 37.7$\pm$1.0 & $-1.0$ (0.35)\\
- & P/R & 0.47/0.51 & 0.48/0.49 & 0.47/0.47 & \\
-$G_\mathrm{EMA}$ & FID$_\text{Inc}$ & -- & 30.0$\pm$0.2 & \textbf{22.1}$\pm$1.3 & $-7.8$ (0.007)\\
- & P/R & -- & 0.56/0.54 & 0.59/0.59 & \\
-\midrule
-\multicolumn{2}{@{}l}{EMA $\Delta$ ($p$)} & -- & $-6.7$ (0.01) & $-15.6$ (${<}0.001$) & \\
-\bottomrule
-\end{tabular}
-\tabnote{P/R: VGG. EMA $\Delta$: paired $t$; loss $\Delta$: Welch vs BCE (cluster for $G_\mathrm{EMA}$, Mac for raw $G$). EMA $\Delta$ on RpGAN: both $G$ re-scored on the cluster.}
-\end{table}
+\textbf{Result: the gain needs both.} Table~\ref{tab:training} shows that the new loss alone does not change \finc{}, the
+EMA alone improves it (36.6 to 30.0), and the two together reach 22.1. The EMA is twice as useful with the new loss as
+with the old one ($-15.6$ against $-6.7$; this difference is significant, $p=0.002$).
 
-\subsection{RpGAN + R1 (H1)}
-\textbf{Expected.} A large gain if the baseline is unstable, a small one otherwise (CIFAR-10~\cite{jolicoeur2019}). R3GAN: RpGAN + R1 \emph{fails} on StackedMNIST without R2~\cite{huang2024}.
+The per-digit view (Fig.~\ref{fig:training-perdigit}) shows what each piece does. The new loss \emph{rebalances the
+digits}: the baseline draws a ``1'' in a quarter of its images and a ``2'' in fewer than 2\%, while RpGAN draws each
+digit about 10\% of the time. It also draws hard digits better (the ``2'' goes from 113 to 80) and no run collapsed (0 out
+of 12). The global \finc{} hides these gains because the baseline's worst digits are also its rarest. The EMA then
+\emph{cleans the strokes of every digit} (Fig.~\ref{fig:training-perdigit}a and Fig.~\ref{fig:samples}b--c), which the
+global score does see.
 
-\textbf{Observed.} \emph{$\gamma$ sweep} (FID$_\text{CNN}$; protocol in Table~\ref{tab:intro-protocol}): $\gamma=0.1$ diverges (3/3), $\gamma=1$ is best ($14.0\pm0.9$), $\gamma=10$ worse ($17.7\pm0.9$, still falling at 100 epochs); adding R2 changes nothing ($14.4\pm0.9$). $\gamma\ge1$ never collapsed (0/12: 9 sweep + 3 common runs; BCE: 1/3 in the sweep, Fisher $p=0.20$; 0/6 common).
-\emph{Common protocol, raw $G$:} FID$_\text{Inc}$ is flat (Table~\ref{tab:training-ema}), but the mix is fixed (Fig.~\ref{fig:training-perdigit}b; FID$_\text{CNN}$ $182\to19.7$) and strokes improve at fixed digit (per-digit FID$_\text{Inc}$ $63.6\to55.4$, $p=0.005$), most on ``2'' (113 $\to$ 80); ``1'' and ``7'' worsen.
+\textbf{Why the two work together (hypothesis).} At the end of training, the new loss keeps $G$ and $D$ near a balance:
+$D$ barely tells real from fake, and $G$ oscillates around a good solution. Averaging oscillations lands near their
+centre. With the baseline loss, $G$ does not oscillate, it \emph{drifts}: its best checkpoint on validation data is around
+epoch 110, after which it gets worse. Averaging the last epoch or so cannot undo a drift.
 
-\textbf{Why.} Within RpGAN, R1 is needed against collapse: without it, $D$ wins within 1--2 epochs (1 seed); with $\gamma=0.1$, 3/3 seeds diverge before epoch 10. Whether R1 suffices with the BCE is untested. Unpenalised, $G$ and $D$ circle around equilibrium; R1 damps this (hypothesis: in Mescheder's toy GAN, one parameter each for $G$ and $D$~\cite{mescheder2018}, circling stops at $\gamma=1$ for our loss, our best grid point). The pooled FID$_\text{Inc}$ hides the stroke gain: the BCE rarely draws its worst digit.
+\textbf{Limits.} We did not try the R1 penalty with the baseline loss, so we cannot separate the effect of the loss from
+that of the penalty. The two columns of Table~\ref{tab:training} come from different machines, which slightly favours
+the baseline.
 
-\textbf{When it fails.} $\gamma\le0.1$. Unlike R3GAN we need no R2: likely an easier task (10 modes), small networks, Adam $\beta_1=0.9$ not 0 (with theirs our run collapses, 1 seed).
-
-\subsection{EMA, and why the gain needs both (H2)}
-\textbf{Expected.} EMA cuts FID by 24--29\% on CIFAR-10~\cite{yazici2019}.
-
-\textbf{Observed} (Table~\ref{tab:training-ema}). The EMA gain doubles from the BCE ($-6.7$, $-18\%$) to RpGAN + R1 ($-15.6$, $-41\%$; interaction $p=0.002$); P and R rise together: no trade-off. The loss gives $-7.8$ with EMA (BCE + EMA on the cluster, which favours it), nothing detectable without (a cluster rerun, best checkpoint, agrees: 36.4 vs 36.1). On RpGAN + R1, EMA improves every digit ($55.4\to37.3$, 30/30 \mbox{seed--digit} pairs; Fig.~\ref{fig:training-perdigit}a); on the BCE it leaves the mix unfixed (FID$_\text{CNN}$ $170\to182$, n.s.).
-
-\textbf{Why (hypothesis).} At the end, RpGAN's $D$ barely separates real from fake (mean $\sigma(D)$ 0.62 vs 0.59; BCE 0.72 vs 0.28): $G$ oscillates near equilibrium, and the average lands near its centre~\cite{yazici2019}. The BCE drifts instead (validation FID$_\text{CNN}$: best 50--65 at epochs 100--120, 159--196 at epoch 200); a 1.4-epoch average cannot undo a drift.
-
-\takeaway{RpGAN + R1 fixes the digit mix (no collapse with $\gamma\ge1$, 0/12; n.s.\ vs BCE); EMA cleans every digit; the loss pays off only with EMA.}
+\takeaway{The new loss makes training stable and balanced across digits; averaging the generator's weights turns this
+into a much better score (38.7 to 22.1). Neither is enough on its own.}

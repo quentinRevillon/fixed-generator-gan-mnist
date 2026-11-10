@@ -1,44 +1,34 @@
-% Partie combination : combinaison des leviers et conclusion.
-% Chiffres : results/comparison_local.csv (protocole commun, Mac), enquete/results/juliet/{juliet2_test,drs_recalib_test}.csv,
-% enquete/combinaison.md (tests), PLAN.md (score plateforme, cout). Figure et tests : figscripts/combination.py.
-\begin{table}[t]
-\centering\footnotesize
-\setlength{\tabcolsep}{3.2pt}
-\caption{\textbf{All models, common protocol.} Bold: best FID$_\text{Inc}$.}
-\label{tab:combination-all}
-\begin{tabular}{@{}lrrrrr@{}}
-\toprule
-Model & FID$_\text{Inc}$ & P & R & FID$_\text{CNN}$ & Acc. \\
-\midrule
-Baseline (BCE)                       & 38.7\,$\pm$\,1.2 & 0.47 & 0.51 & 182  & 100\% \\
-\quad + DRS$^\ddagger$               & 34.3\,$\pm$\,0.8 & 0.51 & 0.50 & 154  & 30\%  \\
-Baseline + EMA$^\dagger$             & 30.0\,$\pm$\,0.2 & 0.56 & 0.54 & 182  & 100\% \\
-\quad + DRS$^\dagger$                & 24.8\,$\pm$\,1.0 & 0.62 & 0.53 & 167  & 31\%  \\
-\midrule
-RpGAN + R1, raw $G$                  & 37.7\,$\pm$\,1.0 & 0.47 & 0.47 & 19.7 & 100\% \\
-RpGAN + R1 + EMA                     & 22.1\,$\pm$\,1.3 & 0.59 & 0.59 & 9.9  & 100\% \\
-\quad + DRS$^\ddagger$               & 22.1\,$\pm$\,1.1 & 0.59 & 0.59 & 14.4 & 42\%  \\
-\quad + OBRS, recal.\ $D$$^\ddagger$ & \textbf{19.7}\,$\pm$\,0.8 & 0.62 & 0.59 & 10.2 & 33\% \\
-\quad + noise 0.3                    & 21.4\,$\pm$\,0.6 & 0.60 & 0.61 & 9.0  & 100\% \\
-\bottomrule
-\end{tabular}
-\tabnote{P, R: VGG; sd $\le$ 0.03. Acc.: share of proposals kept. On the cluster: $^\dagger$trained;
-$^\ddagger$re-sampled, 2 draws/seed (plain: BCE $38.7$, RpGAN $22.0\pm1.4$).}
-\end{table}
+% Partie combinaison et conclusion.
+% Sources : results/comparison_local.csv, enquete/results/juliet/{juliet2_test,drs_recalib_test}.csv, enquete/combinaison.md,
+% PLAN.md (score plateforme : 21,59 / 0,702 / 0,585 ; FID test du modèle rendu 21,15).
+\section{Combining the levers, and conclusion}\label{sec:combination}
 
-\section{Combination and conclusion}\label{sec:combination}
+\textbf{Gains do not simply add up.} Each lever's effect depends on the model it is applied to. The new loss only pays off
+once the generator is averaged (Sec.~\ref{sec:training}). Filtering with the original $D$ helps the baseline, with or
+without EMA (30.0 to 24.8 with EMA), but not the final model, unless $D$ is recalibrated (Sec.~\ref{sec:inference}). The
+data levers brought nothing to stack.
 
-Gains depend on the base model (Table~\ref{tab:combination-all}, Fig.~\ref{fig:combination-effects}; samples: Fig.~\ref{fig:combination-samples}):
+\textbf{Submitted model.} RpGAN + R1 ($\gamma=1$) with EMA, the seed with the best validation score, and no filter. It
+scores 21.15 on our test set (the method averages $22.1\pm1.3$ over seeds) and, on the platform, FID 21.59 with
+precision 0.70 and recall 0.59, against 38.7, 0.47 and 0.51 for the baseline. Its samples are shown in
+Fig.~\ref{fig:samples}c. With the recalibrated OBRS filter, found after submission, we would expect about 2 points more
+for three times more generated images.
+
+\textbf{What we learned.}
 \begin{itemize}
-\item \textbf{Loss $\times$ EMA} (Welch $p=0.002$, two machines): EMA gains more on RpGAN + R1.
-\item \textbf{DRS $\times$ (loss + EMA)} ($p=0.03$): plain $D$ helps the BCE, with or without EMA, not the final model (Sec.~\ref{sec:inference}).
-\item \textbf{Noise, selection:} nothing to stack.
+\item On a fixed, small generator, \emph{how} it is trained matters more than \emph{what} it sees: the training lever
+gave all of the gain.
+\item Ideas that work on large, diverse datasets do not automatically transfer to MNIST: selecting typical images
+removes useful diversity, and noise does not cure a numerical problem.
+\item A tool built on the discriminator (here, a filter) must be checked against the discriminator's actual ability:
+the better the GAN, the more confused its $D$.
+\item The choice of the measure shapes the conclusions: a digit classifier and Inception do not see the same defects,
+so we always report which one we use, and look at the images.
 \end{itemize}
 
-\paragraph{Conclusion.}
-\emph{Submitted:} RpGAN + R1 ($\gamma=1$) + EMA, seed 1 (best validation FID$_\text{CNN}$), plain sampling: FID$_\text{Inc}$ 21.15 on test (method: $22.1\pm1.3$); platform FID 21.59, P 0.702, R 0.585.
-\emph{Next:} OBRS with recalibrated $D$, found after submission: ${\approx}{-2.3}$ FID$_\text{Inc}$ for ${\approx}3$ proposals per kept image.
-\emph{Limits:} 3 seeds (power: Sec.~\ref{sec:intro}); no multiple-test correction except where stated; two machines (${\approx}2$ FID apart); data runs on another protocol; $\gamma$ chosen on FID$_\text{CNN}$; no BCE + R1 run; no random-50\% selection control.
+\textbf{Limits.} Three seeds per variant only detect differences of about 3.6 points; some experiments ran on two
+different machines (about 2 points apart); the data experiments used their own protocol; and two controls are missing
+(R1 with the baseline loss, selection of a random half of the images).
 
-\takeaway{EMA helps alone, loss + R1 only with EMA ($38.7\to22.1$); on that model, rejection helps only with a recalibrated $D$ ($22.0\to19.7$, OBRS).}
-\raggedend % flushend : pas d equilibrage ici (sinon des lignes passent au-dessus du tableau 6)
+\takeaway{Averaging the generator and a relativistic loss with R1 take the FID from 38.7 to 22.1 (21.59 on the
+platform); filtering with a recalibrated discriminator could take it to about 19.7.}

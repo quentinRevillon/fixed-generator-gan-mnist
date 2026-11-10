@@ -1,60 +1,60 @@
-% Partie inference : rejet par le discriminateur (DRS, OBRS). Chiffres : enquete/results/juliet/drs_recalib_test.csv
-% (tableau et tests appariés : figscripts/inference.py), juliet2_test.csv (G brut, baseline + EMA, 1 tirage),
-% enquete/inference.md (écart-type des logits, corrélation par chiffre, AUC G brut / G_EMA, Platt).
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\textwidth]{combination_samples}
-\caption{\textbf{Samples from the same 36 latent vectors $z$} (common protocol, seed 1, except (d)). (a) Baseline: many ``1''s and ``7''s. (b, c) RpGAN + R1 without and with EMA: same digits, cleaner strokes with EMA; (c) is the submitted model. (d) A BCE run that collapsed ($\gamma$ sweep protocol, seed 2).}
-\label{fig:combination-samples}
-\end{figure*}
+% Partie inférence (Quentin) : rejet par le discriminateur (DRS, OBRS), recalibration de D.
+% Sources : enquete/results/juliet/drs_recalib_test.csv (tableau, tests appariés : figscripts/inference.py),
+% juliet2_test.csv (G brut), enquete/inference.md (écart-type des logits, AUC G brut / G_EMA, coût).
+\section{Inference: filtering images with the discriminator}\label{sec:inference}
 
-\section{Inference: discriminator rejection sampling}\label{sec:inference}
-
-\textbf{Method.} DRS~\cite{azadi2019} keeps $x\sim G$ with probability $\sigma(F(x))$,
-\[
-F(x) = d(x) - d_M - \log\!\big(1 - e^{\,d(x)-d_M-\epsilon}\big) - c ,
-\]
-$d$: logit of $D$; $d_M$: largest logit seen; $\epsilon=10^{-6}$; $c$: 80th percentile of unshifted $F$. It assumes $d=\log p_\mathrm{data}/p_G$ (optimal BCE $D$).
-\textbf{OBRS}~\cite{verine2024} keeps $x$ with probability $\min(1, e^{d(x)-\tau_K})$: all images above the threshold $\tau_K$, fewer below; $\tau_K$ keeps $1/K$ of proposals ($K=3$), capped at the largest $d$.
-\textbf{Recal.}: a new logistic-regression head on $D$'s 256 last hidden features, fitted on 10\,000 validation images vs.\ 10\,000 samples.
-\textbf{AUC of $D$}: probability that $D$ scores a real test image above a generated one (0.5 = chance).
-\textbf{TV}: share of samples (digit from our CNN) that must change digit to match the test mix.
-
-\textbf{Expected.} Recalibrated DRS slightly improves SAGAN on ImageNet~\cite{azadi2019}; OBRS raises P at constant R if the ratio is well estimated~\cite{verine2024}.
+\textbf{Idea.} Even a good generator produces some bad images, and we have a network trained precisely to spot them: the
+discriminator. Discriminator rejection sampling (DRS)~\cite{azadi2019} uses it as a filter: draw many images, and keep
+each one with a probability that grows with $D$'s score. If $D$ were perfect, its score would tell exactly how much more
+likely an image is under the real data than under $G$, and the filter would correct $G$'s mistakes. OBRS~\cite{verine2024}
+is the optimal version of this filter for a fixed budget: it keeps every image above a threshold and fewer below, with
+the threshold set to keep one image out of three. On ImageNet, DRS improved the FID from 18.2 to 17.1~\cite{azadi2019}.
 
 \begin{table}[t]
-\centering\footnotesize
-\setlength{\tabcolsep}{3.5pt}
-\caption{\textbf{Rejection sampling.} 10\,000 kept images, 3 seeds $\times$ 2 draws ($\pm$: sd over seeds). Bold: best FID$_\text{Inc}$ per block.}
-\label{tab:inference-results}
-\begin{tabular}{@{}lrrrrrr@{}}
+\centering\small
+\setlength{\tabcolsep}{4.5pt}
+\caption{\textbf{Filtering with $D$.} 10\,000 kept images, 3 seeds $\times$ 2 draws.}
+\label{tab:inference}
+\begin{tabular}{@{}lcccc@{}}
 \toprule
-Rejection & AUC & Acc.\,\% & FID$_\text{Inc}$ & P/R & FID$_\text{CNN}$ & TV \\
+Filter & AUC of $D$ & Kept & \finc{} & \fcnn{} \\
 \midrule
-\multicolumn{7}{@{}l}{\textit{Baseline (BCE)}}\\
-none & -- & 100 & 38.7\,$\pm$\,0.9 & 0.47/0.50 & 183 & 0.244 \\
-DRS & 0.75 & 30 & 34.3\,$\pm$\,0.8 & 0.51/0.50 & 154 & 0.227 \\
-OBRS & 0.75 & 33 & \textbf{33.8}\,$\pm$\,0.9 & 0.51/0.50 & 145 & 0.219 \\
-DRS, recal. & 0.83 & 32 & 36.3\,$\pm$\,0.7 & 0.46/0.51 & 103 & 0.172 \\
-OBRS, recal. & 0.83 & 33 & 36.1\,$\pm$\,0.9 & 0.46/0.52 & 83 & 0.152 \\
+\multicolumn{5}{@{}l}{\emph{Baseline}} \\
+none                 & --   & 100\% & $38.7\pm0.9$ & 183 \\
+DRS                  & 0.75 & 30\%  & $34.3\pm0.8$ & 154 \\
+OBRS                 & 0.75 & 33\%  & $\mathbf{33.8\pm0.9}$ & 145 \\
+OBRS, recalibrated   & 0.83 & 33\%  & $36.1\pm0.9$ & 83 \\
 \midrule
-\multicolumn{7}{@{}l}{\textit{RpGAN + R1 + EMA (final model)}}\\
-none & -- & 100 & 22.0\,$\pm$\,1.4 & 0.59/0.59 & 9.9 & 0.045 \\
-DRS & 0.57 & 42 & 22.1\,$\pm$\,1.1 & 0.59/0.59 & 14.4 & 0.057 \\
-OBRS & 0.57 & 45 & 22.0\,$\pm$\,0.9 & 0.59/0.59 & 13.2 & 0.052 \\
-DRS, recal. & 0.77 & 32 & 20.2\,$\pm$\,1.2 & 0.62/0.59 & 10.0 & 0.039 \\
-OBRS, recal. & 0.77 & 33 & \textbf{19.7}\,$\pm$\,0.8 & 0.62/0.59 & 10.2 & 0.041 \\
+\multicolumn{5}{@{}l}{\emph{Final model (RpGAN + R1 + EMA)}} \\
+none                 & --   & 100\% & $22.0\pm1.4$ & 9.9 \\
+DRS                  & 0.57 & 42\%  & $22.1\pm1.1$ & 14.4 \\
+DRS, recalibrated    & 0.77 & 32\%  & $20.2\pm1.2$ & 10.0 \\
+OBRS, recalibrated   & 0.77 & 33\%  & $\mathbf{19.7\pm0.8}$ & 10.2 \\
 \bottomrule
 \end{tabular}
-\tabnote{Mac-trained checkpoints re-sampled on the cluster (``none'' differs slightly from Table~\ref{tab:training-ema}, 1 draw). Acc.: acceptance. recal.: recalibrated $D$.}
+\tabnote{AUC: probability that $D$ scores a real image above a generated one (0.5 = coin flip, 1 = perfect).}
 \end{table}
 
-\textbf{Observed} (Table~\ref{tab:inference-results}; paired $t$, 3 seeds). \emph{Baseline:} DRS helps ($-4.4$, $p=0.04$), OBRS slightly more. \emph{Final model:} DRS leaves FID$_\text{Inc}$ unchanged but worsens FID$_\text{CNN}$ on every seed ($+3.5$ to $+5.1$, $p=0.01$).
+\textbf{Result.} On the baseline, the filter works: DRS improves \finc{} from 38.7 to 34.3, OBRS slightly more
+(Table~\ref{tab:inference}). On the final model, it does nothing to \finc{} (22.0 to 22.1) and even worsens \fcnn{} on
+every seed: this is the degradation we had reported in our presentation.
 
-\textbf{Why it fails here: $D$ cannot rank.} Its AUC is 0.57: real and generated images get almost the same logit (seed 1: AUC 0.55, logit sd 0.2 vs 2.7 for the baseline $D$). So $F$ barely varies: DRS keeps 42\%, not 30\%; OBRS keeps 45\%\,$>1/K$ ($\tau_K$ hits its cap). The little preference left shifts the digit mix (TV $+0.012$, $p=0.008$), which only FID$_\text{CNN}$ sees. $D$ never saw $G_\mathrm{EMA}$: this lowers the AUC (0.66 on raw $G$ vs 0.55, seed 1), but DRS also fails on raw $G$ (FID$_\text{CNN}$ 19.7\,$\to$\,21.6, 3/3 seeds) and works on BCE + EMA, so the mismatch is not the whole cause.
+\textbf{Why it fails: $D$ can no longer tell real from fake.} We measured how well $D$ ranks real images above generated
+ones (its AUC). The baseline's $D$ does it 75\% of the time; the final model's $D$ only 57\%, barely better than a coin
+flip. This is a side effect of the training that made $G$ good: $G$ and $D$ end near a balance where $D$ is confused. A
+filter based on a confused judge keeps images almost at random (42\% instead of the intended 30\%), and the little
+preference it has shifts the balance between digits, which only \fcnn{} sees. Part of the confusion comes from $D$ never
+having seen the averaged generator, but DRS also fails on the raw generator, so this is not the whole story.
 
-\textbf{Fix: recalibrate $D$.} \emph{Final model:} AUC 0.77; both samplers now help (1.3 to 2.9 per seed, $p=0.02$). The gain comes from re-ranking: Platt rescaling $d'=a\,d+b$ (same ranking) still worsens FID$_\text{CNN}$ (seed 1). \emph{Baseline (when it fails):} recalibration fixes the mix (FID$_\text{CNN}$, TV) but loses to plain DRS in FID$_\text{Inc}$ ($p=0.004$). As with rebalancing (Sec.~\ref{sec:fid}), it swaps easy ``1''s (22\%$\to$19\% of images; per-digit FID$_\text{Inc}$ 37) for harder 3, 5, 8, 2 (70--113).
+\textbf{Fix: recalibrate $D$.} As Azadi et al.\ did for their model, we keep $D$'s internal features and retrain only its
+last layer, a logistic regression fitted on 10\,000 real validation images against 10\,000 generated ones. The AUC rises
+to 0.77, and both filters now help on every seed: DRS reaches 20.2 and OBRS 19.7 ($p=0.02$). On the baseline, by
+contrast, recalibration rebalances the digits but loses to plain DRS in \finc{}: like the rebalancing of
+Sec.~\ref{sec:fid}, it replaces easy, well-drawn ``1''s with harder digits that the baseline draws badly.
 
-\textbf{Cost.} Acceptance 30--45\%: 2.2--3.3 proposals per kept image. 10\,000 images on one A100: 0.02\,s plain, 0.08--0.09\,s DRS, 0.16\,s OBRS (median), plus a one-off, untimed head fit (20\,000 images). Rejection needs $D$ and its head at sampling time: we submit plain sampling.
+\textbf{Cost.} Keeping 30--45\% of images means drawing 2.2 to 3.3 images per kept one. Generating 10\,000 images on one
+A100 GPU takes 0.02\,s without filter, 0.08--0.09\,s with DRS and 0.16\,s with OBRS, plus fitting the new layer once.
+We found the recalibration after submitting, so the submitted model uses no filter.
 
-\takeaway{On our two MNIST models, rejection helped FID$_\text{Inc}$ only when $D$'s held-out AUC was well above 0.5; a higher AUC alone did not guarantee a gain (baseline, recalibrated).}
+\takeaway{Filtering with $D$ only helps if $D$ can still tell real from generated images. A well-trained GAN loses this
+ability, but retraining $D$'s last layer restores it and gains about 2 points.}

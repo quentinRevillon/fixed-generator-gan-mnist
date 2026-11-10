@@ -1,72 +1,78 @@
-% Part "data": instance selection and instance noise (Nicodeme's lever).
-% Numbers: enquete/results/juliet/nico_data_test.csv (data runs), juliet2_test.csv (BCE+EMA +- noise, Juliet),
-% results/comparison_local.csv (BCE and RpGAN + R1 + EMA +- noise, Mac), enquete/data.md (mechanics, collapse counts, DeVries).
-% Paired rerun 9/11 (noise_03_e100 vs data_ref_e100, seeds 0-7, 60k updates): enquete/results/juliet/noise_rerun_test.csv.
-% Figure: figscripts/data.py -> figures/data_selection_pr.pdf.
-\section{Data: instance selection and instance noise}
-\label{sec:data}
+% Partie données (Nicodème) : sélection d'instances et bruit d'instance.
+% Sources : enquete/results/juliet/nico_data_test.csv (runs données), juliet2_test.csv (BCE + EMA +- bruit, cluster),
+% results/comparison_local.csv (RpGAN + R1 + EMA +- bruit, Mac), enquete/data.md (mécanisme des effondrements, DeVries),
+% rerun apparié du 9/11 : enquete/results/juliet/noise_rerun_test.csv (8 seeds, 60k mises à jour).
+\section{Data: cleaner or noisier inputs}\label{sec:data}
 
-\textbf{Setup.} Data protocol (Table~\ref{tab:intro-protocol}), raw $G$. Compare FIDs only within a block of Table~\ref{tab:data-results}.
+These experiments were run on a slightly different protocol (all 60\,000 training images, a longer training, baseline
+loss without EMA), with their own reference trained the same way: compare them with that reference only
+(Table~\ref{tab:data}).
 
 \begin{table}[t]
-\centering\footnotesize
-\setlength{\tabcolsep}{4pt}
-\caption{\textbf{Data lever.} Healthy runs only.}
-\label{tab:data-results}
-\begin{tabular}{@{}lrrrr@{}}
+\centering\small
+\setlength{\tabcolsep}{5pt}
+\caption{\textbf{Data lever.} Mean over the runs that did not collapse. Precision: quality; recall: diversity.}
+\label{tab:data}
+\begin{tabular}{@{}lccc@{}}
 \toprule
-Variant & Coll. & FID$_\text{Inc}$ & P & R \\
+Variant & \finc{} & Precision & Recall \\
 \midrule
-\multicolumn{5}{@{}l}{\emph{Data runs: BCE, no EMA, 120k updates (cluster)}} \\
-Reference          & 3/8\rlap{$^a$} & 35.4\,$\pm$\,0.9 & 0.51 & 0.52 \\
-Selection 95\%     & 2/5 & 38.2\,$\pm$\,2.7 & 0.49 & 0.48 \\
-Selection 90\%     & 2/5 & 35.8\,$\pm$\,3.3 & 0.53 & 0.49 \\
-Selection 75\%     & 0/3 & 40.8\,$\pm$\,3.9 & 0.54 & 0.40 \\
-Selection 50\%     & 4/8 & 47.8\,$\pm$\,2.9 & 0.56 & 0.32 \\
-Noise $\sigma_0{=}0.1$ & 4/8 & 35.5\,$\pm$\,2.5 & 0.52 & 0.52 \\
-Noise $\sigma_0{=}0.3$ & 0/3 & 37.0\,$\pm$\,1.6 & 0.51 & 0.52 \\
+\multicolumn{4}{@{}l}{\emph{Instance selection (data protocol)}} \\
+All images (reference) & $35.4\pm0.9$ & 0.51 & 0.52 \\
+Keep 95\%              & $38.2\pm2.7$ & 0.49 & 0.48 \\
+Keep 90\%              & $35.8\pm3.3$ & 0.53 & 0.49 \\
+Keep 75\%              & $40.8\pm3.9$ & 0.54 & 0.40 \\
+Keep 50\%              & $47.8\pm2.9$ & 0.56 & 0.32 \\
 \midrule
-\multicolumn{5}{@{}l}{\emph{Paired rerun: same, 60k updates, seeds 0--7 (cluster)}} \\
-Reference          & 3/8 & 55.3\,$\pm$\,2.6 & 0.29 & 0.42 \\
-Noise $\sigma_0{=}0.3$ & 1/8 & 54.3\,$\pm$\,3.9 & 0.29 & 0.40 \\
-\midrule
-\multicolumn{5}{@{}l}{\emph{Common protocol, $G_{\mathrm{EMA}}$}} \\
-BCE + EMA (cluster)        & 0/3\rlap{$^b$} & 30.0\,$\pm$\,0.2 & 0.56 & 0.54 \\
-\quad + noise 0.3         & 2/5 & 30.1\,$\pm$\,1.3 & 0.56 & 0.54 \\
-RpGAN + R1 + EMA (Mac)    & 0/3 & 22.1\,$\pm$\,1.3 & 0.59 & 0.59 \\
-\quad + noise 0.3         & 0/3 & 21.4\,$\pm$\,0.6 & 0.60 & 0.61 \\
+\multicolumn{4}{@{}l}{\emph{Instance noise (common protocol, with EMA)}} \\
+Baseline loss          & $30.0\pm0.2$ & 0.56 & 0.54 \\
+\quad + noise          & $30.1\pm1.3$ & 0.56 & 0.54 \\
+Final loss (Sec.~\ref{sec:training}) & $22.1\pm1.3$ & 0.59 & 0.59 \\
+\quad + noise          & $21.4\pm0.6$ & 0.60 & 0.61 \\
 \bottomrule
 \end{tabular}
-\tabnote{Coll.: collapsed runs / seeds. $^a$0/3 on seeds 0--2 (those of noise 0.3). $^b$0/6 with 3 Mac runs.}
 \end{table}
 
-\subsection{Instance selection}
-\textbf{Method.} Score each training image $x$ of digit $c$ by $s(x) = -(f(x)-\mu_c)^\top \Sigma_c^{-1} (f(x)-\mu_c)$; $f$: FID$_\text{CNN}$ features (network trained on the same 60k images); $\mu_c, \Sigma_c$: their per-digit mean and covariance. Keep the top 95, 90, 75 or 50\% of each digit.
+\subsection{Instance selection: train on typical images only}
 
-\textbf{Expected.} On ImageNet, keeping the most typical half lowers FID (21.4 $\to$ 12.6) and raises P at little R cost~\cite{devries2020}, but with a conditional GAN and FID in the selection's own space.
+\textbf{Idea.} Some training images are odd: unusual shapes, thick strokes, ambiguous digits. DeVries et
+al.~\cite{devries2020} showed that removing the least typical images lets a GAN spend its limited capacity on the rest: on
+ImageNet, keeping the most typical half improved the FID from 21.4 to 12.6. We measure how typical an image is by how
+close its classifier features are to the average of its digit, and keep the 95, 90, 75 or 50\% most typical images of
+each digit.
 
-\textbf{Observed.} No rate wins: 90\% ties, 95\% and 75\% are worse but n.s., 50\% is clearly worse ($p = 0.002$). At 50\%, R falls in both feature spaces (VGG $-0.20$, CNN $-0.37$; Fig.~\ref{fig:data-selection-pr}): circularity amplifies the loss, not creates it. P rises in the selection CNN ($+0.08$, $p<10^{-4}$); the n.s.\ VGG rise ($+0.05$, $p=0.22$) comes partly from easier digits (``1'': 28\% $\to$ 35\%).
+\textbf{Result.} No selection rate beats the reference. Keeping 90\% ties, keeping 50\% is clearly worse (47.8 against
+35.4). The trade-off is the expected one, but unbalanced: precision rises a little (0.51 to 0.56) while recall collapses
+(0.52 to 0.32). The generator draws fewer odd digits, but also far fewer kinds of digits.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{data_selection_pr}
-\caption{\textbf{Selection costs recall in both feature spaces;} precision rises significantly only in the selection CNN (VGG: $+0.05$ at 50\%, n.s.). Change vs the 100\% reference; labels: share kept; bars: sd.}
-\label{fig:data-selection-pr}
-\end{figure}
+\textbf{Why it does not transfer.} Three differences with the paper explain it. First, their generator is told which
+class to draw; ours is not, and with less variety to imitate it drops whole digits (at 50\%, no ``0'' is generated at
+all, against 10\% normally). Second, MNIST is already clean: its unusual images are mostly legitimate handwriting styles,
+not errors, so removing them removes diversity. Third, the paper's model was short of capacity; ours is not the
+bottleneck, since the same generator reaches 22.1 with a better training (Sec.~\ref{sec:training}).
 
-\textbf{Why.} (i) Though the training set stays balanced, the unconditional $G$ drops whole digits (``0'': 10.2\% $\to$ 0.0\% at 50\%). (ii) MNIST's tail is likely diversity, not errors: 50\% selection of the \emph{real} images cuts their CNN recall from 0.89 to 0.63. (iii) Capacity is likely not the limit: the same $G$ reaches 22.1.
+\textbf{Limit.} We did not train on a \emph{random} half of the images, so we cannot tell whether the loss comes from
+having fewer images or from choosing them.
 
-\textbf{When it fails.} It already hurts in the paper at 256$\times$256. Without a random-50\% control, we cannot separate ``fewer'' from ``chosen'' images.
+\subsection{Instance noise: blur the discriminator's view}
 
-\subsection{Instance noise}
-\textbf{Method.} $D$ sees $x + \sigma_t \varepsilon$, $\varepsilon \sim \mathcal{N}(0, I)$, real and fake (pixels in $[-1,1]$); $\sigma_t$ decays from $\sigma_0$ to 0 at epoch 101 of 200, so FIDs measure only a lasting effect.
+\textbf{Idea.} Early in training, real and generated images are so different that $D$ separates them perfectly; $G$
+then receives almost no useful signal. Adding random noise to every image $D$ sees, real or generated, makes the two sets
+overlap and keeps $D$ from winning too early~\cite{sonderby2017,arjovsky2017}. The noise starts at a standard deviation
+of 0.3 (pixels range from $-1$ to 1) and fades to zero halfway through training. The literature promises a more stable
+training, not a better score.
 
-\textbf{Expected.} Overlap keeps $D$ imperfect and $G$'s gradient alive~\cite{arjovsky2017,sonderby2017}: stability, no FID gain.
+\textbf{Result.} The score does not move, with either loss (Table~\ref{tab:data}). What about stability? Some runs
+of the baseline \emph{collapse}: training breaks down and $G$ outputs only noise or one repeated shape
+(Fig.~\ref{fig:samples}d). A first experiment suggested that noise prevents this (0 collapses in 8 runs). We reran it
+properly, with and without noise on the same 8 seeds: 1 collapse out of 8 with noise, 3 out of 8 without. The trend
+favours noise, but this difference is well within chance ($p=0.57$).
 
-\textbf{Observed.} No significant FID$_\text{Inc}$ effect (Table~\ref{tab:data-results}; $p \ge 0.21$). On raw $G$, noise worsens the BCE (36.6\,$\to$\,42.5, $p=0.03$; n.s.\ after Bonferroni). Collapses: 1/8 with noise vs 3/8 without in the paired 8-seed rerun ($p = 0.57$); the earlier ``0 of 8'' does not replicate.
+\textbf{Why collapses happen.} We inspected the 19 collapsed runs. In 17 of them, $D$ becomes so sure of itself that it gives
+generated images a probability of being real below $10^{-12}$. The baseline's loss function cannot represent smaller
+numbers and clips them, which makes $G$'s gradient vanish: $G$ stops learning for good. Noise does not prevent this: a
+single direction in pixel space is enough to separate real from fake, and noise spread over all pixels does not hide it.
+The remedy is a numerically safer loss: the one of Sec.~\ref{sec:training} never collapsed.
 
-\textbf{Why.} \emph{Collapses are numerical:} all 19 collapsed runs end with a vanishing $G$ gradient; in 17, $D(G(z)) < 10^{-12}$, where \texttt{BCELoss} clamps. \emph{Noise does not stop $D$:} one direction separates real from fake, while noise spreads over all pixels~\cite{roth2017}; against the initial $G$, $D$ still reaches 100\% accuracy for $\sigma \le 1$. \emph{With RpGAN}, R1 already acts as deterministic instance noise~\cite{roth2017,mescheder2018}.
-
-\textbf{When it fails.} Noise ($\sigma_0 \le 0.3$) does not replace a numerically safe loss. Candidates: \texttt{BCEWithLogitsLoss} would keep the gradient at 1 (checked on collapsed states, not trained); RpGAN + R1 (no collapse, Sec.~\ref{sec:training}; but neither did the BCE under the common protocol, 0/6).
-
-\takeaway{On MNIST with an unconditional $G$, neither data lever lowered FID$_\text{Inc}$ detectably: selection costs recall; noise neither helps nor prevents collapses.}
+\takeaway{On MNIST, neither data lever improved the score. Keeping only typical images trades too much diversity for
+little quality; noise neither helps the score nor clearly prevents collapses, which come from the loss function.}

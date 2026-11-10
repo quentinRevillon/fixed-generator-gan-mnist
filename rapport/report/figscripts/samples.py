@@ -19,10 +19,10 @@ from model import Generator  # noqa: E402
 from style import FULL, apply, save  # noqa: E402
 
 RUNS = os.path.join('..', '..', '..', 'masteriasd-datalab-project-a2-group-3', 'runs')
-PANELS = [('(a) Baseline (BCE), raw $G$', 'cmploc_baseline_s1/G.pth'),
-          ('(b) RpGAN + R1, raw $G$', 'cmploc_rpgan_r1_ema_s1/G_raw.pth'),
-          ('(c) RpGAN + R1, $G_\\mathrm{EMA}$ (submitted)', 'cmploc_rpgan_r1_ema_s1/G.pth'),
-          ('(d) BCE, collapsed ($\\gamma$ sweep run)', 'ema100_baseline_s2/G.pth')]
+PANELS = [('(a) Baseline', 'cmploc_baseline_s1/G.pth'),
+          ('(b) New loss', 'cmploc_rpgan_r1_ema_s1/G_raw.pth'),
+          ('(c) New loss + EMA (submitted)', 'cmploc_rpgan_r1_ema_s1/G.pth'),
+          ('(d) A collapsed baseline run', 'ema100_baseline_s2/G.pth')]
 
 
 def load_generator(path):
