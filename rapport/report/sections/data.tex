@@ -51,9 +51,6 @@ all, against 10\% normally). Second, MNIST is already clean: its unusual images 
 not errors, so removing them removes diversity. Third, the paper's model was short of capacity; ours is not the
 bottleneck, since the same generator reaches 22.1 with a better training (Sec.~\ref{sec:training}).
 
-\textbf{Limit.} We did not train on a \emph{random} half of the images, so we cannot tell whether the loss comes from
-having fewer images or from choosing them.
-
 \subsection{Instance noise: blur the discriminator's view}
 
 \textbf{Idea.} Early in training, real and generated images are so different that $D$ separates them perfectly; $G$

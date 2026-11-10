@@ -45,8 +45,5 @@ generated images by digit, and each group of 1\,000 images is compared, with \fi
 digit. Fig.~\ref{fig:training-perdigit}a (Sec.~\ref{sec:training}) shows it for our three main models. The baseline's
 ``2'', for example, scores 113 (real ``2''s: 10), but it is only 1.6\% of the images, so the global FID barely notices it.
 
-\textbf{Limit.} No score replaces the human eye: FIDs can disagree with human judgment~\cite{stein2023}. We therefore also
-look at samples (Fig.~\ref{fig:samples}), as the platform does.
-
 \takeaway{The FID on a digit classifier mostly measures whether all digits are drawn equally often; the Inception FID
 measures how well they are drawn. We rank with the latter and use the former as a diagnostic.}
