@@ -40,11 +40,19 @@ python evaluate.py --samples samples               # les évaluer comme le corre
 
 ## Modèle rendu
 
-`checkpoints/G.pth` = RpGAN + R1 (γ = 1) + EMA 0.999 du générateur, seed 1, 200 époques sur le split commun (50 000 images), dernière époque, sans tri (`checkpoints/sampling.yaml` : `method: plain`). Pour le réentraîner :
+`checkpoints/G.pth` = RpGAN + R1 (γ = 1) + EMA 0.999 du générateur, seed 1, 200 époques sur le split commun (50 000 images), dernière époque.
+
+`checkpoints/D.pth` = discriminateur du même run **recalibré** : ses couches `fc1`-`fc3` sont inchangées, sa dernière couche `fc4` est remplacée par une régression logistique (10 000 images réelles de validation contre 10 000 images de G). En fin d'entraînement, le D d'origine ne sépare presque plus réels et générés (AUC 0,55) ; recalibré, il remonte à 0,77 et le tri redevient utile (rapport, Sec. 5).
+
+Échantillonnage (`checkpoints/sampling.yaml`) : rejet OBRS à budget K = 3 (une image gardée sur trois propositions). Images produites par `python generate.py --batch_size 256`, mesurées contre MNIST test avec l'évaluateur de la plateforme : FID Inception 21,15 → **19,43**, précision 0,60 → 0,61, rappel 0,59 → 0,60 (sans tri → OBRS). Génération : 30 208 propositions pour 10 000 images gardées, 0,16 s sur A100, environ 3 s sur CPU.
+
+Pour reproduire :
 
 ```bash
 python train.py --config configs/compare_local/rpgan_r1_ema.yaml --seed 1     # runs/cmploc_rpgan_r1_ema_s1/
-cp runs/cmploc_rpgan_r1_ema_s1/G.pth runs/cmploc_rpgan_r1_ema_s1/D.pth checkpoints/
+cp runs/cmploc_rpgan_r1_ema_s1/G.pth checkpoints/
+python scripts/recalibrate_d.py runs/cmploc_rpgan_r1_ema_s1 checkpoints/D.pth  # D recalibré
+python generate.py --batch_size 256                                            # 10 000 images dans samples/
 ```
 
 `G.pth` est le générateur moyenné (EMA), `G_raw.pth` le générateur brut, `D.pth` le discriminateur de la dernière époque.
