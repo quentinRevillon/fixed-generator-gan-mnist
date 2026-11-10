@@ -22,14 +22,17 @@ each FID reacts (Fig.~\ref{fig:fid-sensitivity}).
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{fid_sensitivity}
-\caption{\textbf{Each FID sees a different defect.} Real images are damaged on purpose; a bar at 100\% means the defect
-alone is as bad as everything that is wrong with the baseline, 0\% that the FID does not see it.}
+\caption{\textbf{Each FID sees a different defect.} We damage \emph{real} test images on purpose and compute both FIDs
+(10\,000 images). Dashed line: score of the baseline GAN; a bar reaching it means the defect alone is as bad as the
+baseline. Undamaged real images score 1.5 and 2.7.}
 \label{fig:fid-sensitivity}
 \end{figure}
 
-\textbf{What each score sees.} \fcnn{} reacts strongly to the \emph{balance between digits}: removing one digit costs
-23\% of the baseline's score, against 2\% for \finc{}. \finc{} reacts to the \emph{look of the strokes}: noise on a quarter
-of the images costs 104\%, against 9\% for \fcnn{}. This follows from what each network was trained for~\cite{kynkaanniemi2023}:
+\textbf{What each score sees.} \fcnn{} reacts strongly to the \emph{balance between digits}: removing a single digit from
+real images raises it from 2.7 to 40, and giving real images the baseline's digit proportions raises it to 124, close to
+the baseline's 162. \finc{} hardly notices either (2.4 and 7.4, for a baseline at 40). Conversely, \finc{} reacts to the
+\emph{look of the strokes}: adding noise to a quarter of the images is enough to reach the baseline's score (41), while
+\fcnn{} stays low (18). This follows from what each network was trained for~\cite{kynkaanniemi2023}:
 our classifier only knows the ten digits (digit identity explains 67\% of its feature variance, 26\% for Inception),
 whereas Inception knows textures and shapes. A direct check confirms it: if we resample the baseline's images so that every
 digit appears equally often, \fcnn{} drops from 162 to 32, but \finc{} \emph{rises} from 39.9 to 46.2, because the rare digits
@@ -38,9 +41,9 @@ that are added are badly drawn.
 \textbf{Our choice.} We rank models with \finc{}: it is the platform's score, it varies less between seeds (3--6\% of its
 value against 11--25\%) and it is the one used in the literature. \fcnn{} serves as a diagnostic of digit balance. To see
 the quality of rare digits, which a global score hides, we also compute a \emph{per-digit FID}: our classifier sorts the
-generated images by digit, and each group of 1\,000 images is compared with the real images of the same digit. The
-baseline's ``2'', for example, scores 113 (real ``2''s: 10), but it is only 1.6\% of the images, so the global FID
-barely notices it.
+generated images by digit, and each group of 1\,000 images is compared, with \finc{}, to the real images of the same
+digit. Fig.~\ref{fig:training-perdigit}a (Sec.~\ref{sec:training}) shows it for our three main models. The baseline's
+``2'', for example, scores 113 (real ``2''s: 10), but it is only 1.6\% of the images, so the global FID barely notices it.
 
 \textbf{Limit.} No score replaces the human eye: FIDs can disagree with human judgment~\cite{stein2023}. We therefore also
 look at samples (Fig.~\ref{fig:samples}), as the platform does.

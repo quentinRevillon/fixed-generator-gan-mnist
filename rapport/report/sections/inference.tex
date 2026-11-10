@@ -39,9 +39,10 @@ OBRS, recalibrated   & 0.77 & 33\%  & $\mathbf{19.7\pm0.8}$ & 10.2 \\
 (Table~\ref{tab:inference}). On the final model, it does nothing to \finc{} (22.0 to 22.1) and even worsens \fcnn{} on
 every seed: this is the degradation we had reported in our presentation.
 
-\textbf{Why it fails: $D$ can no longer tell real from fake.} We measured how well $D$ ranks real images above generated
-ones (its AUC). The baseline's $D$ does it 75\% of the time; the final model's $D$ only 57\%, barely better than a coin
-flip. This is a side effect of the training that made $G$ good: $G$ and $D$ end near a balance where $D$ is confused. A
+\textbf{Why it fails: $D$ can no longer tell real from fake.} To measure how well $D$ still separates the two, we use its
+AUC (area under the ROC curve): take one real and one generated image at random; the AUC is the probability that $D$ gives
+the real one the higher score. A perfect judge scores 1, a coin flip 0.5. The baseline's $D$ reaches 0.75; the final
+model's $D$ only 0.57, barely better than chance. This is a side effect of the training that made $G$ good: $G$ and $D$ end near a balance where $D$ is confused. A
 filter based on a confused judge keeps images almost at random (42\% instead of the intended 30\%), and the little
 preference it has shifts the balance between digits, which only \fcnn{} sees. Part of the confusion comes from $D$ never
 having seen the averaged generator, but DRS also fails on the raw generator, so this is not the whole story.
