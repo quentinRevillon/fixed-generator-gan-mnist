@@ -4,7 +4,7 @@
 \begin{table}[t]
 \centering\footnotesize
 \setlength{\tabcolsep}{3.2pt}
-\caption{\textbf{All models, common protocol.} Test set, 10\,000 samples, mean\,$\pm$\,sd over 3 seeds. Bold: best FID$_\text{Inc}$.}
+\caption{\textbf{All models, common protocol.} Bold: best FID$_\text{Inc}$.}
 \label{tab:combination-all}
 \begin{tabular}{@{}lrrrrr@{}}
 \toprule
@@ -18,31 +18,27 @@ Baseline + EMA$^\dagger$             & 30.0\,$\pm$\,0.2 & 0.56 & 0.54 & 182  & 1
 RpGAN + R1, raw $G$                  & 37.7\,$\pm$\,1.0 & 0.47 & 0.47 & 19.7 & 100\% \\
 RpGAN + R1 + EMA                     & 22.1\,$\pm$\,1.3 & 0.59 & 0.59 & 9.9  & 100\% \\
 \quad + DRS$^\ddagger$               & 22.1\,$\pm$\,1.1 & 0.59 & 0.59 & 14.4 & 42\%  \\
-\quad + DRS, recal.\ $D$$^\ddagger$  & 20.2\,$\pm$\,1.2 & 0.62 & 0.59 & 10.0 & 32\%  \\
 \quad + OBRS, recal.\ $D$$^\ddagger$ & \textbf{19.7}\,$\pm$\,0.8 & 0.62 & 0.59 & 10.2 & 33\% \\
 \quad + noise 0.3                    & 21.4\,$\pm$\,0.6 & 0.60 & 0.61 & 9.0  & 100\% \\
 \bottomrule
 \end{tabular}
-\tabnote{P, R: VGG, $k{=}5$; sd $\le$ 0.03. Acc.: share of proposals kept.
-$^\dagger$Trained on the cluster (Table~\ref{tab:intro-protocol}).
-$^\ddagger$Re-sampled on the cluster, 2 draws/seed (plain: BCE $38.7$, RpGAN $22.0\pm1.4$). recal.: Sec.~\ref{sec:inference}.}
+\tabnote{P, R: VGG; sd $\le$ 0.03. Acc.: share of proposals kept. On the cluster: $^\dagger$trained;
+$^\ddagger$re-sampled, 2 draws/seed (plain: BCE $38.7$, RpGAN $22.0\pm1.4$).}
 \end{table}
 
 \section{Combination and conclusion}\label{sec:combination}
 
-Gains depend on the base model (Table~\ref{tab:combination-all}, Fig.~\ref{fig:combination-effects}):
-
-
+Gains depend on the base model (Table~\ref{tab:combination-all}, Fig.~\ref{fig:combination-effects}; samples: Fig.~\ref{fig:combination-samples}):
 \begin{itemize}
-\item \textbf{Loss $\times$ EMA} (Welch $p=0.002$, two machines): EMA gains more on RpGAN + R1; the loss alone fixes the mix, EMA alone does not (FID$_\text{CNN}$ 182).
-\item \textbf{DRS $\times$ loss} (Welch $p=0.03$): plain $D$ helps BCE, with or without EMA (so EMA is not the cause), not RpGAN + R1 + EMA, whose $D$ has AUC 0.57; a refitted head reaches 0.77 ($G$ still separable, $D$'s output at fault).
-\item \textbf{Noise, selection:} nothing to stack (Sec.~\ref{sec:data}).
+\item \textbf{Loss $\times$ EMA} (Welch $p=0.002$, two machines): EMA gains more on RpGAN + R1.
+\item \textbf{DRS $\times$ (loss + EMA)} ($p=0.03$): plain $D$ helps the BCE, with or without EMA, not the final model (Sec.~\ref{sec:inference}).
+\item \textbf{Noise, selection:} nothing to stack.
 \end{itemize}
 
 \paragraph{Conclusion.}
-\emph{Submitted:} RpGAN + R1 ($\gamma=1$) + EMA, seed 1 (best validation FID$_\text{CNN}$), plain sampling: FID$_\text{Inc}$ 21.15 on test (method: $22.1\pm1.3$); platform FID 21.59, P 0.702, R 0.585 (P/R not comparable to ours).
+\emph{Submitted:} RpGAN + R1 ($\gamma=1$) + EMA, seed 1 (best validation FID$_\text{CNN}$), plain sampling: FID$_\text{Inc}$ 21.15 on test (method: $22.1\pm1.3$); platform FID 21.59, P 0.702, R 0.585.
 \emph{Next:} OBRS with recalibrated $D$, found after submission: ${\approx}{-2.3}$ FID$_\text{Inc}$ for ${\approx}3$ proposals per kept image.
-\emph{Limits:} 3 seeds (power: Table~\ref{tab:intro-protocol}); no multiple-test correction; two machines; data runs on another protocol.
+\emph{Limits:} 3 seeds (power: Sec.~\ref{sec:intro}); no multiple-test correction except where stated; two machines (${\approx}2$ FID apart); data runs on another protocol; $\gamma$ chosen on FID$_\text{CNN}$; no BCE + R1 run; no random-50\% selection control.
 
-\takeaway{EMA helps alone, loss + R1 only with EMA ($38.7\to22.1$); on that model, noise does nothing detectable and rejection helps only with a recalibrated $D$ ($22.0\to19.7$, OBRS).}
+\takeaway{EMA helps alone, loss + R1 only with EMA ($38.7\to22.1$); on that model, rejection helps only with a recalibrated $D$ ($22.0\to19.7$, OBRS).}
 \raggedend % flushend : pas d equilibrage ici (sinon des lignes passent au-dessus du tableau 6)

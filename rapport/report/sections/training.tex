@@ -11,18 +11,18 @@
 L_D &= \mathrm{sp}\big(D(\tilde x)-D(x)\big) + \tfrac{\gamma}{2}\,\|\nabla_x D(x)\|^2,\\
 L_G &= \mathrm{sp}\big(D(x)-D(\tilde x)\big).
 \end{align*}
-EMA~\cite{yazici2019}: after each step, $G_\mathrm{EMA}\leftarrow\beta\,G_\mathrm{EMA}+(1-\beta)\,G$, $\beta=0.999$ (half-life $\approx$\,1.4 epochs). Training uses only raw $G$, so each run yields both: EMA effects are paired.
+EMA~\cite{yazici2019}: after each step, $G_\mathrm{EMA}\leftarrow\beta\,G_\mathrm{EMA}+(1-\beta)\,G$, $\beta=0.999$ (half-life $\approx$\,1.4 epochs). Training uses only raw $G$: each run yields both, so EMA effects are paired.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{training_perdigit}
-\caption{\textbf{RpGAN + R1 fixes the digit mix; EMA cleans every digit.} Common protocol, 3 seeds. (a) FID$_\text{Inc}$ per digit (1\,000 images per digit vs MNIST test; real: 6.5--10.4). (b) Share of each digit in 10\,000 samples (dotted: 10\%). BCE: Mac in (a), cluster in (b).}
+\caption{\textbf{RpGAN + R1 fixes the digit mix; EMA cleans every digit.} Common protocol, 3 seeds. (a) Per-digit FID$_\text{Inc}$ (real data: 6.5--10.4). (b) Share of each digit in 10\,000 samples (dotted: 10\%). BCE: Mac in (a), cluster in (b).}
 \label{fig:training-perdigit}
 \end{figure}
 
 \begin{table}[t]
 \centering\footnotesize\setlength{\tabcolsep}{3pt}
-\caption{\textbf{Loss $\times$ EMA.} Common protocol, mean $\pm$ sd, 3 seeds.}
+\caption{\textbf{Loss $\times$ EMA} (common protocol).}
 \label{tab:training-ema}
 \begin{tabular}{@{}llcccc@{}}
 \toprule
@@ -38,25 +38,24 @@ $G_\mathrm{EMA}$ & FID$_\text{Inc}$ & -- & 30.0$\pm$0.2 & \textbf{22.1}$\pm$1.3 
 \multicolumn{2}{@{}l}{EMA $\Delta$ ($p$)} & -- & $-6.7$ (0.01) & $-15.6$ (${<}0.001$) & \\
 \bottomrule
 \end{tabular}
-\tabnote{P/R: VGG. EMA $\Delta$: paired $t$; loss $\Delta$: Welch vs BCE (cluster for $G_\mathrm{EMA}$, Mac for raw $G$).}
+\tabnote{P/R: VGG. EMA $\Delta$: paired $t$; loss $\Delta$: Welch vs BCE (cluster for $G_\mathrm{EMA}$, Mac for raw $G$). EMA $\Delta$ on RpGAN: both $G$ re-scored on the cluster.}
 \end{table}
 
 \subsection{RpGAN + R1 (H1)}
-\textbf{Expected.} A large gain if the baseline is unstable (CIFAR-10 FID 154 $\to$ 51), a small one otherwise (40.6 $\to$ 36.6)~\cite{jolicoeur2019}. R3GAN: RpGAN + R1 \emph{fails} on StackedMNIST without R2 ($\gamma$ in 0.1--100)~\cite{huang2024}.
+\textbf{Expected.} A large gain if the baseline is unstable, a small one otherwise (CIFAR-10~\cite{jolicoeur2019}). R3GAN: RpGAN + R1 \emph{fails} on StackedMNIST without R2~\cite{huang2024}.
 
-\textbf{Observed.} \emph{$\gamma$ sweep} (Table~\ref{tab:intro-protocol}; FID$_\text{CNN}$, 3 seeds): $\gamma=0.1$ diverges (3/3), $\gamma=1$ is best ($14.0\pm0.9$), $\gamma=10$ worse but still falling at 100 epochs ($17.7\pm0.9$); adding R2 changes nothing ($14.4\pm0.9$). $\gamma\ge1$ never collapsed (0/12; BCE: 1/3 in the sweep, Fisher $p=0.20$; 0/6 at the common protocol).
-\emph{Common protocol, raw $G$:} FID$_\text{Inc}$ is flat (Table~\ref{tab:training-ema}), but the mix is fixed (Fig.~\ref{fig:training-perdigit}b; FID$_\text{CNN}$ $182\pm19\to19.7\pm4.1$) and strokes improve at fixed digit (per-digit FID$_\text{Inc}$ $63.6\pm1.2\to55.4\pm1.8$, $p=0.005$), most on ``2'' (113 $\to$ 80); ``1'' and ``7'' worsen (Fig.~\ref{fig:training-perdigit}a).
+\textbf{Observed.} \emph{$\gamma$ sweep} (FID$_\text{CNN}$; protocol in Table~\ref{tab:intro-protocol}): $\gamma=0.1$ diverges (3/3), $\gamma=1$ is best ($14.0\pm0.9$), $\gamma=10$ worse ($17.7\pm0.9$, still falling at 100 epochs); adding R2 changes nothing ($14.4\pm0.9$). $\gamma\ge1$ never collapsed (0/12: 9 sweep + 3 common runs; BCE: 1/3 in the sweep, Fisher $p=0.20$; 0/6 common).
+\emph{Common protocol, raw $G$:} FID$_\text{Inc}$ is flat (Table~\ref{tab:training-ema}), but the mix is fixed (Fig.~\ref{fig:training-perdigit}b; FID$_\text{CNN}$ $182\to19.7$) and strokes improve at fixed digit (per-digit FID$_\text{Inc}$ $63.6\to55.4$, $p=0.005$), most on ``2'' (113 $\to$ 80); ``1'' and ``7'' worsen.
 
-\textbf{Why.} R1, not the pairing, prevents collapse: with $\gamma\le0.1$, $D$ separates real from fake within 2--3 epochs and $G$ collapses despite RpGAN's gradient. Unpenalised, $G$ and $D$ circle around equilibrium; R1 damps this, and in Mescheder's two-parameter model~\cite{mescheder2018} the circling stops at $\gamma=1$ for our loss (a hypothesis, consistent with our best grid point). The pooled FID$_\text{Inc}$ hides the stroke gain: the BCE rarely draws its worst digit (Sec.~\ref{sec:fid}).
+\textbf{Why.} Within RpGAN, R1 is needed against collapse: without it, $D$ wins within 1--2 epochs (1 seed); with $\gamma=0.1$, 3/3 seeds diverge before epoch 10. Whether R1 suffices with the BCE is untested. Unpenalised, $G$ and $D$ circle around equilibrium; R1 damps this (hypothesis: in Mescheder's toy GAN, one parameter each for $G$ and $D$~\cite{mescheder2018}, circling stops at $\gamma=1$ for our loss, our best grid point). The pooled FID$_\text{Inc}$ hides the stroke gain: the BCE rarely draws its worst digit.
 
-\textbf{When it fails.} $\gamma\le0.1$. BCE + R1 was not run: pairing and R1 are not separated. Unlike R3GAN we need no R2: likely an easier task (10 modes), small networks, Adam $\beta_1=0.9$ not 0 (with theirs our run collapses, 1 seed).
+\textbf{When it fails.} $\gamma\le0.1$. Unlike R3GAN we need no R2: likely an easier task (10 modes), small networks, Adam $\beta_1=0.9$ not 0 (with theirs our run collapses, 1 seed).
 
 \subsection{EMA, and why the gain needs both (H2)}
-\textbf{Expected.} EMA cuts FID by 24--29\% on CIFAR-10 (18.1 $\to$ 13.8 with $\beta=0.999$)~\cite{yazici2019}.
+\textbf{Expected.} EMA cuts FID by 24--29\% on CIFAR-10~\cite{yazici2019}.
 
-\textbf{Observed} (Table~\ref{tab:training-ema}). The EMA gain doubles from the BCE ($-18\%$) to RpGAN + R1 ($-41\%$; difference $p=0.002$); P and R rise together: no trade-off. The loss has no detectable effect without EMA, $-7.8$ with it. On RpGAN + R1, EMA improves every digit ($55.4\to37.3$, 30/30 \mbox{seed--digit} pairs, $p<0.001$; Fig.~\ref{fig:training-perdigit}a); on the BCE it keeps the mix (FID$_\text{CNN}$ $170\pm9\to182\pm17$, $p=0.13$; Fig.~\ref{fig:training-perdigit}b).
+\textbf{Observed} (Table~\ref{tab:training-ema}). The EMA gain doubles from the BCE ($-6.7$, $-18\%$) to RpGAN + R1 ($-15.6$, $-41\%$; interaction $p=0.002$); P and R rise together: no trade-off. The loss gives $-7.8$ with EMA (BCE + EMA on the cluster, which favours it), nothing detectable without (a cluster rerun, best checkpoint, agrees: 36.4 vs 36.1). On RpGAN + R1, EMA improves every digit ($55.4\to37.3$, 30/30 \mbox{seed--digit} pairs; Fig.~\ref{fig:training-perdigit}a); on the BCE it leaves the mix unfixed (FID$_\text{CNN}$ $170\to182$, n.s.).
 
-\textbf{Why (hypothesis).} At the end, RpGAN's $D$ barely separates real from fake (mean $\sigma(D)$ 0.62 vs 0.59; BCE 0.72 vs 0.28): $G$ oscillates near equilibrium and the average lands near its centre~\cite{yazici2019}. The BCE drifts instead (validation FID$_\text{CNN}$ 50 $\to$ 159--196 after epoch ${\approx}110$, Sec.~\ref{sec:fid}); a 1.4-epoch average cannot undo a drift (which also inflates the 182 above).
+\textbf{Why (hypothesis).} At the end, RpGAN's $D$ barely separates real from fake (mean $\sigma(D)$ 0.62 vs 0.59; BCE 0.72 vs 0.28): $G$ oscillates near equilibrium, and the average lands near its centre~\cite{yazici2019}. The BCE drifts instead (validation FID$_\text{CNN}$: best 50--65 at epochs 100--120, 159--196 at epoch 200); a 1.4-epoch average cannot undo a drift.
 
-\textbf{Limits.} BCE + EMA ran on the cluster, 2 points kinder to the baseline than our Mac: the bias favours the BCE. A cluster rerun without EMA also finds no loss effect (36.4 vs 36.1).
-\takeaway{RpGAN + R1 fixes the digit mix and never collapsed; EMA cleans every digit; the loss pays off only with EMA (FID$_\text{Inc}$ 38.7 $\to$ 22.1; EMA alone 30.0, loss alone 37.7).}
+\takeaway{RpGAN + R1 fixes the digit mix (no collapse with $\gamma\ge1$, 0/12; n.s.\ vs BCE); EMA cleans every digit; the loss pays off only with EMA.}

@@ -1,25 +1,31 @@
 % Partie inference : rejet par le discriminateur (DRS, OBRS). Chiffres : enquete/results/juliet/drs_recalib_test.csv
 % (tableau et tests appariés : figscripts/inference.py), juliet2_test.csv (G brut, baseline + EMA, 1 tirage),
 % enquete/inference.md (écart-type des logits, corrélation par chiffre, AUC G brut / G_EMA, Platt).
-\section{Inference: discriminator rejection sampling}\label{sec:inference}
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{combination_samples}
+\caption{\textbf{Samples from the same 36 latent vectors $z$} (common protocol, seed 1, except (d)). (a) Baseline: many ``1''s and ``7''s. (b, c) RpGAN + R1 without and with EMA: same digits, cleaner strokes with EMA; (c) is the submitted model. (d) A BCE run that collapsed ($\gamma$ sweep protocol, seed 2).}
+\label{fig:combination-samples}
+\end{figure*}
 
-\textbf{Question.} \emph{Why does DRS hurt our final model} (in FID$_\text{CNN}$)? Its $D$ barely separates real from generated images; recalibrating $D$ fixes it.
+\section{Inference: discriminator rejection sampling}\label{sec:inference}
 
 \textbf{Method.} DRS~\cite{azadi2019} keeps $x\sim G$ with probability $\sigma(F(x))$,
 \[
 F(x) = d(x) - d_M - \log\!\big(1 - e^{\,d(x)-d_M-\epsilon}\big) - c ,
 \]
-$d$: logit of $D$; $d_M$: largest logit seen (10\,000-sample burn-in, then updated); $\epsilon=10^{-6}$; $c$: 80th percentile of unshifted $F$ per batch of 10\,000 proposals. It assumes $d=\log p_\mathrm{data}/p_G$ (optimal BCE $D$).
-\textbf{OBRS}~\cite{verine2024} keeps $x$ with probability $\min(1, e^{d(x)-\tau_K})$, $\tau_K$ set to keep $1/K$ of proposals ($K=3$), capped at the largest $d$.
-\textbf{Recal.} (as Azadi et al.\ for hinge-loss SAGAN): a new BCE head (logistic regression) on $D$'s 256 last hidden features, fitted on 10\,000 validation images vs.\ 10\,000 samples of the sampled $G$.
+$d$: logit of $D$; $d_M$: largest logit seen; $\epsilon=10^{-6}$; $c$: 80th percentile of unshifted $F$. It assumes $d=\log p_\mathrm{data}/p_G$ (optimal BCE $D$).
+\textbf{OBRS}~\cite{verine2024} keeps $x$ with probability $\min(1, e^{d(x)-\tau_K})$: all images above the threshold $\tau_K$, fewer below; $\tau_K$ keeps $1/K$ of proposals ($K=3$), capped at the largest $d$.
+\textbf{Recal.}: a new logistic-regression head on $D$'s 256 last hidden features, fitted on 10\,000 validation images vs.\ 10\,000 samples.
 \textbf{AUC of $D$}: probability that $D$ scores a real test image above a generated one (0.5 = chance).
+\textbf{TV}: share of samples (digit from our CNN) that must change digit to match the test mix.
 
-\textbf{Expected.} Recalibrated DRS: SAGAN's ImageNet FID 18.2 $\to$ 17.1~\cite{azadi2019}; OBRS raises P at constant R if the ratio is well estimated~\cite{verine2024}.
+\textbf{Expected.} Recalibrated DRS slightly improves SAGAN on ImageNet~\cite{azadi2019}; OBRS raises P at constant R if the ratio is well estimated~\cite{verine2024}.
 
 \begin{table}[t]
 \centering\footnotesize
 \setlength{\tabcolsep}{3.5pt}
-\caption{\textbf{Rejection sampling.} 10\,000 kept images vs.\ MNIST test, 3 seeds $\times$ 2 draws ($\pm$: sd over seeds). Bold: best FID$_\text{Inc}$ per block.}
+\caption{\textbf{Rejection sampling.} 10\,000 kept images, 3 seeds $\times$ 2 draws ($\pm$: sd over seeds). Bold: best FID$_\text{Inc}$ per block.}
 \label{tab:inference-results}
 \begin{tabular}{@{}lrrrrrr@{}}
 \toprule
@@ -40,20 +46,15 @@ DRS, recal. & 0.77 & 32 & 20.2\,$\pm$\,1.2 & 0.62/0.59 & 10.0 & 0.039 \\
 OBRS, recal. & 0.77 & 33 & \textbf{19.7}\,$\pm$\,0.8 & 0.62/0.59 & 10.2 & 0.041 \\
 \bottomrule
 \end{tabular}
-\tabnote{Mac-trained checkpoints re-sampled on the cluster (``none'' differs slightly from Table~\ref{tab:training-ema}, 1 draw). Acc.: acceptance. TV: share of images (digit from our CNN) that must change digit to match the test mix. recal.: recalibrated $D$.}
+\tabnote{Mac-trained checkpoints re-sampled on the cluster (``none'' differs slightly from Table~\ref{tab:training-ema}, 1 draw). Acc.: acceptance. recal.: recalibrated $D$.}
 \end{table}
 
-\textbf{Observed} (Table~\ref{tab:inference-results}; paired $t$, 3 seeds). \emph{Baseline:} DRS helps ($-4.4$, $p=0.04$), OBRS 0.5 more ($p=0.06$). \emph{Final model:} DRS leaves FID$_\text{Inc}$ unchanged ($p=0.8$) but worsens FID$_\text{CNN}$ on every seed ($+3.5$ to $+5.1$, $p=0.01$).
+\textbf{Observed} (Table~\ref{tab:inference-results}; paired $t$, 3 seeds). \emph{Baseline:} DRS helps ($-4.4$, $p=0.04$), OBRS slightly more. \emph{Final model:} DRS leaves FID$_\text{Inc}$ unchanged but worsens FID$_\text{CNN}$ on every seed ($+3.5$ to $+5.1$, $p=0.01$).
 
-\textbf{Why it fails here.} Real and generated images get almost the same logit (sd 0.2 vs 2.4 for a baseline $D$; seed 1). $F$ barely varies, so DRS keeps 42\%, not 30\%. OBRS keeps 45\%\,$>1/K$: $d$ spans less than $\log 3$, $\tau_K$ hits its cap, and OBRS falls back to exact rejection. The remaining preference ignores the digit deficit (per-digit acceptance vs the correcting one: correlation $-0.17$ to $+0.20$, seeds 0--1) and shifts the mix (TV $+0.012$, $p=0.008$), which only FID$_\text{CNN}$ sees. Other suspects:
-\begin{itemize}
-\item \emph{Relativistic loss constant}, ruled out: it shifts $d$ and $d_M$ equally.
-\item \emph{Mode loss}, ruled out: every digit ${\geq}7\%$ of kept images, R 0.59.
-\item \emph{EMA mismatch} ($D$ trained against raw $G$, we sample $G_\mathrm{EMA}$), partial: it lowers the AUC (0.66 vs.\ 0.55, seed 1), but DRS also fails on raw $G$ (FID$_\text{Inc}$ 37.7$\to$38.0; FID$_\text{CNN}$ 19.7$\to$21.6, 3/3 seeds; 1 draw) and helps BCE + EMA (Table~\ref{tab:combination-all}).
-\end{itemize}
+\textbf{Why it fails here: $D$ cannot rank.} Its AUC is 0.57: real and generated images get almost the same logit (seed 1: AUC 0.55, logit sd 0.2 vs 2.7 for the baseline $D$). So $F$ barely varies: DRS keeps 42\%, not 30\%; OBRS keeps 45\%\,$>1/K$ ($\tau_K$ hits its cap). The little preference left shifts the digit mix (TV $+0.012$, $p=0.008$), which only FID$_\text{CNN}$ sees. $D$ never saw $G_\mathrm{EMA}$: this lowers the AUC (0.66 on raw $G$ vs 0.55, seed 1), but DRS also fails on raw $G$ (FID$_\text{CNN}$ 19.7\,$\to$\,21.6, 3/3 seeds) and works on BCE + EMA, so the mismatch is not the whole cause.
 
-\textbf{Fix: recalibrate $D$.} \emph{Final model:} AUC 0.77; both samplers now help ($p=0.02$; 1.3 to 2.9 per seed), P $+0.03$ ($p=0.07$), R unchanged. The gain comes from re-ranking: Platt rescaling $d'=a\,d+b$ (same ranking) still worsens FID$_\text{CNN}$ (seed 1). \emph{Baseline (when it fails):} recalibration fixes the mix (FID$_\text{CNN}$, TV) but loses to plain DRS in FID$_\text{Inc}$ ($p=0.004$): as with hand rebalancing (Sec.~\ref{sec:fid}), easy ``1''s (per-digit FID$_\text{Inc}$ 37; 22\%$\to$19\% of images) give way to harder 3, 5, 8, 2 (70--113).
+\textbf{Fix: recalibrate $D$.} \emph{Final model:} AUC 0.77; both samplers now help (1.3 to 2.9 per seed, $p=0.02$). The gain comes from re-ranking: Platt rescaling $d'=a\,d+b$ (same ranking) still worsens FID$_\text{CNN}$ (seed 1). \emph{Baseline (when it fails):} recalibration fixes the mix (FID$_\text{CNN}$, TV) but loses to plain DRS in FID$_\text{Inc}$ ($p=0.004$). As with rebalancing (Sec.~\ref{sec:fid}), it swaps easy ``1''s (22\%$\to$19\% of images; per-digit FID$_\text{Inc}$ 37) for harder 3, 5, 8, 2 (70--113).
 
-\textbf{Cost.} Acceptance 30--45\%: 2.2--3.3 proposals per kept image. 10\,000 images on one A100: 0.02\,s plain, 0.08--0.09\,s DRS, 0.16\,s OBRS (median), plus an untimed one-off head fit (20\,000 images). Shipping $D$ and its head is required: we submit plain sampling.
+\textbf{Cost.} Acceptance 30--45\%: 2.2--3.3 proposals per kept image. 10\,000 images on one A100: 0.02\,s plain, 0.08--0.09\,s DRS, 0.16\,s OBRS (median), plus a one-off, untimed head fit (20\,000 images). Rejection needs $D$ and its head at sampling time: we submit plain sampling.
 
-\takeaway{Rejection helps only if $D$ separates real from generated images: check $D$'s AUC on held-out data; recalibrate $D$ if it is near 0.5 (final model: 22.0$\to$19.7, OBRS).}
+\takeaway{On our two MNIST models, rejection helped FID$_\text{Inc}$ only when $D$'s held-out AUC was well above 0.5; a higher AUC alone did not guarantee a gain (baseline, recalibrated).}
