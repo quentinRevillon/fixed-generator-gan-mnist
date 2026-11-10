@@ -26,9 +26,5 @@ the better the GAN, the more confused its $D$.
 so we always report which one we use, and look at the images.
 \end{itemize}
 
-\textbf{Limits.} Three seeds per variant only detect differences of about 3.6 points; some experiments ran on two
-different machines (about 2 points apart); the data experiments used their own protocol; and two controls are missing
-(R1 with the baseline loss, selection of a random half of the images).
-
 \takeaway{Averaging the generator and a relativistic loss with R1 take the FID from 38.7 to 22.1; filtering with a
 recalibrated discriminator takes the submitted model to 19.4.}
