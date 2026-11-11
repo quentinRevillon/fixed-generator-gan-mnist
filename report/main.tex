@@ -1,0 +1,68 @@
+% Report in the ACM sigconf format (same layout as the DataLab 1 report).
+% `nonacm` removes the ACM copyright block, conference footer and reference format line.
+% `balance=false` fills the left column of the last page before the right one.
+% Page budget (A2 instructions): at most 5 pages of content; the supplementary material follows.
+\documentclass[sigconf,nonacm,balance=false]{acmart}
+
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{float}     % [H] floats in the supplementary material
+\usepackage{titletoc}  % partial table of contents of the supplementary material
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\dbltextfloatsep}{8pt plus 2pt minus 2pt}
+
+% Notation shared by all sections.
+\newcommand{\finc}{FID$_\mathrm{Inc}$}
+\newcommand{\fcnn}{FID$_\mathrm{CNN}$}
+
+\settopmatter{printacmref=false, printfolios=true}
+
+\begin{document}
+
+\title{Data, Training and Inference Levers for a Fixed-Architecture GAN}
+\subtitle{What helps a small MNIST generator, and why}
+
+\author{Nicod\`eme Gorge}
+\affiliation{%
+  \institution{PSL University, Master IASD}
+  \city{Paris}
+  \country{France}}
+\author{No\'e Mosca}
+\affiliation{%
+  \institution{PSL University, Master IASD}
+  \city{Paris}
+  \country{France}}
+\author{Quentin Revillon}
+\affiliation{%
+  \institution{PSL University, Master IASD}
+  \city{Paris}
+  \country{France}}
+\renewcommand{\shortauthors}{}
+
+\input{sec_merge/0_abstract}
+
+\keywords{generative adversarial networks, MNIST, relativistic loss, weight averaging, rejection sampling, FID}
+
+\maketitle
+
+\input{sec_merge/1_intro}
+\input{sec_merge/2_related}
+\input{sec_merge/3_setup}
+\input{sec_merge/4_method}
+\input{sec_merge/5_results}
+\input{sec_merge/6_discussion}
+\input{sec_merge/7_conclusion}
+
+% acmart sets references in a smaller font; keep them at body-text size.
+\renewcommand{\bibfont}{\normalsize}
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{references}
+
+\input{sec_merge/AI_use}
+
+% ---------------------------------------------------------------- Supplementary material (not counted)
+\clearpage
+\onecolumn
+\appendix
+\input{sec_merge/8_supplementary}
+\end{document}

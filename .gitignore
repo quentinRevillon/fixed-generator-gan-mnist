@@ -56,3 +56,6 @@ report/*.log
 report/*.out
 report/report.pdf
 report/build/
+
+# Le rapport versionne ses CSV de résultats (report/data/)
+!report/data/

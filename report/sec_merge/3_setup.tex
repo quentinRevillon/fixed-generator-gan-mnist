@@ -1,0 +1,13 @@
+\section{Experimental Setup}
+\label{sec:setup}
+\paragraph{Data and model}
+We use MNIST \cite{lecun1998}, split once and for all: 50,000 training images, 10,000 validation images taken from the original training set (fixed permutation), and the 10,000 test images, used only for the numbers reported here. Pixels are scaled to $[-1,1]$. $G$ (100--256--512--1024--784) and $D$ (784--1024--512--256--1) are the provided fully connected networks, with about 1.5M parameters each; $D$ ends with a sigmoid, and its pre-sigmoid output is its \emph{score}.
+
+\paragraph{Common protocol}
+All variants use the provided optimizer (Adam, learning rate $2\cdot10^{-4}$, batch size 100) and the same budget of 200 epochs, i.e.\ 100,000 updates. We evaluate the last checkpoint, without choosing an epoch, and train three seeds per variant. The data-lever runs (Section~\ref{sec:data}) were trained earlier on a slightly different protocol (all 60,000 images, 120,000 updates, no EMA) and are compared only with their own reference.
+
+\paragraph{Metrics}
+Each model draws 10,000 images, compared with the 10,000 test images. The main score is the platform's \finc{}, computed on the 2,048 pool features of Inception-v3 \cite{szegedy2016} (lower is better). Precision and recall use VGG-16 features \cite{simonyan2015} and $k=5$ on 9,984 images, as on the platform. We also compute \fcnn{}, the same formula on the features of a small MNIST classifier trained by the group (98.7\% test accuracy); it costs seconds instead of minutes, so we used it during training. Real against real images gives the floor of each score: 1.5 for \finc{} and 2.7 for \fcnn{}. A run is \emph{collapsed} when its classifier-based recall falls below 0.01.
+
+\paragraph{Hardware}
+Runs were trained on an NVIDIA A100 (Juliet cluster) or on an Apple M3 (MPS). Both give bit-identical weights for a given configuration on the same machine, but not across machines: the same baseline scores 36.6 on the cluster and 38.7 on the laptop. Effects of an add-on (EMA, rejection) are therefore always measured on the same runs.

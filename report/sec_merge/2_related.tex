@@ -1,0 +1,12 @@
+\section{Related Work}
+\paragraph{Data}
+Instance selection removes the least typical training images, scored by a density model in the feature space of a pretrained network, so that a GAN of limited capacity spends it on dense regions; on ImageNet it improves the FID of conditional generators \cite{devries2020}. Instance noise adds Gaussian noise to both real and generated inputs of $D$ so that the two distributions overlap and $D$ cannot win too early \cite{sonderby2017,arjovsky2017}.
+
+\paragraph{Training}
+The relativistic loss asks $D$ whether a real image is more realistic than a generated one rather than judging each image alone \cite{jolicoeur2019}. The zero-centred R1 penalty on real images makes GAN training locally convergent \cite{mescheder2018}. R3GAN combines both, with an R2 penalty on generated images, into a modern baseline \cite{huang2024}. Averaging the generator's weights over iterations (EMA) is a cheap and widely used improvement \cite{yazici2019}.
+
+\paragraph{Inference}
+Discriminator rejection sampling (DRS) keeps each generated image with a probability derived from $D$'s score, which corrects $G$ if $D$ estimates the density ratio well \cite{azadi2019}. Optimal budgeted rejection sampling (OBRS) is the optimal acceptance rule for a fixed number of proposals per kept image \cite{verine2024}.
+
+\paragraph{Evaluation}
+The FID compares Gaussian fits of Inception features \cite{heusel2017,szegedy2016}; its sensitivity to ImageNet classes \cite{kynkaanniemi2023} and to missing modes \cite{lucic2018} has been questioned, and domain-specific feature extractors are sometimes used on MNIST \cite{binkowski2018}. Precision and recall measure quality and coverage with $k$-nearest-neighbour manifolds \cite{kynkaanniemi2019}.

@@ -1,0 +1,21 @@
+\section{Methods}
+\label{sec:method}
+\paragraph{Instance selection}
+For each digit, we fit a Gaussian to the classifier features of its training images and keep the 95, 90, 75 or 50\% of images with the highest log-likelihood, following \cite{devries2020}. The GAN only sees this subset; evaluation is still made against all test images.
+
+\paragraph{Instance noise}
+Every input of $D$, real or generated, receives Gaussian noise of standard deviation $\sigma_t$, annealed linearly from $\sigma_0$ to 0 over the first 100 epochs \cite{sonderby2017}; we test $\sigma_0\in\{0.1,0.3\}$. $G$ and the saved images are not noised.
+
+\paragraph{Relativistic loss with R1 (RpGAN + R1)}
+With $f$ the score of $D$, $x$ a real image, $\tilde x=G(z)$ and $\mathrm{sp}(t)=\log(1+e^t)$:
+\begin{align*}
+L_D &= \mathbb{E}\big[\mathrm{sp}\big(f(\tilde x)-f(x)\big)\big] + \tfrac{\gamma}{2}\,\mathbb{E}\big[\|\nabla_x f(x)\|^2\big],\\
+L_G &= \mathbb{E}\big[\mathrm{sp}\big(f(x)-f(\tilde x)\big)\big].
+\end{align*}
+This is R3GAN \cite{huang2024} without the R2 term, which gave no measurable gain in our preliminary runs. A sweep over $\gamma\in\{0.1,1,10\}$ with three seeds each (100 epochs) gave: all runs diverge at 0.1, $\gamma=1$ is best, $\gamma=10$ learns more slowly. We keep $\gamma=1$; the penalty adds about 5\% to the training time.
+
+\paragraph{Exponential moving average (EMA)}
+After each update, $G_\mathrm{EMA}\leftarrow 0.999\,G_\mathrm{EMA}+0.001\,G$, i.e.\ an average over roughly the last two epochs \cite{yazici2019}. $G_\mathrm{EMA}$ is used for evaluation and saved as the delivered generator; the raw $G$ is saved too, so both can be compared on the same run.
+
+\paragraph{Rejection sampling}
+DRS \cite{azadi2019} keeps a proposal with probability $\sigma(\hat F)$, where $\hat F = f - f_M - \log(1-e^{f-f_M-\epsilon}) - \gamma'$, $f_M$ is the highest score seen and $\gamma'$ is set per batch to the 80th percentile of $\hat F$ ($\epsilon=10^{-6}$). OBRS \cite{verine2024} uses a budget of $K=3$ proposals per kept image. Both need a score close to $\log p_\mathrm{data}/p_G$. \emph{Recalibration}, as in \cite{azadi2019}, keeps $D$'s hidden layers and refits its last layer as a logistic regression on 10,000 real validation images against 10,000 generated ones; the recalibrated $D$ has the same architecture as the original one.

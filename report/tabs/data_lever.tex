@@ -1,0 +1,27 @@
+% Sources: data/nico_data_test.csv (selection, data protocol, runs with classifier recall >= 0.01),
+% data/juliet2_test.csv (baseline loss + EMA +- noise 0.3), data/comparison_local.csv (RpGAN + R1 + EMA +- noise 0.3).
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Data lever: \finc{} (mean $\pm$ s.d.\ over non-collapsed runs), precision and recall. Collapsed runs are counted separately.}
+\label{tab:data}
+\begin{tabular}{lcccc}
+\toprule
+Variant & Collapsed & \finc{} & Prec. & Rec.\\
+\midrule
+\multicolumn{5}{l}{\emph{Instance selection (data protocol, no EMA)}}\\
+All images (reference) & 3/8 & $35.4\pm0.9$ & 0.51 & 0.52\\
+Keep 95\% & 2/5 & $38.2\pm2.7$ & 0.49 & 0.48\\
+Keep 90\% & 2/5 & $35.8\pm3.3$ & 0.53 & 0.49\\
+Keep 75\% & 0/3 & $40.8\pm3.9$ & 0.54 & 0.40\\
+Keep 50\% & 4/8 & $47.8\pm2.9$ & \textbf{0.56} & 0.32\\
+\midrule
+\multicolumn{5}{l}{\emph{Instance noise $\sigma_0=0.3$ (common protocol, EMA)}}\\
+Baseline loss & 0/3 & $30.0\pm0.2$ & 0.56 & 0.54\\
+\quad + noise & 2/5 & $30.1\pm1.3$ & 0.56 & 0.54\\
+RpGAN + R1 & 0/3 & $22.1\pm1.3$ & 0.59 & 0.59\\
+\quad + noise & 0/3 & $21.4\pm0.6$ & \textbf{0.60} & \textbf{0.61}\\
+\bottomrule
+\end{tabular}
+\end{table}

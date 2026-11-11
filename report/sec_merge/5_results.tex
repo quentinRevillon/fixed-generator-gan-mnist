@@ -1,0 +1,63 @@
+\section{Results}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figs/combination_samples.pdf}
+  \caption{Samples from the same 36 latent vectors $z$. (a) Baseline: readable digits, but many ``1''s and ``7''s and few ``2''s. (b) RpGAN + R1, raw generator: all digits appear. (c) Same run, averaged generator: cleaner strokes (submitted generator). (d) A collapsed baseline run.}
+  \Description{Four grids of 6 by 6 generated digits. The baseline grid contains many ones and sevens; the RpGAN grids contain all ten digits, with smoother strokes for the averaged generator; the collapsed run outputs identical noise patterns.}
+  \label{fig:samples}
+\end{figure*}
+
+\subsection{Which score should we trust?}
+\label{sec:fid}
+Changing the loss divides \fcnn{} by nine but leaves \finc{} unchanged (Table~\ref{tab:results}), so the two scores must see different defects. To find out which, we degraded \emph{real} test images in controlled ways (Figure~\ref{fig:fid}). \fcnn{} reacts to the balance between digits: removing one digit raises it from 2.7 to 40, and giving real images the baseline's digit proportions raises it to 124, close to the baseline's 162. \finc{} barely moves (2.4 and 7.4, for a baseline at 40). Conversely, noise on a quarter of the images is enough for \finc{} to reach the baseline's score (41) while \fcnn{} stays at 18. Digit identity explains 67\% of the variance of the classifier's features against 26\% for Inception's, in line with \cite{kynkaanniemi2023}. A direct check confirms it: resampling the baseline's images so that every digit is equally frequent lowers \fcnn{} from 162 to 32 but \emph{raises} \finc{} from 39.9 to 46.2, because the added rare digits are badly drawn.
+
+We therefore rank models with \finc{}, which is also the platform's score and varies less between seeds (3--6\% of its value against 11--25\% for \fcnn{}), and keep \fcnn{} with the histogram of predicted digits as a diagnostic of digit balance. To see the quality of each digit, we also compute a per-digit \finc{}: our classifier sorts the generated images by digit, and 1,000 images of each digit are compared with real images of the same digit.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.82\columnwidth]{figs/fid_sensitivity.pdf}
+  \caption{Both FIDs on deliberately damaged \emph{real} test images (10,000 images). Dashed lines: scores of the baseline GAN. Undamaged real images score 1.5 (\finc{}) and 2.7 (\fcnn{}).}
+  \Description{Two horizontal bar charts. Missing digits and the baseline's digit balance give large FID-CNN values but small Inception FID values; pixel noise on a quarter of the images gives an Inception FID of 41, as high as the baseline, but a small FID-CNN.}
+  \label{fig:fid}
+\end{figure}
+
+\subsection{Data lever}
+\label{sec:data}
+\input{tabs/data_lever}
+\paragraph{Instance selection}
+No selection rate beats the reference (Table~\ref{tab:data}): keeping 90\% ties (35.8 against 35.4) and keeping 50\% is clearly worse (47.8). Precision rises from 0.51 to 0.56 but recall falls from 0.52 to 0.32: the generator draws fewer odd digits, but also fewer kinds of digits. At 50\% it no longer draws any ``0'', which is 10\% of the data. The same trade-off appears with VGG and with classifier features, so it is not an artefact of selecting and evaluating with the same classifier.
+
+\paragraph{Instance noise}
+Noise does not change \finc{} with either loss ($p=0.91$ and $p=0.46$). Nor does it prevent collapses: with the baseline loss, 2 of 5 noised runs collapsed on the common protocol, and a paired rerun of 8 seeds on the data protocol gave 1 collapse out of 8 with noise against 3 out of 8 without ($p=0.57$). In 17 of the 19 collapsed runs we inspected, $D$ gives generated images a probability below $10^{-12}$ of being real; the binary cross-entropy of the provided code then clips, $G$'s gradient vanishes and $G$ stops learning. Noise spread over all pixels does not remove the few directions that separate real from generated images, so it cannot prevent this.
+
+\subsection{Training lever}
+\label{sec:training}
+\input{tabs/loss_ema}
+Table~\ref{tab:loss-ema} isolates the two ingredients. The new loss alone does not change \finc{} (37.7 against 36.6--38.7 for the baseline, depending on the machine). The EMA alone improves the baseline from 36.6 to 30.0. Together, they reach 22.1: the EMA gains more than twice as much with the relativistic loss as with the original one ($-15.6$ against $-6.7$, $p=0.002$), and the loss improves \finc{} by 8 points once the generator is averaged ($p=0.007$).
+
+Figure~\ref{fig:perdigit} shows what each ingredient does. The relativistic loss \emph{rebalances the digits}: the baseline draws a ``1'' in a quarter of its images and a ``2'' in fewer than 2\%, whereas RpGAN + R1 draws each digit 8--12\% of the time. It also draws hard digits better, at fixed digit: the mean per-digit \finc{} drops from 63.6 to 55.4 ($p=0.005$), and that of ``2'' from 113 to 80. The global \finc{} hides these gains because the baseline's worst digits are also its rarest, so they weigh little in its score. No RpGAN + R1 run collapsed. The EMA then \emph{cleans the strokes of every digit} (mean per-digit \finc{} 37.3, Figure~\ref{fig:samples}c), which the global score does see.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.86\columnwidth]{figs/training_perdigit.pdf}
+  \caption{(a) Per-digit \finc{} (generated images of one digit against real images of the same digit; real data: 6.5--10.4). (b) Share of each digit among 10,000 samples; the dotted line is the balance of real data.}
+  \Description{Top: per-digit FID; the baseline peaks at 113 on digit 2, the new loss lowers most digits and the averaged generator is lowest everywhere. Bottom: the baseline and baseline with EMA draw 25 percent ones and under 2 percent twos; the new loss is close to 10 percent for every digit.}
+  \label{fig:perdigit}
+\end{figure}
+
+\input{tabs/main_results}
+\subsection{Inference lever}
+\label{sec:inference}
+\input{tabs/rejection}
+On the baseline, filtering works with $D$ as trained: DRS improves \finc{} from 38.7 to 34.3 and OBRS to 33.8 (Table~\ref{tab:rejection}); on the averaged baseline, DRS goes from 30.0 to 24.8. On the final model, it does nothing to \finc{} (22.0 to 22.1) and worsens \fcnn{} on every seed (9.9 to 14.4). The reason is that this $D$ can barely tell real from generated images: its AUC is 0.57, against 0.75 for the baseline's. A filter based on such a score keeps images almost at random (42\% instead of the intended 30\%), and the slight preferences it has shift the digit balance, which only \fcnn{} sees. Part of this comes from $D$ never having seen the averaged generator, but DRS also fails on the raw generator (37.7 to 38.0), so it is not the whole story.
+
+Recalibrating $D$'s last layer raises its AUC to 0.77, and both filters then help on every seed: DRS reaches 20.2 and OBRS 19.7 ($p=0.02$, paired over seeds), with a higher precision (0.62) and the same recall. On the baseline, recalibration rebalances the digits (\fcnn{} 145 to 83) but loses to plain OBRS in \finc{}, for the reason of Section~\ref{sec:fid}: it replaces well-drawn ``1''s with badly drawn rare digits. The cost is about three proposals per kept image, i.e.\ 0.16\,s instead of 0.02\,s for 10,000 images on a GPU, plus one logistic regression fitted before generation.
+
+\subsection{Combining the levers}
+\label{sec:combination}
+Table~\ref{tab:results} gathers all configurations. The gains do not add up: each lever's effect depends on the model it is applied to. The relativistic loss is worth 8 points only with EMA; DRS with $D$ as trained helps the baseline, with or without EMA, but not the final model; instance noise adds $-0.7$ on the final model, well below what three seeds can detect. Recalibrated OBRS is the only add-on that improves the final model.
+
+
+\paragraph{Submitted model}
+The generator is RpGAN + R1 ($\gamma=1$) with EMA, from the seed with the best validation score; images are drawn with OBRS ($K=3$) and the recalibrated $D$, which ships in place of the original one. With the platform's evaluator on the MNIST test set, the filter takes this generator from 21.2 to \textbf{19.4}, with precision 0.61 and recall 0.60 (baseline: 38.7, 0.47, 0.51). The platform scored the same generator without filter at 21.6, close to our 21.2.

@@ -1,6 +1,6 @@
 """Compile le rapport (pdflatex deux fois) et affiche pages, erreurs, débordements et références indéfinies.
 
-Usage, depuis rapport/report/ :
+Usage, depuis report_v1/ :
     python tools/build.py            # report.tex -> report.pdf
     python tools/build.py fid        # une seule partie : build/fid/part.pdf (préambule + sections/fid.tex)
 """

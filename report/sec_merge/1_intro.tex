@@ -1,0 +1,11 @@
+\section{Introduction}
+A generative adversarial network trains a generator $G$, which maps a random vector $z$ to an image, against a discriminator $D$, which learns to tell real images from generated ones \cite{goodfellow2014}. In this assignment the architecture of $G$ is imposed: a four-layer fully connected network from 100 inputs to 784 pixels. Recent GAN recipes owe much of their progress to larger and convolutional generators \cite{huang2024}; here that option is closed. We therefore ask which of the three remaining levers improves a small, fixed generator: what it sees (\emph{data}), how it is trained (\emph{training}), and how images are drawn once it is trained (\emph{inference}).
+
+Each lever was studied by one member of the group on a separate branch, then all were brought onto one protocol so that their effects can be compared and combined. GAN results vary strongly between seeds, so every variant is trained with three seeds and compared with $t$-tests; with three seeds, only differences of about 3.6 FID points are reliably detectable.
+
+\paragraph{Contributions}
+(1) A study of which score to trust: a FID on a digit classifier mostly measures digit balance, while the Inception FID measures stroke quality (Section~\ref{sec:fid}).
+(2) Two data levers, instance selection and instance noise, and why neither transfers to MNIST (Section~\ref{sec:data}).
+(3) A loss $\times$ EMA ablation showing that a relativistic loss with R1 and weight averaging only pay off together (Section~\ref{sec:training}).
+(4) An analysis of why discriminator rejection sampling fails on a well-trained GAN and how recalibrating $D$ fixes it (Section~\ref{sec:inference}).
+(5) The combined pipeline and the submitted model (Section~\ref{sec:combination}).

@@ -1,0 +1,20 @@
+% Sources: data/juliet2_test.csv (baseline loss, raw G and G_EMA of the same runs, A100),
+% data/comparison_local.csv + data/juliet2_test.csv (RpGAN + R1: G_EMA and raw G of the same runs, M3),
+% data/ema_summary.csv. p-values: paired t-tests over the 3 seeds (EMA rows), Welch test (loss row).
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\caption{Loss $\times$ EMA, \finc{} on the common protocol (3 seeds). Each EMA effect compares the raw and averaged generators of the same runs.}
+\label{tab:loss-ema}
+\begin{tabular}{lcc}
+\toprule
+ & Baseline loss & RpGAN + R1\\
+\midrule
+Raw generator & $36.6\pm1.3$ & $37.7\pm1.0$\\
+Averaged generator (EMA) & $30.0\pm0.2$ & $\mathbf{22.1\pm1.3}$\\
+\midrule
+Effect of the EMA & $-6.7$ ($p=0.01$) & $-15.6$ ($p<0.001$)\\
+\bottomrule
+\end{tabular}
+\end{table}

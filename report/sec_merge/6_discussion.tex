@@ -1,0 +1,10 @@
+\section{Discussion}
+\label{sec:discussion}
+\paragraph{Why the data levers do not transfer}
+Instance selection was designed for conditional generators of limited capacity trained on large, noisy datasets \cite{devries2020}. Our generator is unconditional, so nothing forces it to keep every digit once the data become less varied; MNIST is already clean, so its atypical images are legitimate handwriting styles rather than errors; and capacity is not our bottleneck, since the same generator reaches 22.1 with a better training. Instance noise targets disjoint supports \cite{arjovsky2017}, but our collapses come from a numerical saturation of the loss, which the relativistic loss removes and noise does not.
+
+\paragraph{Why the loss needs the EMA}
+A plausible explanation, which we did not test directly, is that RpGAN + R1 brings $G$ and $D$ close to an equilibrium around which $G$ oscillates (the AUC of 0.57 shows that $D$ is nearly confused), and averaging oscillations lands near their centre. With the original loss, $G$ \emph{drifts}: its \fcnn{} on validation data is best around epoch 106, after which the share of ``1''s keeps growing, and averaging over two epochs cannot undo a drift. The same equilibrium explains the inference result: the better the GAN, the less its $D$ can serve as a density-ratio estimator, unless it is recalibrated on the final generator.
+
+\paragraph{Limitations}
+Three seeds only detect differences of about 3.6 points, so the small effects (noise, $-0.7$) remain open. The loss runs were trained on an Apple M3 and the baseline-with-EMA runs on an A100; the 2-point gap between machines does not affect the effects measured on the same runs, but it does affect the loss-with-EMA comparison. The submitted seed was chosen on validation data and the recalibration was fitted on validation images, but the configurations of Table~\ref{tab:results} were compared on the test set. Finally, we did not separate the relativistic term from the R1 penalty, nor compare selection with a random 50\% subset.
