@@ -1,7 +1,7 @@
 % Report in the ACM sigconf format (same layout as the DataLab 1 report).
 % `nonacm` removes the ACM copyright block, conference footer and reference format line.
 % `balance=false` fills the left column of the last page before the right one.
-% Page budget (A2 instructions): at most 5 pages of content; the supplementary material follows.
+% Page budget (A2 instructions): one group cover page + at most 5 pages of content; the supplementary material follows.
 \documentclass[sigconf,nonacm,balance=false]{acmart}
 
 \usepackage{booktabs}
@@ -18,6 +18,24 @@
 \settopmatter{printacmref=false, printfolios=true}
 
 \begin{document}
+
+% ---------------------------------------------------------------- Group cover page (not counted in the 5 pages)
+\begin{titlepage}
+\centering
+\vspace*{4.5cm}
+{\LARGE\bfseries Data, Training and Inference Levers\\[4pt] for a Fixed-Architecture GAN on MNIST\par}
+\vspace{1.4cm}
+{\Large Group 3\par}
+\vspace{0.5cm}
+{\large Nicod\`eme Gorge \qquad No\'e Mosca \qquad Quentin Revillon\par}
+\vspace{1.4cm}
+{DataLab --- Assignment 2: generating MNIST with a limited-capacity generator\par}
+\vspace{0.2cm}
+{PSL University, Master IASD --- November 2026\par}
+\vfill
+{\small Code: \texttt{github.com/Master-IASD/masteriasd-datalab-project-a2-group-3}\par}
+\end{titlepage}
+\setcounter{page}{1}
 
 \title{Data, Training and Inference Levers for a Fixed-Architecture GAN}
 \subtitle{What helps a small MNIST generator, and why}

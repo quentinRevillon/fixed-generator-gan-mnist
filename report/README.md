@@ -12,6 +12,6 @@ The report uses the ACM `sigconf` format (`acmart` class, shipped with TeX Live 
 - `regenerate_figures.py`: copies the figures and CSVs from the repository (after `git fetch`) and recomputes every mean, standard deviation, collapse count and p-value quoted in the report. Run `python3 report/regenerate_figures.py`; p-values need `scipy`.
 - `references.bib`: bibliography database (`ACM-Reference-Format` style).
 
-Current length: five pages, references and AI use statement included (A2 limit: five pages of content), followed by 12 pages of supplementary material (mathematical details, training dynamics, generated examples, full per-seed tables, reproducibility).
+Current length: a group cover page (not counted), then five pages, references and AI use statement included (A2 limit: five pages of content), followed by 12 pages of supplementary material (mathematical details, training dynamics, generated examples, full per-seed tables, reproducibility).
 
 The earlier version of the report (cover page + five pages, by Quentin) is kept in `../report_v1.pdf`, sources in `../report_v1/`.
