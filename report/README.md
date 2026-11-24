@@ -1,6 +1,6 @@
 # Report sources
 
-`../report.pdf` is built from this directory (upload it as an Overleaf project, or run `latexmk -pdf main.tex`). Compile `main.tex` with pdfLaTeX and BibTeX.
+`../docs/report.pdf` is built from this directory (upload it as an Overleaf project, or run `latexmk -pdf main.tex`). Compile `main.tex` with pdfLaTeX and BibTeX.
 The report uses the ACM `sigconf` format (`acmart` class, shipped with TeX Live and Overleaf) with the `nonacm` option.
 
 - `main.tex`: title, authors, keywords and section assembly; the supplementary material follows the AI use statement, in one column.
@@ -13,5 +13,3 @@ The report uses the ACM `sigconf` format (`acmart` class, shipped with TeX Live 
 - `references.bib`: bibliography database (`ACM-Reference-Format` style).
 
 Current length: a group cover page (not counted), then five pages, references and AI use statement included (A2 limit: five pages of content), followed by 12 pages of supplementary material (mathematical details, training dynamics, generated examples, full per-seed tables, reproducibility).
-
-The earlier version of the report (cover page + five pages, by Quentin) is kept in `../report_v1.pdf`, sources in `../report_v1/`.

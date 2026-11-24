@@ -37,7 +37,7 @@ runs/**
 *.ckpt
 !checkpoints/*.pth
 
-# LaTeX build files (rendered PDFs are report.pdf and slides.pdf at the root)
+# LaTeX build files (rendered PDFs are docs/report.pdf and docs/slides.pdf)
 *.aux
 *.log
 !logs/*.log

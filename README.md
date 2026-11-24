@@ -19,7 +19,7 @@ Mean ± s.d. over 3 seeds, 10,000 images against the MNIST test set. FID<sub>Inc
 | RpGAN + R1 + EMA + OBRS, recalibrated D | 19.7 ± 0.8 | 0.62 | 0.59 | 33% |
 | Submitted (seed 1) | 19.4 | 0.61 | 0.60 | 33% |
 
-Baseline + EMA was trained on an A100, where the same baseline scores 36.6. The data levers did not beat their reference. Details in [`report.pdf`](report.pdf).
+Baseline + EMA was trained on an A100, where the same baseline scores 36.6. The data levers did not beat their reference. Details in the [report](docs/report.pdf) and [slides](docs/slides.pdf).
 
 ## Quick start
 
@@ -48,16 +48,17 @@ python train.py --config configs/compare_local/rpgan_r1_ema.yaml --seed 1
 ```
 configs/      one YAML per experiment
 checkpoints/  submitted G, recalibrated D, sampling config
-docs/         per-lever write-ups (French)
-report/       report sources (report.pdf at the root)
+docs/         report.pdf, slides.pdf, per-lever write-ups (French)
+report/       report LaTeX sources
+slides/       slides LaTeX sources
 scripts/      Slurm launchers, D recalibration
 ```
 
 ## References
 
-1. Y. Huang et al. The GAN is dead; long live the GAN! A modern GAN baseline. NeurIPS, 2024.
-2. Y. Yazıcı et al. The unusual effectiveness of averaging in GAN training. ICLR, 2019.
-3. A. Verine et al. Optimal budgeted rejection sampling for generative models. AISTATS, 2024.
+1. Y. Huang et al. [The GAN is dead; long live the GAN! A modern GAN baseline](https://arxiv.org/abs/2501.05441). NeurIPS, 2024.
+2. Y. Yazıcı et al. [The unusual effectiveness of averaging in GAN training](https://arxiv.org/abs/1806.04498). ICLR, 2019.
+3. A. Verine et al. [Optimal budgeted rejection sampling for generative models](https://arxiv.org/abs/2311.00460). AISTATS, 2024.
 
 ## Team
 
