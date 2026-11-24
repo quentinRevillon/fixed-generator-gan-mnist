@@ -1,5 +1,5 @@
 # Méthode d'inférence du modèle rendu (lue par generate.py) : rejet OBRS à budget K = 3 avec le D recalibré
-# (checkpoints/D.pth, produit par scripts/recalibrate_d.py). Voir README, section « Modèle rendu ».
+# (checkpoints/D.pth, produit par scripts/recalibrate_d.py). Voir README, section Quick start.
 # Exemples : {method: plain} | {method: obrs, K: 10} | {method: truncation, psi: 1.0}
 method: obrs
 K: 3
