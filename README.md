@@ -4,11 +4,11 @@ How far a small, imposed MNIST GAN generator can be pushed without changing its 
 
 <img height="250" src="figures/teaser.png" />
 
-*Same 36 latent vectors: (a) provided baseline, (b) relativistic loss with R1, (c) same run with an averaged generator (submitted), (d) a collapsed baseline run.*
+*Same latent vectors: (a) baseline, (b) RpGAN + R1, (c) same run with EMA (submitted), (d) a collapsed baseline run.*
 
 ## Results
 
-Mean ± s.d. over 3 seeds, 10,000 images scored against the MNIST test set. FID<sub>Inc</sub> is the Inception FID of the course platform. Precision and recall use VGG-16 features.
+Mean ± s.d. over 3 seeds, 10,000 images against the MNIST test set. FID<sub>Inc</sub>: Inception FID of the course platform.
 
 | Configuration | FID<sub>Inc</sub> | Precision | Recall | Images kept |
 |---|---:|---:|---:|---:|
@@ -19,13 +19,13 @@ Mean ± s.d. over 3 seeds, 10,000 images scored against the MNIST test set. FID<
 | RpGAN + R1 + EMA + OBRS, recalibrated D | 19.7 ± 0.8 | 0.62 | 0.59 | 33% |
 | Submitted (seed 1) | 19.4 | 0.61 | 0.60 | 33% |
 
-Baseline + EMA was trained on an A100, where the same baseline scores 36.6. The data levers did not beat their reference. Full tables are in [`report.pdf`](report.pdf).
+Baseline + EMA was trained on an A100, where the same baseline scores 36.6. The data levers did not beat their reference. Details in [`report.pdf`](report.pdf).
 
 ## Quick start
 
 ```bash
 pip install -r requirements.txt
-python generate.py --batch_size 256                                  # 10,000 images in samples/
+python generate.py --batch_size 256
 python evaluate.py --samples samples --metric prof --reference test
 ```
 
@@ -37,11 +37,11 @@ python train.py --config configs/compare_local/rpgan_r1_ema.yaml --seed 1
 
 ## Method
 
-- The generator (100 → 256 → 512 → 1024 → 784, fully connected) stays unchanged.
-- Training: relativistic loss with an R1 penalty (RpGAN + R1, γ = 1) and an EMA of the generator weights (decay 0.999).
-- Sampling: discriminator rejection sampling (DRS) and optimal budgeted rejection sampling (OBRS, K = 3). The last layer of D is refit on validation data before sampling.
+- The fully connected generator stays unchanged.
+- Training: relativistic loss with an R1 penalty (RpGAN + R1, γ = 1) and an EMA of the generator (decay 0.999).
+- Sampling: discriminator rejection sampling (DRS) and optimal budgeted rejection sampling (OBRS, K = 3). D's last layer is refit before sampling.
 - Data: instance selection of the most typical images, or annealed instance noise on the inputs of D.
-- Protocol: one frozen 50,000 / 10,000 / 10,000 split, 200 epochs, last checkpoint.
+- Protocol: one frozen 50k/10k/10k split, 200 epochs, last checkpoint.
 
 ## Structure
 
@@ -51,7 +51,6 @@ checkpoints/  submitted G, recalibrated D, sampling config
 docs/         per-lever write-ups (French)
 report/       report sources (report.pdf at the root)
 scripts/      Slurm launchers, D recalibration
-tests/        unit tests
 ```
 
 ## References
