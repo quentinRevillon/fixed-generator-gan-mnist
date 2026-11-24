@@ -25,6 +25,7 @@ against 38.7 for the provided baseline.
 
 Common protocol, mean ± s.d. over 3 seeds, 10,000 images against the MNIST test set. FID<sub>Inc</sub>:
 Inception FID used by the course platform (lower is better). Precision and recall use VGG-16 features (k = 5).
+Baseline + EMA runs were trained on an NVIDIA A100, where the same baseline scores 36.6; all other rows on an Apple M3.
 
 | Configuration | FID<sub>Inc</sub> | Precision | Recall | Images kept |
 |---|---:|---:|---:|---:|
@@ -43,9 +44,9 @@ Inception FID used by the course platform (lower is better). Precision and recal
 - DRS helps the baseline but not the final model, whose discriminator barely separates real from generated
   images (AUC 0.57). Refitting its last layer raises the AUC to 0.77 and brings the gain back.
 - Neither data lever beats its reference: keeping the 50% most typical images raises FID<sub>Inc</sub> from
-  35.4 to 47.8 and drops recall from 0.52 to 0.32.
+  35.4 to 47.8 and drops recall from 0.52 to 0.32 (earlier data-lever protocol, report Table 1).
 
-All numbers come from [`report.pdf`](report.pdf) (Tables 1–4); the CSVs behind them are in
+All numbers come from [`report.pdf`](report.pdf) (Tables 1–4, Sections 5.2–5.5); the CSVs behind them are in
 [`report/data/`](report/data/).
 
 ## Installation
@@ -64,7 +65,7 @@ The submitted model (`checkpoints/G.pth`, recalibrated `checkpoints/D.pth`, `che
 in the repository. Generate the 10,000 images and score them against the MNIST test set:
 
 ```bash
-python generate.py --batch_size 256                                  # 10,000 PNG in samples/ (about 3 s on CPU)
+python generate.py --batch_size 256                                  # 10,000 PNG in samples/ (a few seconds on CPU)
 python evaluate.py --samples samples --metric prof --reference test  # Inception FID, VGG precision / recall
 ```
 
@@ -97,6 +98,8 @@ python generate.py --batch_size 256
 - `checkpoints/`: submitted model and the MNIST classifier used by the classifier-based FID.
 - `configs/`: one YAML per experiment (`compare_local/`: common protocol; `data/`, `sweep/`, `sampling/`).
 - `runs/`, `logs/`, `results/`: configs, metrics, sample grids and logs of the runs (weights are not versioned).
+- `results.csv`: classifier-based results of the training-lever campaign, read by the figure scripts.
+- `figures/`: figure scripts and the figures used in the write-ups.
 - `scripts/`: Slurm launchers for Juliet, D recalibration, FID audits.
 - `docs/`: detailed write-ups per lever, in French (`baseline.md`, `data.md`, `training.md`, `inference.md`,
   `design-choices.md`).
@@ -114,8 +117,8 @@ Branches `nico/preprocessing`, `noe/training`, `quentin/baseline`, `quentin/infe
   more slowly. No RpGAN + R1 run collapsed.
 - **EMA of the generator** (decay 0.999), used for evaluation and saved as `G.pth`.
 - **Rejection sampling**: DRS keeps a proposal with a probability derived from D's score (80th percentile);
-  OBRS keeps the best proposals for a budget of K = 3 proposals per kept image. Recalibration refits D's last
-  layer as a logistic regression on 10,000 real validation images against 10,000 generated ones.
+  OBRS applies the optimal acceptance rule for a budget of K = 3 proposals per kept image. Recalibration
+  refits D's last layer as a logistic regression on 10,000 real validation images against 10,000 generated ones.
 - **Data lever**: keep the 95, 90, 75 or 50% most typical training images per digit (Gaussian fit on classifier
   features), or add Gaussian noise (σ<sub>0</sub> = 0.3, annealed to 0) to every input of D.
 
@@ -135,3 +138,5 @@ Full details, ablations and limitations: [`report.pdf`](report.pdf).
 
 Group 3, Master IASD (PSL University): Nicodème Gorge (data lever), Noé Mosca (training lever),
 Quentin Revillon (baseline protocol, inference lever). Computations on the MesoNet Juliet cluster.
+Developed in the course repository `Master-IASD/masteriasd-datalab-project-a2-group-3`; this copy keeps its
+full history and branches.
