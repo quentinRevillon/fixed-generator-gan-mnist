@@ -1,61 +1,64 @@
 # Python
 __pycache__/
 *.py[cod]
-
-# Environnements virtuels
-a2-env/
-venv/
-.venv/
-
-# Données téléchargées (MNIST)
-data/
-
-# Sorties générées
-samples/
-outputs/
-
-# macOS
-.DS_Store
-
-# Tests
+*.egg-info/
 .pytest_cache/
 
-# Grilles produites par evaluate.py hors des runs
+# Virtual environments
+.venv/
+venv/
+a2-env/
+.env
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Data (MNIST is downloaded to data/)
+/data/
+
+# Generated outputs
+samples/
+outputs/
 grid*.png
 figures/samples_*.png
 
-# Runs : on versionne le dossier léger (config, métriques, poids last/best de G et D, grille) pour que
-# chacun puisse rejouer et évaluer le run ; ckpt/ (34 Mo), TensorBoard et essais Optuna restent locaux.
+# Runs: only the light files are versioned (config, metrics, sample grid).
+# Weights stay local; the submitted model is in checkpoints/.
 runs/**
 !runs/**/
 !runs/**/config.yaml
 !runs/**/metrics.jsonl
 !runs/**/keep_training.jsonl
-!runs/**/G.pth
-!runs/**/D.pth
-!runs/**/G_best.pth
-!runs/**/D_best.pth
-!runs/**/G_raw.pth
-!runs/**/G_best_raw.pth
 !runs/**/grid.png
-runs/**/ckpt/**
-runs/**/trial_*/**
 
-# Compilation LaTeX (slides/) : seuls les .tex sont versionnés
-slides/*.aux
-slides/*.log
-slides/*.nav
-slides/*.out
-slides/*.snm
-slides/*.toc
+# Weights: only the submitted model in checkpoints/ is versioned
+*.pt
+*.pth
+*.ckpt
+!checkpoints/*.pth
+
+# LaTeX build files (rendered PDFs are report.pdf and slides.pdf at the root)
+*.aux
+*.log
+!logs/*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
 slides/*.pdf
-
-# Rapport : artefacts LaTeX (le PDF rendu est report.pdf à la racine)
-report/*.aux
-report/*.log
-report/*.out
 report/report.pdf
 report/build/
 
-# Le rapport versionne ses CSV de résultats (report/data/)
+# Result CSVs of the report are versioned
 !report/data/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
