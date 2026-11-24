@@ -242,13 +242,13 @@ FID, precision et recall ne comparent pas des pixels mais des **représentations
 | FID et P/R sur petit CNN | la plateforme utilise Inception et VGG | résolu : les deux mesures existent (§8) |
 | k = 3 | Kynkäänniemi 2019 recommande k = 3, la plateforme utilise k = 5 | k = 3 pour le CNN, k = 5 pour `--metric prof` |
 | Référence `val` / `test` | Heusel calcule les statistiques réelles sur *« all images from the training dataset »* ; la référence de la plateforme est inconnue | à demander au prof |
-| D utilisé sans recalibration | Azadi 2019 continue l'entraînement de D *« using early stopping on the validation set »* ; Turner 2019 recalibre sur *« a held out calibration set (e.g., 10% »* | KeepTraining implémenté et mesuré : voir `inference-drs.md` |
+| D utilisé sans recalibration | Azadi 2019 continue l'entraînement de D *« using early stopping on the validation set »* ; Turner 2019 recalibre sur *« a held out calibration set (e.g., 10% »* | KeepTraining implémenté et mesuré : voir `inference.md` |
 | Comparaisons de FID à 10 000 images | Chong 2020 : le biais dépend du générateur | limite assumée |
 | `MedianPruner` | Akiba 2019 : ASHA fait mieux | à changer si on garde Optuna |
 
 ## 12. Volet Inférence (`sampling.py`)
 
-Détails et résultats : `inference-drs.md`, sur la branche `quentin/inference`.
+Détails et résultats : `inference.md`, sur la branche `quentin/inference`.
 
 **Consigne.** [Cours] Slide 82 : *« Keep the trained generator. Report acceptance rates, total generation time and the full evaluation batch »*. Aucune méthode ne réentraîne G.
 

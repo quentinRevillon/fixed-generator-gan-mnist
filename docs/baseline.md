@@ -8,7 +8,7 @@
 - **Modèle retenu :** l'époque 200 (`runs/baseline_200ep_prof/G_best.pth` et `D_best.pth`), car on décide sur la même mesure que le classement.
 - **Son défaut :** 25 % de « 1 » et seulement 2 % de « 2 ».
 
-*FID, précision et rappel sont définis dans le lexique de `inference-drs.md`, sur la branche `quentin/inference`.*
+*FID, précision et rappel sont définis dans le lexique de `inference.md`, sur la branche `quentin/inference`.*
 
 ## 1. Les expériences
 
@@ -25,7 +25,7 @@
 
 ## 2. Les résultats
 
-![FID, précision et rappel au cours de l'entraînement, selon les deux mesures](figures/baseline/baseline_curves.png)
+![FID, précision et rappel au cours de l'entraînement, selon les deux mesures](../figures/baseline/baseline_curves.png)
 
 *Mêmes poids dans les deux colonnes, seule la mesure change. À gauche, le FID baisse jusqu'à la fin. À droite, il remonte après l'époque 106.*
 
@@ -59,7 +59,7 @@
 
 Le petit CNN préfère l'époque 106, Inception l'époque 200. **La cause est le mélange des chiffres.**
 
-![Déséquilibre des chiffres au cours de l'entraînement](figures/baseline/baseline_imbalance.png)
+![Déséquilibre des chiffres au cours de l'entraînement](../figures/baseline/baseline_imbalance.png)
 
 *Écart : la part d'images qui devrait changer de chiffre pour atteindre 10 % par chiffre.*
 
@@ -105,11 +105,11 @@ Nicodème l'a entraîné dans le commit `23914a6` : 2 couches de convolution, un
 
 ## 4. Les images et les chiffres générés
 
-![Mêmes z aux époques 50, 120 et 200](figures/baseline/baseline_grids.png)
+![Mêmes z aux époques 50, 120 et 200](../figures/baseline/baseline_grids.png)
 
 *Les trois grilles utilisent exactement le même bruit. À l'époque 50, les images sont bruitées. Aux époques 120 et 200, les chiffres sont nets.*
 
-![Part de chaque chiffre aux époques 50, 120 et 200](figures/baseline/baseline_classes.png)
+![Part de chaque chiffre aux époques 50, 120 et 200](../figures/baseline/baseline_classes.png)
 
 | Part des images (%) | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | Écart |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -129,7 +129,7 @@ Ce choix reste à confirmer avec le groupe. Si l'équilibre des chiffres compte 
 ## 6. Limites et suite
 
 **Limites :**
-- **Un seul entraînement :** les ± ne mesurent que le hasard du tirage. Le risque est réel : Nicodème observe un effondrement du GAN sur 3 runs de référence sur 8, avec d'autres seeds et sur 60 000 images (`rapport-donnée.md`, branche `nico/preprocessing`).
+- **Un seul entraînement :** les ± ne mesurent que le hasard du tirage. Le risque est réel : Nicodème observe un effondrement du GAN sur 3 runs de référence sur 8, avec d'autres seeds et sur 60 000 images (`data.md`, branche `nico/preprocessing`).
 - **Pas de chiffre final sur test :** `val` a servi à choisir l'époque, donc les chiffres sont légèrement optimistes.
 - **Comparaison avec `checkpoints/G.pth` à nuancer :** ce modèle a probablement vu les images de `val` à l'entraînement, et ses réglages sont inconnus. Il faut demander à Nicodème comment il l'a entraîné.
 - **Pas directement comparable à Noé ni à Nicodème :** ils entraînent sur 60 000 images et mesurent avec le petit CNN contre MNIST test.

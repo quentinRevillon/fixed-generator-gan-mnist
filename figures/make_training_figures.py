@@ -1,4 +1,4 @@
-"""Figures de training-r3gan.md. Depuis la racine du repo : PYTHONPATH=. python figures/make_training_figures.py"""
+"""Figures de docs/training.md. Depuis la racine du repo : PYTHONPATH=. python figures/make_training_figures.py"""
 import csv
 import os
 import re

@@ -1,4 +1,4 @@
-"""Figures de inference-drs.md dans figures/inference/, et chiffres à reporter dans le document.
+"""Figures de docs/inference.md dans figures/inference/, et chiffres à reporter dans le document.
 
 Lit results/results.csv, results/results_prof.csv, les keep_training.jsonl et les poids de runs/baseline_200ep_prof.
 

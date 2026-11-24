@@ -2,7 +2,7 @@
 
 > **En une phrase :** avec **le même générateur**, simplement entraîné avec la perte relativiste + R1 au lieu de la perte GAN d'origine, le FID passe de **58,7 à 14,0 ± 0,9** (3 seeds, 100 époques, EMA). L'entraînement devient **stable** (aucune seed effondrée, contre 1 sur 3 pour la baseline), et les dix chiffres sont générés **dans les bonnes proportions**.
 
-![Exemples : vraies images, baseline, RpGAN + R1](figures/examples_best.png)
+![Exemples : vraies images, baseline, RpGAN + R1](../figures/examples_best.png)
 
 *Même bruit z pour les deux générateurs. Seule la façon de les entraîner change. Résultats détaillés en [section 5](#5-campagne-finale--100-époques-ema-3-seeds).*
 
@@ -35,8 +35,8 @@ Avec cette perte, ils retirent toutes les astuces habituelles et dépassent Styl
 Dans la perte R3GAN, `D(·)` désigne le **score brut** du discriminateur, avant la sigmoïde. On utilise `γ = 1`.
 
 **Dans le code :**
-- [`utils.py`](utils.py) : `D_train_rpgan`, `G_train_rpgan`, `zero_centered_gp` (calcul de R1/R2) et `D_logits`. Ce dernier lit le score de D avant sa sigmoïde, ce qui évite de modifier `model.py`.
-- [`train.py`](train.py) : lit une section `loss:` facultative dans le YAML. **Sans cette section, l'entraînement est exactement la baseline.**
+- [`utils.py`](../utils.py) : `D_train_rpgan`, `G_train_rpgan`, `zero_centered_gp` (calcul de R1/R2) et `D_logits`. Ce dernier lit le score de D avant sa sigmoïde, ce qui évite de modifier `model.py`.
+- [`train.py`](../train.py) : lit une section `loss:` facultative dans le YAML. **Sans cette section, l'entraînement est exactement la baseline.**
 - Les générateur et discriminateur de `model.py` **ne sont pas modifiés**.
 - **EMA** (option `ema: {decay: 0.999}` du YAML, section 5) : `train.py` tient une moyenne mobile des poids du générateur. C'est elle qui est évaluée et sauvegardée dans `G.pth` ; le générateur brut va dans `G_raw.pth`. Sans cette option, rien ne change.
 
@@ -67,7 +67,7 @@ On change **une seule chose à la fois** (slide 84). Tout le reste est identique
 
 Cette première série a servi à repérer les configurations qui fonctionnent. La campagne finale (section 5) prolonge l'entraînement à 100 époques, ajoute l'EMA et répète chaque configuration sur 3 seeds.
 
-![Exemples générés avec le même bruit z (50 époques)](figures/examples_same_z.png)
+![Exemples générés avec le même bruit z (50 époques)](../figures/examples_same_z.png)
 
 | Run | FID ↓ | Precision ↑ | Recall ↑ | Chiffre le plus rare / le plus fréquent |
 |---|---|---|---|---|
@@ -78,11 +78,11 @@ Cette première série a servi à repérer les configurations qui fonctionnent. 
 | R3GAN (RpGAN + R1 + R2) | 48,9 | 0,65 | 0,58 | 6,2 % / 13,0 % |
 | R3GAN + Adam (0, 0.99) | 1540 | 0,46 | 0,00 | effondrement |
 
-Tous les chiffres sont dans [`results.csv`](results.csv) et les logs complets dans [`logs/`](logs/).
+Tous les chiffres sont dans [`results.csv`](../results.csv) et les logs complets dans [`logs/`](../logs/).
 
 ### 4.1 Le gain : FID ÷ 4, recall × 2, sans perte de precision
 
-![FID et recall au cours de l'entraînement](figures/fid_recall_curves.png)
+![FID et recall au cours de l'entraînement](../figures/fid_recall_curves.png)
 
 - **R3GAN atteint dès l'époque 10 le niveau final de la baseline :** FID 170 contre 188 pour la baseline à l'époque 50.
 - **La baseline ne couvre presque rien pendant 30 époques :** son recall vaut 0 jusqu'à l'époque 30. Elle produit des images que le classifieur reconnaît (precision 0,66), mais toujours de la même famille. Avec RpGAN, le recall monte dès le début.
@@ -90,13 +90,13 @@ Tous les chiffres sont dans [`results.csv`](results.csv) et les logs complets da
 
 ### 4.2 Une meilleure couverture des dix chiffres
 
-![Répartition des chiffres générés](figures/class_distribution.png)
+![Répartition des chiffres générés](../figures/class_distribution.png)
 
 La baseline sur-produit les **1, 3 et 7** (15 à 17 %) et néglige les **0 et 6** (5 à 6 %). Avec la perte relativiste, la répartition se rapproche des 10 % attendus pour chaque chiffre. C'est l'effet décrit dans le papier : la perte relativiste limite l'oubli de modes.
 
 ### 4.3 Ce qui échoue, et pourquoi c'est instructif
 
-![Grilles des cinq runs](figures/comparison_training.png)
+![Grilles des cinq runs](../figures/comparison_training.png)
 
 - **RpGAN sans pénalité diverge dès la première époque.** Le discriminateur gagne complètement : son score brut explose et D(x) = D(G(z)) = 1,00 après la sigmoïde. Le générateur ne reçoit plus de gradient utile et sort la même image de bruit pour tous les z. **R1 est donc indispensable**, conformément à l'analyse du papier : sans régularisation, la perte relativiste n'a pas de garantie de convergence.
 - **Les betas d'Adam du papier (0, 0.99) font s'effondrer l'entraînement** sur quelques formes (« 1 », « 4 », traits). Ces réglages vont avec l'architecture et le calendrier d'entraînement du papier, pas avec notre petit réseau. On garde donc les betas de la baseline.
@@ -112,7 +112,7 @@ R1 et R2 demandent un second calcul de gradient pour le discriminateur. Sur un M
 - **EMA des poids du générateur** (decay 0,999) : on rend une moyenne mobile des poids plutôt que leur dernière valeur, ce qui lisse le bruit de l'entraînement. Elle est appliquée à **toutes** les configurations, baseline comprise, pour que la comparaison reste juste.
 - **3 seeds par configuration**, pour distinguer un vrai gain du hasard.
 
-Configs : [`configs/sweep/`](configs/sweep/) ; lancement : [`scripts/sweep_training.py`](scripts/sweep_training.py).
+Configs : [`configs/sweep/`](../configs/sweep/) ; lancement : [`scripts/sweep_training.py`](../scripts/sweep_training.py).
 
 | Configuration | FID ↓ (moyenne ± écart-type) | Precision ↑ | Recall ↑ | Seeds stables |
 |---|---|---|---|---|
@@ -123,7 +123,7 @@ Configs : [`configs/sweep/`](configs/sweep/) ; lancement : [`scripts/sweep_train
 | RpGAN + R1, γ = 10 | 17,7 ± 0,9 | 0,67 | 0,79 | 3 / 3 |
 | RpGAN + R1, γ = 0,1 | diverge | — | — | 0 / 3 (arrêtés à l'époque 27) |
 
-![FID, precision et recall par seed](figures/campaign_seeds.png)
+![FID, precision et recall par seed](../figures/campaign_seeds.png)
 
 ### 5.1 Le FID est divisé par 4, et l'entraînement devient fiable
 

@@ -31,7 +31,7 @@ Les expériences 2 à 4 sont mesurées avec Inception et VGG, contre les 10 000 
 
 G n'est jamais modifié. Le **percentile** règle la sévérité du tri : plus il est haut, plus on rejette.
 
-![Notes de D et chance d'être gardée](figures/inference/drs_score_to_chance.png)
+![Notes de D et chance d'être gardée](../figures/inference/drs_score_to_chance.png)
 
 *En haut : les notes de 10 000 images de G. En bas : la chance d'être gardée selon la note, pour chaque réglage.*
 
@@ -41,7 +41,7 @@ Le détail du calcul, dont F̂, est dans l'[annexe B](#b-le-calcul-en-détail).
 
 ## 3. Les résultats
 
-![FID, précision et rappel de toutes les configurations à l'époque 200](figures/inference/drs_all_metrics.png)
+![FID, précision et rappel de toutes les configurations à l'époque 200](../figures/inference/drs_all_metrics.png)
 
 *G de l'époque 200. Gris : sans tri. Bleu : DRS. Orange : DRS après KeepTraining. Moyennes de 3 tirages.*
 
@@ -65,13 +65,13 @@ Le détail du calcul, dont F̂, est dans l'[annexe B](#b-le-calcul-en-détail).
 
 ### Les images
 
-![Images gardées et rejetées](figures/inference/drs_kept_rejected.png)
+![Images gardées et rejetées](../figures/inference/drs_kept_rejected.png)
 
 *Mêmes propositions de G, séparées par le DRS au percentile 80. À l'œil, la différence est faible : des images rejetées sont correctes et certaines images gardées sont ratées.*
 
 ### Les chiffres générés
 
-![Part de chaque chiffre](figures/inference/drs_classes.png)
+![Part de chaque chiffre](../figures/inference/drs_classes.png)
 
 | Part des images (%) | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | Écart à 10 % |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -216,7 +216,7 @@ Même conclusion sur la précision (elle monte) et le rappel (il ne bouge pas). 
 
 **Résultats sur `checkpoints/G.pth`, avec le petit CNN.** Ces FID ne se comparent pas à ceux du reste du document. Sans tri ni troncature : FID 97,6 ± 3,6, précision 0,834, rappel 0,744.
 
-![OBRS, DRS réglé par K et troncature](figures/inference/earlier_methods.png)
+![OBRS, DRS réglé par K et troncature](../figures/inference/earlier_methods.png)
 
 | K (propositions par image gardée) | Acceptation | FID, OBRS | FID, DRS réglé par K |
 |---|---|---|---|
@@ -243,11 +243,11 @@ Même conclusion sur la précision (elle monte) et le rappel (il ne bouge pas). 
 
 | Fichier | Rôle |
 |---|---|
-| [`sampling.py`](sampling.py) | `drs_f_hat` calcule F̂, `sample_drs_azadi` fait la boucle de tirage |
-| [`keep_training.py`](keep_training.py) | L'étape KeepTraining |
-| [`configs/sampling/drs_azadi.yaml`](configs/sampling/drs_azadi.yaml) | Les paramètres : percentile, `ε`, nombre d'images pour estimer `d_M` |
-| [`sweep.py`](sweep.py) | Fait varier le percentile |
-| [`figures/make_inference_figures.py`](figures/make_inference_figures.py) | Trace les figures de ce document |
+| [`sampling.py`](../sampling.py) | `drs_f_hat` calcule F̂, `sample_drs_azadi` fait la boucle de tirage |
+| [`keep_training.py`](../keep_training.py) | L'étape KeepTraining |
+| [`configs/sampling/drs_azadi.yaml`](../configs/sampling/drs_azadi.yaml) | Les paramètres : percentile, `ε`, nombre d'images pour estimer `d_M` |
+| [`sweep.py`](../sweep.py) | Fait varier le percentile |
+| [`figures/make_inference_figures.py`](../figures/make_inference_figures.py) | Trace les figures de ce document |
 
 | Réglage | Valeur | Origine |
 |---|---|---|

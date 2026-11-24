@@ -1,5 +1,5 @@
 # Données + Entraînement : RpGAN + R1 + EMA (Noé), plus le bruit d'instance sigma = 0,3 décroissant (Nicodème),
-# la variante de bruit sans run effondré dans rapport-donnée.md.
+# la variante de bruit sans run effondré dans docs/data.md.
 name: cmp_rpgan_r1_ema_noise_03
 seed: 0
 

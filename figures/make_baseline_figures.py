@@ -1,4 +1,4 @@
-"""Figures de baseline.md dans figures/baseline/, et chiffres à reporter dans le document.
+"""Figures de docs/baseline.md dans figures/baseline/, et chiffres à reporter dans le document.
 
 Lit runs/baseline_200ep_prof/metrics.jsonl et trois générateurs (époques 50, 120 et 200).
 

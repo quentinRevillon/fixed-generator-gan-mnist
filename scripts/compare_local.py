@@ -9,7 +9,7 @@
 2. Mesure les poids de la dernière époque (G.pth, le G moyenné si EMA, et D.pth) contre MNIST test, sans tri et avec
    le DRS au percentile 80, avec scripts/measure_runs.py : FID Inception, précision et rappel VGG, et les mêmes
    mesures du petit CNN. On ne choisit pas d'époque : la baseline commune est meilleure à l'époque 200 selon
-   Inception (baseline.md), et le petit CNN choisirait une autre époque. Sortie : results/comparison_local.csv.
+   Inception (docs/baseline.md), et le petit CNN choisirait une autre époque. Sortie : results/comparison_local.csv.
 
 C'est l'équivalent local de scripts/compare.sh (Slurm, Juliet), réduit aux configurations du pipeline combiné.
 Sur Juliet, utiliser configs/compare/ (mêmes réglages, Inception et VGG mesurés pendant l'entraînement).

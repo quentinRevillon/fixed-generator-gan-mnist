@@ -1,4 +1,4 @@
-"""Tableaux et figures de rapport-donnée.md. À lancer depuis la racine : python figures/make_data_figures.py [--real | --per-class]
+"""Tableaux et figures de docs/data.md. À lancer depuis la racine : python figures/make_data_figures.py [--real | --per-class]
 
 --real : mesures sur les vraies images seules (aucun GAN) ; --per-class : FID par chiffre (long) ;
 sans option : bilan des runs de configs/data/.

@@ -193,7 +193,7 @@ def drs_f_hat(log_r, log_M, gamma, eps):
 def sample_drs_azadi(G, D, n, rng, batch_size=10_000, percentile=80, n_burnin=10_000, eps=1e-6):
     """DRS selon la Figure 1 du papier : M estimé sur un burn-in puis mis à jour, gamma par percentile dans chaque batch.
 
-    Le papier passe d'abord D par keep_training.py ; chez nous, le D d'origine donne le meilleur FID (inference-drs.md).
+    Le papier passe d'abord D par keep_training.py ; chez nous, le D d'origine donne le meilleur FID (docs/inference.md).
     Le papier fixe gamma au 95e percentile sur le jeu 2D et au 80e sur ImageNet. Plus le percentile est haut, plus gamma
     est grand, donc plus on rejette.
     """

@@ -1,4 +1,4 @@
-"""Figures de la campagne 100 époques + EMA (training-r3gan.md, section 6).
+"""Figures de la campagne 100 époques + EMA (docs/training.md, section 6).
 Depuis la racine du repo : DATA=<chemin MNIST> PYTHONPATH=. python figures/make_campaign_figures.py"""
 import csv
 import os

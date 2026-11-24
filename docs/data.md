@@ -1,6 +1,6 @@
 # Volet Données : Instance Selection et Instance Noise
 
-**Responsable :** Nicodème. **Branche :** `nico/preprocessing`. **Code :** [`preprocessing.py`](preprocessing.py).
+**Responsable :** Nicodème. **Branche :** `nico/preprocessing`. **Code :** [`preprocessing.py`](../preprocessing.py).
 
 **Question (slide 76) :** quelle distribution le modèle apprend-il quand on change ce qu'il voit ?
 
@@ -49,7 +49,7 @@ data:
 
 | Test | Résultat |
 |---|---|
-| 7 tests unitaires ([`tests/test_preprocessing.py`](tests/test_preprocessing.py)) : score, taille et mélange des classes, planning de σ, absence de tirage aléatoire à σ = 0 | 7 réussis |
+| 7 tests unitaires ([`tests/test_preprocessing.py`](../tests/test_preprocessing.py)) : score, taille et mélange des classes, planning de σ, absence de tirage aléatoire à σ = 0 | 7 réussis |
 | Options désactivées contre `main` : 2 époques sur CPU, même seed | Poids de G identiques au bit près |
 | Essai court de chaque option, avec reprise par `--resume` | Fonctionne |
 
@@ -71,7 +71,7 @@ Chaque sous-ensemble (10 000 images) est comparé au MNIST test comme s'il avait
 
 La sélection globale laisse 1,4 % de 2 et 21,7 % de 1 : c'est pour cela que le papier sélectionne par classe. La figure ci-dessous montre les images les plus denses (à gauche) et les moins denses (à droite) : les rejets ne sont pas des erreurs, mais des écritures rares et valides.
 
-![Images gardées et rejetées](figures/data/kept_vs_rejected.png)
+![Images gardées et rejetées](../figures/data/kept_vs_rejected.png)
 
 ### Sur les GAN
 
@@ -87,11 +87,11 @@ La sélection globale laisse 1,4 % de 2 et 21,7 % de 1 : c'est pour cela que le 
 | `noise_01_const` | 2 / 3 | 72,7 (1 run) | 0,799 | 0,700 | 196,2 | 0,841 | 0,770 |
 | `sel_50_noise_01` | 0 / 3 | 336,4 ± 20,1 | 0,859 | 0,392 | 721,1 | 0,925 | 0,377 |
 
-![FID et recall selon le nombre de mises à jour](figures/data/curves.png)
+![FID et recall selon le nombre de mises à jour](../figures/data/curves.png)
 
 **Part de chaque chiffre généré, à 60 000 mises à jour :**
 
-![Mélange des chiffres](figures/data/classes.png)
+![Mélange des chiffres](../figures/data/classes.png)
 
 **FID à chiffre fixé** (générateur final, chiffres avec au moins 500 images sur 50 000) :
 
@@ -166,7 +166,7 @@ python figures/make_data_figures.py --per-class
 python -m pytest tests/test_preprocessing.py
 ```
 
-`scripts/data_runs.sh` lance les seeds 0 à 2 sur Juliet. Les seeds 3 à 7 de `data_ref`, `noise_01` et `sel_50` s'obtiennent avec `python train.py --config configs/data/<variante>.yaml --seed <n>`. Les mesures brutes sont dans [`figures/data/`](figures/data/).
+`scripts/data_runs.sh` lance les seeds 0 à 2 sur Juliet. Les seeds 3 à 7 de `data_ref`, `noise_01` et `sel_50` s'obtiennent avec `python train.py --config configs/data/<variante>.yaml --seed <n>`. Les mesures brutes sont dans [`figures/data/`](../figures/data/).
 
 ## Sources
 

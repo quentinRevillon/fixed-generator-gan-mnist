@@ -1,4 +1,4 @@
-"""Options du volet Données, activées séparément dans le YAML (section data). Détails : rapport-donnée.md.
+"""Options du volet Données, activées séparément dans le YAML (section data). Détails : docs/data.md.
 
 - selection : Instance Selection for GANs (DeVries et al., 2020), entraîner sur les images les plus denses.
 - instance_noise : bruit gaussien sur les entrées de D, réelles et générées (Sønderby et al., 2017).

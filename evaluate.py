@@ -4,7 +4,7 @@ Deux mesures, jamais mélangées :
     'cnn'  : features d'un petit classifieur MNIST partagé (checkpoints/mnist_classifier.pth), k = 3 -> results/results.csv
     'prof' : FID sur Inception, precision / recall sur VGG (k = 5, 9 984 images), comme le classement -> results/results_prof.csv
 Les features sont calculées sur une référence réelle (split 'val' pendant le développement, 'test' pour les
-chiffres finaux, voir data.py) et sur les images générées. Détails et formules : architecture-choix.md.
+chiffres finaux, voir data.py) et sur les images générées. Détails et formules : docs/design-choices.md.
 
 En ligne de commande (chaque évaluation d'un run ajoute une ligne par seed au tableau de sa mesure) :
     python evaluate.py --run runs/baseline_200ep_prof --weights best --seeds 0 1 2            # plain, petit CNN

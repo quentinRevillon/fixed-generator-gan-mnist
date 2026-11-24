@@ -1,5 +1,5 @@
 # DRS tel que décrit par Azadi et al. 2019 (Figure 1, équation 8). Le papier passe d'abord D par keep_training.py ;
-# chez nous, le D d'origine donne le meilleur FID : voir inference-drs.md.
+# chez nous, le D d'origine donne le meilleur FID : voir docs/inference.md.
 method: drs_azadi
 percentile: 80    # gamma = ce percentile de F̂ dans chaque batch ; le papier : 95 sur le jeu 2D, 80 sur ImageNet
 n_burnin: 10000   # le papier : 10 000 images pour la première estimation de M
