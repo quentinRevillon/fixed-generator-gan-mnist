@@ -77,6 +77,7 @@ class InstanceNoise(nn.Module):
     """Enveloppe D et bruite ses entrées (dans [-1, 1]). À sigma = 0, aucun tirage : la baseline reste identique."""
 
     def __init__(self, D):
+        """Garde D ; sigma est mis à jour à chaque époque par train.py."""
         super().__init__()
         self.D, self.sigma = D, 0.
 
@@ -85,4 +86,5 @@ class InstanceNoise(nn.Module):
         return x + self.sigma * torch.randn_like(x) if self.sigma else x
 
     def forward(self, x):
+        """Sortie de D sur l'entrée bruitée."""
         return self.D(self.perturb(x))

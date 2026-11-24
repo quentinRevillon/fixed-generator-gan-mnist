@@ -52,6 +52,7 @@ class Classifier(nn.Module):
     """Petit CNN MNIST ; sa couche de 128 dimensions sert d'espace de features pour les métriques."""
 
     def __init__(self):
+        """Deux blocs conv + max-pooling, une couche de features (128) et une sortie à 10 classes."""
         super().__init__()
         self.conv = nn.Sequential(nn.Conv2d(1, 32, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2),
                                   nn.Conv2d(32, 64, 3, padding=1), nn.ReLU(), nn.MaxPool2d(2))
@@ -59,9 +60,11 @@ class Classifier(nn.Module):
         self.out = nn.Linear(128, 10)
 
     def features(self, x):  # x : (N, 1, 28, 28) dans [0, 1] ; avant ReLU (sinon covariance singulière)
+        """Features de 128 dimensions utilisées par le FID CNN et le k-NN."""
         return self.fc(self.conv(x).flatten(1))
 
     def forward(self, x):
+        """Logits des 10 chiffres."""
         return self.out(F.relu(self.features(x)))
 
 

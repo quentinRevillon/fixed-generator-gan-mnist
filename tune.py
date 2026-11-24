@@ -13,6 +13,7 @@ from utils import load_config
 
 
 def objective(trial, base, study, epochs):
+    """Entraîne un run avec les hyperparamètres tirés par Optuna et renvoie son FID final."""
     cfg = copy.deepcopy(base)
     cfg['name'] = os.path.join(study, f'trial_{trial.number:03d}')
     cfg['train']['epochs'] = epochs
